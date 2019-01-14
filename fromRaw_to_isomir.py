@@ -1,30 +1,32 @@
 #usr/bin/env python
 
 """
-    Author: Antonio Luna de Haro
-    Internship in Bioinformatics (Lauro Sumoy)
+    Author v0.1: Antonio Luna de Haro
+    Author v1: Jose F Sanchez-Herrero
+
     This scripts runs sRNAtoolbox for a selection of RNAseq samples
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!    
 !!!!    Make sure to activate miRTop! (activate-mirtop-0.3.11a0)    !!!!
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!  
-    genera tots els gtf i files intermitxos  
 """
+## useful imports
 import sys
 from sys import argv
 import time
+from datetime import datetime
 import subprocess
 import os
 import re
+import configparser
 
-def select_samples (samples_prefix = 'BST_2_', reverse = False, path_to_samples = "/imppc/labs/lslab/share/isomiR_project/mirXPlore/FASTQ"):
-    path_to_samples = "/imppc/labs/lslab/aluna/Ilumina_NGS/150120_VHIO_data_FIS_SERUM_miRNAs/fastqR"
-    if reverse:
-        path_to_samples = path_to_samples + '2'
-    else:
-        path_to_samples = path_to_samples + '1'
- 
-        
-    print 'Path to samples:', path_to_samples
+
+#####################
+#### functions ######
+#####################
+
+def select_samples (samples_prefix = "", path_to_samples = ""):
+
+    #Debug: print samples_prefix
+    #Debug: print path_to_samples
+    print 'Selecting samples from:', path_to_samples
     
     #Get all files in the folder "path_to_samples"    
     files = os.listdir(path_to_samples)
@@ -36,11 +38,11 @@ def select_samples (samples_prefix = 'BST_2_', reverse = False, path_to_samples 
             elif fastq.endswith('fastq'):
                 sample_list.append(fastq)
             else:
-                print fastq, 'is a file that is neither in fastq.gz or .fastq format, so it is not included'
+                print "** ", fastq, 'is a file that is neither in fastq.gz or .fastq format, so it is not included'
+    
     non_duplicate_samples = list(set(sample_list))
     number_samples = len(non_duplicate_samples)
-    print 'sRNAtoolbox will run with all', samples_prefix, 'samples (%i samples)' %number_samples
-
+    print '\nPipeline will run with all', samples_prefix, 'samples (%i samples)' %number_samples, '\n'
     return sorted(non_duplicate_samples)
 
 
@@ -68,6 +70,7 @@ def one_file_per_sample(final_sample_list):
     grouped_subsamples = []
     bigfile_list = []
     for samplex in final_sample_list:
+    	print final_sample_list
         if samplex not in grouped_subsamples:
             subsamples = []
             samplename_search = re.search('(.*\/)([a-zA-Z]{2,3})(\d{5})(\d{2})(.*)', samplex)
@@ -247,34 +250,53 @@ def getime (start_time):
 
 if __name__ == "__main__":
     start_time_total = time.time()
+  
+    print "\n######## Starting Process ########"
+    now = datetime.now()
+    date_time = now.strftime("%m/%d/%Y, %H:%M:%S")
+    print date_time
+    print "\n"
+  
+    ## get configuration
+    configuration_path_file = os.path.abspath(argv[1])
+    config = configparser.ConfigParser()
+    config.read(configuration_path_file)
+
+    print "------ Get configuration options ------"
+    print "Reading configuration file: ", configuration_path_file
+    print "\n"
     
     #Reading arguments from the comand line
-    if len(argv) > 2:
+    #if len(argv) > 2:
+    #    
+    #    s_prefix = argv[1]
+    #    if argv[2] == 'single' or argv[2] == 'paired':
+    #        type_reads = argv[2]
+    #    else:
+    #        print 'Second argument must be "single" or "paired". Using paired'
+    #        type_reads = 'paired'
+    #
+    #else:
+    #    print 'Using paired-end reads for BST samples (Two arguments must be provided if something else is wanted)'
+    #    s_prefix = 'BST'
+    #    type_reads = 'paired'
         
-        s_prefix = argv[1]
-        if argv[2] == 'single' or argv[2] == 'paired':
-            type_reads = argv[2]
-        else:
-            print 'Second argument must be "single" or "paired". Using paired'
-            type_reads = 'paired'
-    else:
-        print 'Using paired-end reads for BST samples (Two arguments must be provided if something else is wanted)'
-        s_prefix = 'BST'
-        type_reads = 'paired'
-        
-    sample_listR1 = select_samples(samples_prefix= s_prefix)
-    sample_listR2 = select_samples(samples_prefix= s_prefix, reverse=True)
-    #inputsR1 = gunziping(sample_listR1)
-    #inputsR2 = gunziping(sample_listR2, reverse=True)
+    ####### Step1: select_samples
+    sample_listR1 = select_samples(samples_prefix="", path_to_samples=config["GENERAL"]["fastq_R1"])
+    sample_listR2 = select_samples(samples_prefix="", path_to_samples=config["GENERAL"]["fastq_R2"])
     
+    ####### Step2: merge_samples
     start_time_partial = time.time()
-
     mergedR1 = one_file_per_sample(sample_listR1)
     mergedR2 = one_file_per_sample(sample_listR2)
     h,m,s = getime(start_time_partial)
     print '\n---------------------------------------------------\n'
     print 'Each sample has been merged into a single file (Time spent: %i h %i min %i s)' %(int(h), int(m), int(s))
     print '\n---------------------------------------------------\n'
+
+    exit()
+
+    ####### Step3: cutadapt
     start_time_partial = time.time()
     trimed_R1, trimed_R2 = cutadapt(mergedR1, mergedR2)
     h,m,s = getime(start_time_partial)
