@@ -22,30 +22,29 @@ import configparser
 #### functions ######
 #####################
 
-def select_samples (samples_prefix = "", path_to_samples = ""):
-
-    #Debug: print samples_prefix
-    #Debug: print path_to_samples
-    print 'Selecting samples from:', path_to_samples
-    
+###############
+def select_samples (samples_prefix, path_to_samples):
     #Get all files in the folder "path_to_samples"    
     files = os.listdir(path_to_samples)
     sample_list = []
     for fastq in files:
+    	#print "Test: ",fastq
         if fastq.startswith(samples_prefix) and 'merged' not in fastq: 
             if fastq.endswith('.gz'):
                 sample_list.append(fastq[:-3]) 
             elif fastq.endswith('fastq'):
                 sample_list.append(fastq)
             else:
-                print "** ", fastq, 'is a file that is neither in fastq.gz or .fastq format, so it is not included'
+                print "** ERROR: ", fastq, 'is a file that is neither in fastq.gz or .fastq format, so it is not included'
     
     non_duplicate_samples = list(set(sample_list))
     number_samples = len(non_duplicate_samples)
-    print '\nPipeline will run with all', samples_prefix, 'samples (%i samples)' %number_samples, '\n'
+    print "\t\t- ", number_samples," samples selected from ", path_to_samples
     return sorted(non_duplicate_samples)
+###############
 
 
+###############
 def gunziping (non_duplicate_samples, reverse = False, path_to_samples = "/imppc/labs/lslab/share/isomiR_project/mirXPlore/FASTQ"):
     path_to_samples = "/imppc/labs/lslab/aluna/Ilumina_NGS/150120_VHIO_data_FIS_SERUM_miRNAs/fastqR"
     if reverse:
@@ -63,53 +62,67 @@ def gunziping (non_duplicate_samples, reverse = False, path_to_samples = "/imppc
             sample = sample[:-3]
         final_sample_list.append(sample)
     return sorted(final_sample_list)
+###############    
     
-    
-    
-def one_file_per_sample(final_sample_list):
-    grouped_subsamples = []
-    bigfile_list = []
-    for samplex in final_sample_list:
-    	print final_sample_list
-        if samplex not in grouped_subsamples:
-            subsamples = []
-            samplename_search = re.search('(.*\/)([a-zA-Z]{2,3})(\d{5})(\d{2})(.*)', samplex)
-            if samplename_search:
-                path = samplename_search.group(1)
-                sample = samplename_search.group(2)
-                comonpart = path + sample
-                print comonpart
-                for sampley in final_sample_list:
-                    if comonpart in sampley:
-                        subsamples.append(sampley)
-                        grouped_subsamples.append(sampley)
-            bigfilepath = comonpart + '_merged.fastq'
-            bigfilename = sample + '_merged.fastq'
-            bigfile_list.append(bigfilepath)
-            #print sorted(subsamples)
-            if not os.path.isfile(bigfilepath) or os.stat(bigfilepath).st_size == 0:
-                partsofsample = ' '.join(sorted(subsamples))
-                cmd = 'cat %s > %s' %(partsofsample, bigfilepath)
-                try:
-                    print '%s created' %bigfilename
-                    subprocess.check_output(cmd, shell = True)
-                    
-                    
-                except subprocess.CalledProcessError as err:
-                    print err.output
-                    sys.exit()
-            else:
-                print 'Sample %s is already merged' %sample
-    print 'There is %i samples after merging' %len(bigfile_list)
-    return bigfile_list
-    
-   
-def cutadapt (list_R1, list_R2):
-    out_path = '/imppc/labs/lslab/aluna/Ilumina_NGS/150120_VHIO_data_FIS_SERUM_miRNAs/cutadapt_out/'
+###############    
+def one_file_per_sample(final_sample_list, path_to_samples, directory, read):
+	## merge sequencing files for sample, no matter of sector or lane generated.
+	
+	grouped_subsamples = []
+	bigfile_list = []
+	for samplex in final_sample_list:
+		if samplex not in grouped_subsamples:
+			#print "\nTest: ", samplex
+			subsamples = []
+			samplename_search = re.search('([a-zA-Z]{2,3})\_(\d{1,2})\_([a-zA-Z]{6})(.*)', samplex)
+			#print "samplename_search", samplename_search.group(1)
+			#print "samplename_search", samplename_search.group(2)
+			#print "samplename_search", samplename_search.group(3)
+
+			if samplename_search:
+				path = samplename_search.group(1)
+				sample = samplename_search.group(2)
+				comonpart = path + "_" + sample + "_"
+				commonname = path + "_" + sample + "_" + read + ".fastq"
+				bigfilepath = directory + "/" + commonname
+				bigfile_list.append(commonname)
+					
+				#print comonpart
+				#print commonname
+				#print bigfilepath
+				
+				for sampley in final_sample_list:
+					if comonpart in sampley:
+						#print "sample: ", sampley
+						subsamples.append(path_to_samples + "/" + sampley)
+						grouped_subsamples.append(sampley)
+					
+				if not os.path.isfile(bigfilepath) or os.stat(bigfilepath).st_size == 0:
+					partsofsample = ' '.join(sorted(subsamples))
+					cmd = 'cat %s >> %s' %(partsofsample, bigfilepath)
+					##print "Merge command: ", cmd ## DUMP in file merge_info.txt
+					try:
+						print '\t+ %s created' %commonname
+						subprocess.check_output(cmd, shell = True)
+					except subprocess.CalledProcessError as err:
+						print err.output
+						sys.exit()
+				else:
+					print '\t + Sample %s is already merged' % commonname
+
+	print 'There are' , len(bigfile_list) , 'samples after merging for read' , read, '\n'
+
+	return bigfile_list
+	
+###############    
+
+###############   
+def cutadapt (list_R1, list_R2, path, out_path):
     trimed_R1 = []
     trimed_R2 = [] 
+
     for file_R1 in list_R1:
-        
+    
         sampleR1_search = re.search('(.*\/)([a-zA-Z]{2,3})(\d{5})(\d{2})(.*)', file_R1)
         if sampleR1_search:
             o_param = out_path + sampleR1_search.group(2) + '_' + sampleR1_search.group(4) + '_1.fastq'
@@ -136,8 +149,9 @@ def cutadapt (list_R1, list_R2):
                         else:
                             print 'Sample %s is already trimmed' %(sampleR1_search.group(2) + '_' + sampleR1_search.group(4))
     return trimed_R1, trimed_R2
+###############
 
-     
+###############     
 def fastqjoin (trimed_R1, trimed_R2, error_param = '0.1'):
     out_path = '/imppc/labs/lslab/aluna/Ilumina_NGS/150120_VHIO_data_FIS_SERUM_miRNAs/fastqjoin/'
     joined_reads = []
@@ -163,9 +177,9 @@ def fastqjoin (trimed_R1, trimed_R2, error_param = '0.1'):
                 else: 
                     print 'Sample %s is already joined' %sample1
     return joined_reads
+###############       
     
-    
-    
+###############       
 def sRNAbench (joined_reads, paired=True):
     outpath = '/imppc/labs/lslab/aluna/opt/sRNAtoolboxDB/out/'
     results = []
@@ -194,9 +208,11 @@ def sRNAbench (joined_reads, paired=True):
         else: 
             print 'Sample %s has already been serached for isomiRs' %outdir[:-5]
     return results
+###############   
     
+###############   
 def miRTop (results):
-    outpath = '/imppc/labs/lslab/aluna/isomiRs/'
+    outpath = '/imppc/labs/lslab/aluna/q/'
     gtfs = []
     for folder in results:
         outdir = '/'.join(folder.split('/')[-3:-1])
@@ -218,9 +234,10 @@ def miRTop (results):
             print 'Sample %s has already an isomiRs gtf file' %outdir
     return gtfs
     #return results
-            
-def miRTop_stats (gtfs):
+###############   
     
+###############   
+def miRTop_stats (gtfs):
     for gtf in gtfs:
         gtfname = gtf.split('/')[-2]
         gtfile = gtf + gtfname + '.gtf'
@@ -228,108 +245,242 @@ def miRTop_stats (gtfs):
         if not (os.path.isdir(outdir)):
             cmd = 'mirtop stats -o %s %s' %(outdir, gtfile) 
             print 'The following cmd is being executed at the shell: \n', cmd
-            
             try:
                 print 'Creating isomiRs stats for %s' %gtfname
                 subprocess.check_output(cmd, shell = True)
-                
             except subprocess.CalledProcessError as err:
                 print err.output
                 sys.exit()
         else: 
             print 'Sample %s has already isomiRs stats' %gtfname
-
+###############   
+    
+###############   
 def getime (start_time):
     total_sec = time.time() - start_time
     m, s = divmod(int(total_sec), 60)
     h, m = divmod(m, 60)
     return h, m, s
+###############   
     
+###############   
+def create_subfolder (name, path):
+    ## create subfolder  ##	
+	subfolder_path = path + "/" + name
+	    
+    # define the access rights
+	try:
+		os.mkdir(subfolder_path, access_rights)
+	except OSError:  
+	   	print ("Directory %s already exists" % subfolder_path)
+	else:  
+		print ("Successfully created the directory %s " % subfolder_path)
+	
+	print ""
+	return subfolder_path
+###############   
+    
+###############   
+def timestamp (start_time_partial):
+	h,m,s = getime(start_time_partial)
+	print '---------------------------------------------------'
+	print '(Time spent: %i h %i min %i s)' %(int(h), int(m), int(s))
+	print '---------------------------------------------------'
+	return time.time()
+###############   
+    
+def help_options():
+	print "\n#################################################"
+	print "Usage:\npython", os.path.abspath(argv[0]),"config_file.txt "
+	print ""
+	print "This script... [Write a description]"
+	print ""
+	print "Configuration file includes general and detailed information for the project:"
+	print "For further details check: (...)"
+	print "--"
+	print "[GENERAL]"
+	print "fastq_R1 = /path/to/file/fastqR1"
+	print "fastq_R2 = /path/to/file/fastqR2"
+	print "project = project_name"
+	print "prefix = prefix_name"
+	print ""
+	print "[EXECUTABLES]"
+	print "cutadapt = /path/to/cutadapt/bin"
+	print "--"
+	print "#################################################\n\n"
+	
 
-
-
+#################################################
+######				MAIN					#####
+#################################################
 if __name__ == "__main__":
-    start_time_total = time.time()
+	start_time_total = time.time()
   
-    print "\n######## Starting Process ########"
-    now = datetime.now()
-    date_time = now.strftime("%m/%d/%Y, %H:%M:%S")
-    print date_time
-    print "\n"
+  	## control if options provided or help
+
+	if len(sys.argv) > 1:
+		print ""
+	else:
+		help_options()
+		exit()
+    	
+    	 
+	print "\n######## Starting Process ########"
+	now = datetime.now()
+	date_time = now.strftime("%m/%d/%Y, %H:%M:%S")
+	print date_time, "\n"
   
-    ## get configuration
-    configuration_path_file = os.path.abspath(argv[1])
-    config = configparser.ConfigParser()
-    config.read(configuration_path_file)
+    ########################
+    ## get configuration  ##
+	########################
+	configuration_path_file = os.path.abspath(argv[1])
+	config = configparser.ConfigParser()
+	config.read(configuration_path_file)
 
-    print "------ Get configuration options ------"
-    print "Reading configuration file: ", configuration_path_file
-    print "\n"
+	print "------ Get configuration options ------"
+	print "Reading configuration file: ", configuration_path_file, "\n"
     
-    #Reading arguments from the comand line
-    #if len(argv) > 2:
-    #    
-    #    s_prefix = argv[1]
-    #    if argv[2] == 'single' or argv[2] == 'paired':
-    #        type_reads = argv[2]
-    #    else:
-    #        print 'Second argument must be "single" or "paired". Using paired'
-    #        type_reads = 'paired'
-    #
-    #else:
-    #    print 'Using paired-end reads for BST samples (Two arguments must be provided if something else is wanted)'
-    #    s_prefix = 'BST'
-    #    type_reads = 'paired'
-        
-    ####### Step1: select_samples
-    sample_listR1 = select_samples(samples_prefix="", path_to_samples=config["GENERAL"]["fastq_R1"])
-    sample_listR2 = select_samples(samples_prefix="", path_to_samples=config["GENERAL"]["fastq_R2"])
-    
-    ####### Step2: merge_samples
-    start_time_partial = time.time()
-    mergedR1 = one_file_per_sample(sample_listR1)
-    mergedR2 = one_file_per_sample(sample_listR2)
-    h,m,s = getime(start_time_partial)
-    print '\n---------------------------------------------------\n'
-    print 'Each sample has been merged into a single file (Time spent: %i h %i min %i s)' %(int(h), int(m), int(s))
-    print '\n---------------------------------------------------\n'
+    ####################
+    ## create folder  ##	
+ 	####################
+	print "------ Create project folder ------"
+	project_name = config["GENERAL"]["project"]
+	try:
+		folder_path = os.path.abspath(project_name)
+	except OSError:  
+		path = os.getcwd()  
+		print "The current working directory is %s", path
+		print "Folder for project name: ",  project_name, " will be created here"
+		folder_path = path.append(project_name)
+	    
+    # define the access rights
+	access_rights = 00755
+	try:
+		os.mkdir(folder_path, access_rights)
+	except OSError:  
+	   	print ("Directory %s already exists" % folder_path)
+	else:  
+		print ("Successfully created the directory %s " % folder_path)
+	
+	print ""
+	
+    #####################################################
+    ## 	Reading arguments from the configuration file  ##
+    #####################################################
 
-    exit()
+    ## checking file(s) exists
+	print "------ Checking files provided ------"
+	file_R1 = config["GENERAL"]["fastq_R1"]
+	file_R2 = config["GENERAL"]["fastq_R2"]
 
-    ####### Step3: cutadapt
-    start_time_partial = time.time()
-    trimed_R1, trimed_R2 = cutadapt(mergedR1, mergedR2)
-    h,m,s = getime(start_time_partial)
-    print '\n---------------------------------------------------\n'
-    print 'Removed adapters for all samples (Time spent: %i h %i min %i s)' %(int(h), int(m), int(s))
-    print '\n---------------------------------------------------\n'
-    start_time_partial = time.time()
-    joined_reads =fastqjoin(trimed_R1, trimed_R2)
-    h,m,s = getime(start_time_partial)
-    print '\n---------------------------------------------------\n'
-    print 'Paired end reads converted into one (Time spent: %i h %i min %i s)' %(int(h), int(m), int(s))
-    print '\n---------------------------------------------------\n'
-    start_time_partial = time.time()
-    if type_reads == 'paired':    
-        results = sRNAbench(joined_reads)
-    else:
-        results = sRNAbench(trimed_R1, paired=False)
-    h,m,s = getime(start_time_partial)
-    print '\n---------------------------------------------------\n'
-    print 'IsomiRs for each sample have been reported (Time spent: %i h %i min %i s)' %(int(h), int(m), int(s))
-    print '\n---------------------------------------------------\n'
-    start_time_partial = time.time()
-    gtfs =miRTop(results)
-    h,m,s = getime(start_time_partial)
-    print '\n---------------------------------------------------\n'
-    print 'Every sample has its own gtf file containing all isomiRs (Time spent: %i h %i min %i s)' %(int(h), int(m), int(s))
-    print '\n---------------------------------------------------\n'
-    start_time_partial = time.time()
-    miRTop_stats(gtfs)
-    h,m,s = getime(start_time_partial)
-    ht,mt,st = getime(start_time_total)
-    print '\n---------------------------------------------------\n'
-    print 'EVERYTHING RAN WITHOUT PROBLEMS! EUREKA (Time spent: %i h %i min %i s)' %(int(h), int(m), int(s))
-    print '(Total time spent: %i h %i min %i s)' %(int(ht), int(mt), int(st))
-    print '\n---------------------------------------------------\n'
+	try:
+		os.path.isfile(file_R1)
+	except FileNotFoundError:
+		print "ERROR: No file R1 provided\n"
+		print "Exit"
+		exit()
+	else:
+		print "+ Folder for fastq R1 is readable and accessible"
     
+	try:
+	    os.path.isfile(file_R2)
+	except FileNotFoundError:
+		print "+ Folder for fastq R2 does not exists"
+		print "+ Using single end option"
+	else:
+		print "+ Folder for fastq R2 is readable and accessible"
+		print "+ Using paired-end option\n"
+		paired_end = True
+
+    ## checking prefix provided
+  	print "------ Checking prefix provided ------"
+	prefix_list = config["GENERAL"]["prefix"]
+
+	if prefix_list == 'all':
+		print "+ All samples will be retrieved"
+	else:
+		prefix_list2 = prefix_list.split(",")
+		prefix_list = prefix_list2
+		for samples in prefix_list:
+			print ("+ Samples with prefix %s will be retrieved" % samples)
+	
+	print ""
+		
+
+	################################################
+  	print "------ Starting pipeline ------"
+	################################################
+  	
+	#####################################
+    ####### Step1: select_samples #######
+	#####################################
+	all_list_R1 = []
+	all_list_R2 = []
+
+	print "+ Select samples: "
+	for samples in prefix_list:
+		print "\t+",samples,"samples"
+		sample_listR1 = select_samples(samples, file_R1)
+		all_list_R1.extend(sample_listR1)
+		if paired_end:
+			sample_listR2 = select_samples(samples, file_R2)
+			all_list_R2.extend(sample_listR2)
+
+	####################################
+    ####### Step2: merge_samples #######
+	####################################
+	print "+ Merge samples: "
+	merge_folder = create_subfolder("1.merge", path=folder_path)
+	mergeR2 = []
+	mergedR1 = one_file_per_sample(all_list_R1, file_R1, merge_folder, read="R1")
+	if paired_end:
+		mergedR2 = one_file_per_sample(all_list_R2, file_R2, merge_folder, read="R2")
+	## timestamp
+	start_time_partial = timestamp(start_time_total)
+	
+	exit()
+
+	###############################
+    ####### Step3: cutadapt #######
+	###############################
+	cutadapt_folder = create_subfolder("2.cutadapt", path=folder_path)
+	trimed_R1, trimed_R2 = cutadapt(mergedR1, mergedR2, merge_folder, cutadapt_folder)
+
+	## timestamp
+	start_time_partial = timestamp(start_time_partial)
+	
+	###############################
+    ####### Step4: fastqjoin ######
+	###############################
+	fastqjoin_folder = create_subfolder("3.fastqjoin", path=folder_path)
+	joined_reads =fastqjoin(trimed_R1, trimed_R2)
+	## timestamp
+	start_time_partial = timestamp(start_time_partial)
+
+	###############################
+    ####### Step5: sRNAbench ######
+	###############################
+	sRNAbench_folder = create_subfolder("4.sRNAbench", path=folder_path)
+	if type_reads == 'paired':    
+		results = sRNAbench(joined_reads)
+	else:
+		results = sRNAbench(trimed_R1, paired=False)
+	## timestamp
+	start_time_partial = timestamp(start_time_partial)
+
+	#############################
+    ####### Step6: miRTop #######
+	#############################
+	miRTop_folder = create_subfolder("5.miRTop", path=folder_path)
+	gtfs=miRTop(results)
+	h,m,s = getime(start_time_partial)
+	## timestamp
+	start_time_partial = timestamp(start_time_partial)
+
+	###################################
+    ####### Step6: miRTop_stats #######
+	###################################
+	miRTop_stats(gtfs)
+	print "Finish"
+	start_time_partial = timestamp(start_time_total)
+

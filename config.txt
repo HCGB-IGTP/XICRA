@@ -1,6 +1,8 @@
 [GENERAL]
 fastq_R1 = /path/to/file/fastqR1
 fastq_R2 = /path/to/file/fastqR2
+project = project_name
+prefix = prefix_name
 
 [EXECUTABLES]
 cutadapt = /path/to/cutadapt/bin	
