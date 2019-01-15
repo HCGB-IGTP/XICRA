@@ -13,4 +13,4 @@ adapter_5 = sequence2
 cutadapt = /path/to/cutadapt/bin/cutadapt
 fastqjoin = /path/to/fastqjoin_path/fastq-join
 sRNAbench = /path/to/sRNAbench.jar
-sRNAbench_dbPath = /imppc/labs/lslab/aluna/opt/sRNAtoolboxDB/
+sRNAbench_dbPath = /path/to/sRNAtoolboxDB/
