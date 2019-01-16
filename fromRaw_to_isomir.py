@@ -1,11 +1,31 @@
 #usr/bin/env python
 
 """
-    Author v0.1: Antonio Luna de Haro
-    Author v1: Jose F Sanchez-Herrero
 
-    This scripts runs sRNAtoolbox for a selection of RNAseq samples
 !!!!    Make sure to activate miRTop! (activate-mirtop-0.3.11a0)    !!!!
+
+	AUTHOR:
+    Antonio Luna de Haro (v0.1) & Jose F Sanchez-Herrero (v1)
+	Copyright (C) 2018-2019 Lauro Sumoy Lab, IGTP, Spain
+
+    DESCRIPTION:
+    This scripts runs sRNAtoolbox for a selection of RNAseq samples
+    .......
+    
+	LICENSE:
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 """
 ## useful imports
 import sys
@@ -98,7 +118,6 @@ def select_samples (samples_prefix, path_to_samples):
     files = os.listdir(path_to_samples)
     sample_list = []
     for fastq in files:
-    	#print "Test: ",fastq
         if fastq.startswith(samples_prefix) and 'merged' not in fastq: 
             if fastq.endswith('.gz'):
                 sample_list.append(fastq[:-3]) 
@@ -132,13 +151,12 @@ def one_file_per_sample(final_sample_list, path_to_samples, directory, read):
 				bigfile_list.append(commonname)			
 				for sampley in final_sample_list:
 					if comonpart in sampley:
-						#print "sample: ", sampley
 						subsamples.append(path_to_samples + "/" + sampley)
 						grouped_subsamples.append(sampley)
 				if not os.path.isfile(bigfilepath) or os.stat(bigfilepath).st_size == 0:
 					partsofsample = ' '.join(sorted(subsamples))
 					cmd = 'cat %s >> %s' %(partsofsample, bigfilepath)
-					##print "Merge command: ", cmd ## DUMP in file merge_info.txt
+					## ToDOs: DUMP in file merge_info.txt
 					try:
 						print '\t+ %s created' %commonname
 						subprocess.check_output(cmd, shell = True)
@@ -178,11 +196,11 @@ def cutadapt (list_R1, list_R2, path, out_path):
 				except:
 					print "**ERROR: pair for sample ",o_param," doest not exist"
 					print "Sample will be treated as single end"
-					## set cmd 
+					## set cmd for single eng as no R2 file
 					cmd = '%s -a %s -o %s %s %s' %(cutadapt_exe, adapter_3, o_param, file_R1)
 				else:
-					#print "Cutadapt paired end:
-					adapter_5 = config['PARAMETERS']['adapter_3']
+					#paired end:
+					adapter_5 = config['PARAMETERS']['adapter_5']
 					p_param = common + "R2.fastq"
 					file_R2_path = sampleR2
 					cmd = '%s -a %s -A %s -o %s -p %s %s %s' %(cutadapt_exe, adapter_3, adapter_5, o_param, p_param, file_R1_path, file_R2_path)
@@ -193,18 +211,18 @@ def cutadapt (list_R1, list_R2, path, out_path):
 
 			if (os.path.isfile(o_param)):
 				if (os.path.isfile(p_param)):
-					print 'Sample %s is already trimmed in paired-end mode' % name				
+					print '\tSample %s is already trimmed in paired-end mode' % name				
 				else:
-					print 'Sample %s is already trimmed in single-end mode' % name				
+					print '\tSample %s is already trimmed in single-end mode' % name				
 
 			## not trimmed
 			else: 
-				print 'The following cmd is being executed at the shell: \n', cmd			
-				## DUMP in file cutadapt_info.txt
+				## ToDOs: DUMP in file cutadapt_info.txt
+				#print 'The following cmd is being executed at the shell: \n', cmd			
 				try:
-					print 'Trimming for sample ', name
+					#print 'Trimming for sample ', name
 					subprocess.check_output(cmd, shell = True)
-					print 'Adapters trimmed for the sample ', name
+					print '\tAdapters trimmed for the sample ', name
 				except subprocess.CalledProcessError as err:
 					print err.output
 					sys.exit()
@@ -218,107 +236,122 @@ def fastqjoin (trimmed_R1, trimmed_R2, out_path):
 	joined_files = []
 	cmd = []
 	fastqjoin_exe = config['EXECUTABLES']['fastqjoin']    	
-	error_param = 0.1
+	error_param = config['PARAMETERS']['fastqjoin_percent_difference']
 	for file_R1 in trimmed_R1:
 		sampleR1_search = re.search('([a-zA-Z]{2,3})\_(\d{1,2})\_trimmed_.*', file_R1)	
 		if sampleR1_search:
+			# names
 			name = sampleR1_search.group(1) + '_' + sampleR1_search.group(2)
 			path_name = out_path + '/' + name + '_trimmed_join.fastq'
+			unjoined_1 = out_path + '/' + name + '_trimmed_unjoin_R1.fastq'
+			unjoined_2 = out_path + '/' + name + '_trimmed_unjoin_R2.fastq'
 			joined_files.append(path_name)
-			string2search = '.*' + name + '.*'
-			regex=re.compile(string2search)
 			
+			## get read2
+			string2search = '.*' + name + '.*'
+			regex=re.compile(string2search)			
 			sampleR2 = [m.group(0) for l in trimmed_R2 for m in [regex.search(l)] if m]
 
+			##
 			if sampleR2[0] in trimmed_R2:
-				print "there is!"
-				cmd = fastqjoin_exe + ' -p %s %s %s -o %s' %(error_param, file_R1, sampleR2[0], path_name)
-			else: 
-				## single-end
+				cmd = fastqjoin_exe + ' -p %s %s %s -o %s -o %s -o %s' %(error_param, file_R1, sampleR2[0], unjoined_1, unjoined_2, path_name)
+			else: ## single-end
 				cmd = 'cp %s %s' %(file_R1, path_name)
 			if (os.path.isfile(path_name)):
-				print 'Sample %s is already merged mode', name				
-			## not merged
-			else: 
-				print 'The following cmd is being executed at the shell: \n', cmd			
+				print '\tSample %s is already joined' %name
+			else: ## not merged
+				## ToDOs: print in file fastqjoin_info.txt
+				#print 'The following cmd is being executed at the shell: \n', cmd
 				try:
-					print 'Merge sample ', name
+					print '\tMerge sample ', name
 					subprocess.check_output(cmd, shell = True)
 				except subprocess.CalledProcessError as err:
 					print err.output
 					sys.exit()
+			
+			## ToDOs: count and provide statistics for joined reads
+					
 	return joined_files
 ###############       
     
 ###############       
 def sRNAbench (joined_reads, outpath):
 	results = []
-	sRNAbench_exe = config['EXECUTABLES']['sRNAbench'] 	
-	sRNAbench_db = config['EXECUTABLES']['sRNAbench_dbPath'] 	
-
+	sRNAbench_exe = config['EXECUTABLES']['sRNAbench'] + 'exec/sRNAbench.jar'
+	sRNAbench_db = config['EXECUTABLES']['sRNAbench'] 	
 	for jread in joined_reads:
-		sample_search = re.search('([a-zA-Z]{2,3})\_(\d{1,2})\_trimmed_joined.fastq', joined_reads)	
-		outdir = jread.group(1) + "_" + jread.group(2)
-        finalpath = outpath + outdir + '/'
-        results.append(finalpath)
-        print finalpath
+		sample_search = re.search('.*\/([a-zA-Z]{2,3})\_(\d{1,2})\_trimmed_join.fastq', jread)	
+		if sample_search:
+			outdir = sample_search.group(1) + "_" + sample_search.group(2)
+			finalpath = outpath + '/' + outdir + '/'
+			results.append(finalpath)
+    		if (os.path.isdir(finalpath)):
+				print '\tisomiRs analysis for sample %s already exists' %outdir    		
+    		else:
+				cmd = 'java -jar %s dbPath=%s input=%s output=%s microRNA=hsa isoMiR=true plotLibs=true graphics=true plotMiR=true bedGraphMode=true writeGenomeDist=true chromosomeLevel=true chrMappingByLength=true ' %(sRNAbench_exe, sRNAbench_db, jread, finalpath)
+				# ToDOs: print into file sRNAbench
+				#print 'The following cmd is being executed at the shell: \n', cmd
 
-        if not (os.path.isdir(finalpath)):
-            cmd = 'java -jar %s dbPath=%s input=%s output=%s microRNA=hsa isoMiR=true plotLibs=true graphics=true plotMiR=true bedGraphMode=true writeGenomeDist=true chromosomeLevel=true chrMappingByLength=true ' %(sRNAbench_exe, sRNAbench_db, jread, finalpath)
-            print 'The following cmd is being executed at the shell: \n', cmd
-            try:
-                subprocess.check_output(cmd, shell = True)
-            except subprocess.CalledProcessError as err:
-                print err.output
-                sys.exit()
-        else: 
-            print 'Sample %s has already been searched for isomiRs' %outdir
-    return results
+				try:
+					subprocess.check_output(cmd, shell = True)
+					print '\tChecked sample %s for isomiRs' %outdir
+
+				except subprocess.CalledProcessError as err:
+					print err.output
+					sys.exit()
+	return results
+
 ###############   
     
 ###############   
-def miRTop (results):
-    outpath = '/imppc/labs/lslab/aluna/q/'
-    gtfs = []
-    for folder in results:
-        outdir = '/'.join(folder.split('/')[-3:-1])
-        print outdir
-        gtfs.append(outpath + outdir + '/')
-        if not (os.path.isdir(outpath + outdir)):
-            cmd = 'mirtop gff --sps hsa --hairpin /imppc/labs/lslab/aluna/opt/sRNAtoolboxDB/libs/hairpin.fa --gtf /imppc/labs/lslab/aluna/opt/hsa.gff3 --format srnabench -o %s  %s' %(outpath + outdir + '/', folder)
+def miRTop (results, outpath):
 
-            print 'The following cmd is being executed at the shell: \n', cmd
-            
-            try:
-                print 'Creating isomiRs gtf file for %s' %outdir
-                subprocess.check_output(cmd, shell = True)
-                
-            except subprocess.CalledProcessError as err:
-                print err.output
-                sys.exit()
-        else: 
-            print 'Sample %s has already an isomiRs gtf file' %outdir
-    return gtfs
-    #return results
-###############   
+	gtfs = []
+	sRNAbench_hairpin = config['EXECUTABLES']['sRNAbench'] + 'libs/hairpin.fa'
+	mirtop_exec = config['EXECUTABLES']['mirtop_exec']
+	miRNA_gtf = config['GENERAL']['miRNA_gtf']
+	
+	for folder in results:
+		name = folder.split('/')[-2]
+		outdir = outpath + '/' + name
+		outdir_stats = outdir + "/Stats"
+		outdir_gtf = outdir + "/mirtop.gtf"
+
+		if (os.path.isdir(outdir)):
+			print '\tSample %s has already an isomiRs gtf file' %name
+		else:
+			cmd = mirtop_exec + ' gff --sps hsa --hairpin %s --gtf %s --format srnabench -o %s  %s' %(sRNAbench_hairpin, miRNA_gtf, outdir, folder)
+
+			try:
+				print "\n##########################################"
+				print 'Creating isomiRs gtf file for %s' %name
+				print "-------------------------------------------"
+				# ToDOs: print to file mirtop_info.txt
+				#print 'The following cmd is being executed at the shell: \n', cmd
+				#print ""
+				subprocess.check_output(cmd, shell = True)
+
+			except subprocess.CalledProcessError as err:
+				print err.output
+				sys.exit()
+
+		## get stats for each
+		if (os.path.isdir(outdir_stats)):
+			print '\tSample %s has already an isomiRs stats folder' %name
+		else:
+			cmd_stats = mirtop_exec + ' stats -o %s %s' %(outdir_stats, outdir_gtf)
+			try:
+				print "\n##########################################"
+				print 'Creating isomiRs stats for %s' %name
+				print "-------------------------------------------"
+				# ToDOs: print to file mirtop_info.txt
+				#print 'The following cmd is being executed at the shell: \n', cmd_stats
+				print "##########################################"
+				subprocess.check_output(cmd_stats, shell = True)
+			except subprocess.CalledProcessError as err:
+				print err.output
+				sys.exit()
     
-###############   
-def miRTop_stats (gtfs):
-    for gtf in gtfs:
-        gtfname = gtf.split('/')[-2]
-        gtfile = gtf + gtfname + '.gtf'
-        outdir = gtf + 'Stats'
-        if not (os.path.isdir(outdir)):
-            cmd = 'mirtop stats -o %s %s' %(outdir, gtfile) 
-            print 'The following cmd is being executed at the shell: \n', cmd
-            try:
-                print 'Creating isomiRs stats for %s' %gtfname
-                subprocess.check_output(cmd, shell = True)
-            except subprocess.CalledProcessError as err:
-                print err.output
-                sys.exit()
-        else: 
-            print 'Sample %s has already isomiRs stats' %gtfname
 ###############   
     
 #################################################
@@ -415,7 +448,6 @@ if __name__ == "__main__":
 			print ("+ Samples with prefix %s will be retrieved" % samples)
 	
 	print ""
-		
 
 	################################################
   	print "------ Starting pipeline ------"
@@ -453,42 +485,41 @@ if __name__ == "__main__":
 	###############################
 	print "\n+ Trimming samples: "
 	cutadapt_folder = create_subfolder("2.cutadapt", path=folder_path)
-	trimmed_R2_return = []
 	trimmed_R1_return, trimmed_R2_return = cutadapt(mergedR1, mergedR2, merge_folder, cutadapt_folder)
 	## timestamp
 	start_time_partial = timestamp(start_time_partial)
 	
-	###############################
-    ####### Step4: fastqjoin ######
-	###############################
-	print "\n+ Joining samples: "
-	fastqjoin_folder = create_subfolder("3.fastqjoin", path=folder_path)
-	joined_reads = fastqjoin(trimmed_R1_return, trimmed_R2_return, fastqjoin_folder)
-	## timestamp
-	start_time_partial = timestamp(start_time_partial)
+	
+	if paired_end:
+		###############################
+	    ####### Step4: fastqjoin ######
+		###############################
+		print "\n+ Joining samples: "
+		fastqjoin_folder = create_subfolder("3.fastqjoin", path=folder_path)
+		joined_reads = fastqjoin(trimmed_R1_return, trimmed_R2_return, fastqjoin_folder)
+		## timestamp
+		start_time_partial = timestamp(start_time_partial)
+	else:
+		joined_read = trimmed_R1_return
 
 	###############################
     ####### Step5: sRNAbench ######
 	###############################
-	print "\n+ Joining samples: "
+	print "\n+ Run sRNAbench: "
 	sRNAbench_folder = create_subfolder("4.sRNAbench", path=folder_path)
-	results = sRNAbench(joined_reads,sRNAbench_folder)
+	results = sRNAbench(joined_reads, sRNAbench_folder)
 	## timestamp
 	start_time_partial = timestamp(start_time_partial)
-
+	
 	#############################
     ####### Step6: miRTop #######
 	#############################
 	miRTop_folder = create_subfolder("5.miRTop", path=folder_path)
-	gtfs=miRTop(results)
+	gtfs=miRTop(results, miRTop_folder)
 	h,m,s = getime(start_time_partial)
 	## timestamp
 	start_time_partial = timestamp(start_time_partial)
-
-	###################################
-    ####### Step6: miRTop_stats #######
-	###################################
-	miRTop_stats(gtfs)
-	print "Finish"
+	
+	print "\n*************** Finish *******************"
 	start_time_partial = timestamp(start_time_total)
 

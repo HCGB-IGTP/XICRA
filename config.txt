@@ -4,13 +4,16 @@ fastq_R2 = /path/to/file/fastqR2
 project = project_name
 prefix = prefix_name
 thread = num_threads
+miRNA_gtf = /imppc/labs/lslab/aluna/opt/hsa.gff3
 
 [PARAMETERS]
 adapter_3 = sequence1
 adapter_5 = sequence2
+fastqjoin_percent_difference = 8 ##default
 
 [EXECUTABLES]
 cutadapt = /path/to/cutadapt/bin/cutadapt
 fastqjoin = /path/to/fastqjoin_path/fastq-join
-sRNAbench = /path/to/sRNAbench.jar
-sRNAbench_dbPath = /path/to/sRNAtoolboxDB/
+sRNAbench = /path/to/sRNAtoolboxDB_folder
+mirtop_exec /path/to/mirtop_bin/mirtop
+
