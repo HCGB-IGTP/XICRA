@@ -14,6 +14,5 @@ fastqjoin_percent_difference = 8 ##default
 [EXECUTABLES]
 cutadapt = /path/to/cutadapt/bin/cutadapt
 fastqjoin = /path/to/fastqjoin_path/fastq-join
-sRNAbench = /path/to/sRNAtoolboxDB_folder
+sRNAbenchtoolbox = /path/to/sRNAtoolboxDB_folder
 mirtop_exec /path/to/mirtop_bin/mirtop
-

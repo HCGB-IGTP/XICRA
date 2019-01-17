@@ -76,16 +76,18 @@ def timestamp (start_time_partial):
 ###############   
     
 def help_options():
+
 	print "\n#################################################"
-	print "version 1.0.0"
+	print "fromRaw_to_isomiR\n"
+	print "Version 1.0.0"
 	print "Copyright (C) 2018-2019 Lauro Sumoy Lab, IGTP, Spain"
 	print ""
 	print "Usage:\npython", os.path.abspath(argv[0]),"config_file.txt "
-	print ""
+	print "\nDescription:"
 	print "This script... [Write a description]"
-	print ""
-	print "Configuration file includes general and detailed information for the project:"
-	print "--"
+	print "\nParameters:"
+	print "Configuration file: it includes general and detailed information for the project:"
+	print "*******************************************************"
 	print "[GENERAL]"
 	print "fastq_R1 = /path/to/file/fastqR1"
 	print "fastq_R2 = /path/to/file/fastqR2"
@@ -98,13 +100,11 @@ def help_options():
 	print ""
 	print "[EXECUTABLES]"
 	print "cutadapt = /path/to/cutadapt/bin"
-	print "--"
+	print "*******************************************************"
 	print ""
 	print ""	
-	print "Citation"
-	print ""
+	print "Citation:"
 	print "[to add citation]"
-	print ""
 	print ""
 	print "See [ http://website ] for full documentation"
 	print ""
@@ -137,6 +137,7 @@ def one_file_per_sample(final_sample_list, path_to_samples, directory, read):
 	## merge sequencing files for sample, no matter of sector or lane generated.
 	grouped_subsamples = []
 	bigfile_list = []
+
 	for samplex in final_sample_list:
 		if samplex not in grouped_subsamples:
 			#print "\nTest: ", samplex
@@ -277,8 +278,8 @@ def fastqjoin (trimmed_R1, trimmed_R2, out_path):
 ###############       
 def sRNAbench (joined_reads, outpath):
 	results = []
-	sRNAbench_exe = config['EXECUTABLES']['sRNAbench'] + 'exec/sRNAbench.jar'
-	sRNAbench_db = config['EXECUTABLES']['sRNAbench'] 	
+	sRNAbench_exe = config['EXECUTABLES']['sRNAbenchtoolbox'] + 'exec/sRNAbench.jar'
+	sRNAbench_db = config['EXECUTABLES']['sRNAbenchtoolbox'] 	
 	for jread in joined_reads:
 		sample_search = re.search('.*\/([a-zA-Z]{2,3})\_(\d{1,2})\_trimmed_join.fastq', jread)	
 		if sample_search:
@@ -307,7 +308,7 @@ def sRNAbench (joined_reads, outpath):
 def miRTop (results, outpath):
 
 	gtfs = []
-	sRNAbench_hairpin = config['EXECUTABLES']['sRNAbench'] + 'libs/hairpin.fa'
+	sRNAbench_hairpin = config['EXECUTABLES']['sRNAbenchtoolbox'] + 'libs/hairpin.fa'
 	mirtop_exec = config['EXECUTABLES']['mirtop_exec']
 	miRNA_gtf = config['GENERAL']['miRNA_gtf']
 	
@@ -320,15 +321,15 @@ def miRTop (results, outpath):
 		if (os.path.isdir(outdir)):
 			print '\tSample %s has already an isomiRs gtf file' %name
 		else:
-			cmd = mirtop_exec + ' gff --sps hsa --hairpin %s --gtf %s --format srnabench -o %s  %s' %(sRNAbench_hairpin, miRNA_gtf, outdir, folder)
+			cmd = mirtop_exec + ' gff --sps hsa --hairpin %s --gtf %s --format srnabench -o %s %s' %(sRNAbench_hairpin, miRNA_gtf, outdir, folder)
 
 			try:
 				print "\n##########################################"
-				print 'Creating isomiRs gtf file for %s' %name
+				print 'Creating isomiRs gtf file for sample %s' %name
 				print "-------------------------------------------"
 				# ToDOs: print to file mirtop_info.txt
-				#print 'The following cmd is being executed at the shell: \n', cmd
-				#print ""
+				print 'The following cmd is being executed at the shell: \n', cmd
+				print ""
 				subprocess.check_output(cmd, shell = True)
 
 			except subprocess.CalledProcessError as err:
@@ -342,10 +343,10 @@ def miRTop (results, outpath):
 			cmd_stats = mirtop_exec + ' stats -o %s %s' %(outdir_stats, outdir_gtf)
 			try:
 				print "\n##########################################"
-				print 'Creating isomiRs stats for %s' %name
+				print 'Creating isomiRs stats for sample %s' %name
 				print "-------------------------------------------"
 				# ToDOs: print to file mirtop_info.txt
-				#print 'The following cmd is being executed at the shell: \n', cmd_stats
+				print 'The following cmd is being executed at the shell: \n', cmd_stats
 				print "##########################################"
 				subprocess.check_output(cmd_stats, shell = True)
 			except subprocess.CalledProcessError as err:
@@ -505,8 +506,8 @@ if __name__ == "__main__":
 	###############################
     ####### Step5: sRNAbench ######
 	###############################
-	print "\n+ Run sRNAbench: "
-	sRNAbench_folder = create_subfolder("4.sRNAbench", path=folder_path)
+	print "\n+ Run sRNAbenchtoolbox: "
+	sRNAbench_folder = create_subfolder("4.sRNAbenchtoolbox", path=folder_path)
 	results = sRNAbench(joined_reads, sRNAbench_folder)
 	## timestamp
 	start_time_partial = timestamp(start_time_partial)
