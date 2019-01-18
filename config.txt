@@ -9,7 +9,7 @@ miRNA_gtf = /imppc/labs/lslab/aluna/opt/hsa.gff3
 [PARAMETERS]
 adapter_3 = sequence1
 adapter_5 = sequence2
-fastqjoin_percent_difference = 8 ##default
+fastqjoin_percent_difference = 8
 
 [EXECUTABLES]
 cutadapt = /path/to/cutadapt/bin/cutadapt

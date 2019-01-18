@@ -10,7 +10,7 @@
 
     DESCRIPTION:
     This scripts runs sRNAtoolbox for a selection of RNAseq samples
-    .......
+    and prepares the output using miRTop and mirGFF3 accordingly.
     
 	LICENSE:
     This program is free software: you can redistribute it and/or modify
@@ -76,7 +76,6 @@ def timestamp (start_time_partial):
 ###############   
     
 def help_options():
-
 	print "\n#################################################"
 	print "fromRaw_to_isomiR\n"
 	print "Version 1.0.0"
@@ -353,7 +352,22 @@ def miRTop (results, outpath):
 				print err.output
 				sys.exit()
     
-###############   
+###############
+
+###############     
+def make_table(dictionary, filename):
+    fil = open(filename, 'w')    
+    isomirs = dictionary.keys()
+    
+    fil.write('Isomir\t')
+    fil.write(filename.partition('_expression')[0])
+    fil.write('\n')
+    for sample in isomirs:
+        fil.write(sample)
+        fil.write('\t')
+        fil.write(str(dictionary[sample]))
+        fil.write('\n')
+    fil.close()      
     
 #################################################
 ######				MAIN					#####
@@ -490,7 +504,6 @@ if __name__ == "__main__":
 	## timestamp
 	start_time_partial = timestamp(start_time_partial)
 	
-	
 	if paired_end:
 		###############################
 	    ####### Step4: fastqjoin ######
@@ -503,6 +516,9 @@ if __name__ == "__main__":
 	else:
 		joined_read = trimmed_R1_return
 
+	
+	
+	
 	###############################
     ####### Step5: sRNAbench ######
 	###############################
