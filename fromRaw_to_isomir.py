@@ -1,32 +1,5 @@
 #usr/bin/env python
 
-"""
-
-!!!!    Make sure to activate miRTop! (activate-mirtop-0.3.11a0)    !!!!
-
-	AUTHOR:
-    Antonio Luna de Haro (v0.1) & Jose F Sanchez-Herrero (v1)
-	Copyright (C) 2018-2019 Lauro Sumoy Lab, IGTP, Spain
-
-    DESCRIPTION:
-    This scripts runs sRNAtoolbox for a selection of RNAseq samples
-    and prepares the output using miRTop and mirGFF3 accordingly.
-    
-	LICENSE:
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-"""
 ## useful imports
 import sys
 from sys import argv
@@ -35,7 +8,295 @@ from datetime import datetime
 import subprocess
 import os
 import re
+
 import configparser
+#import concurrent.futures
+
+def help_options():
+	print "\n#######################################################################"
+	print "  NAME: fromRaw_to_isomiR"
+	print "  VERSION: 0.3"
+	print "  AUTHORS: Antonio Luna de Haro (v0.1) & Jose F Sanchez-Herrero (v1)."
+	print "           Copyright (C) 2018-2019 Lauro Sumoy Lab, IGTP, Spain"
+	print "#########################################################################"
+	print "\nDESCRIPTION:"
+	print "- This script is a pipeline generated for the trimming and joining of paired-end or single end reads from small RNA-seq data."
+	print "\n- Available analysis are:"
+	print "\t+ miRNA-isomiR analysis using sRNAtoolbox "
+	print "\t+ tRFs using MINTmap and MINTbase."
+	print ""
+	print "USAGE:\npython", os.path.abspath(argv[0]),"config_file.txt "
+	print "\nPARAMETERS:"
+	print "A configuration file is necessary that includes general and detailed information for the project."
+	print ""
+	print "*******************************************************"
+	print " Configuration file details:"
+	print "*******************************************************"
+	print "[GENERAL]"
+	print "fastq_R1 = /path/to/file/fastqR1"
+	print "fastq_R2 = /path/to/file/fastqR2"
+	print "project = project_name"
+	print ""
+	print "[VARIABLES]"
+	print "prefix = prefix_name_sample_selection"
+	print "thread = num_threads"
+	print "option = isomiR|tRFs|all"
+	print "merge_samples = YES|NO"
+	print ""
+	print "[PARAMETERS]"
+	print "adapter_3 = sequence1"
+	print "adapter_5 = sequence2"
+	print "fastqjoin_percent_difference = 8"
+	print ""
+	print "[EXECUTABLES]"
+	print "cutadapt = /path/to/cutadapt/bin/cutadapt"
+	print "fastqjoin = /path/to/fastqjoin_path/fastq-join"
+	print "sRNAbenchtoolbox = /path/to/sRNAtoolboxDB_folder"
+	print "mirtop_exec /path/to/mirtop_bin/mirtop"
+	print "MINTmap_folder = /path/to/MINTmap/folder"
+	print ""
+	print "[miRNA_ANALYSIS]"
+	print "miRNA_gtf = /path/to/human_genome/gff_file/for/miRNA/file.gff3"
+	print ""
+	print "*******************************************************"
+	print ""
+	print ""	
+	print "CITATION:"
+	print "[to add citation]"
+	print ""
+	print ""	
+	print "DOCUMENTATION:"
+	print "See [ <http://website/> ] for full documentation"
+	print ""
+	print ""	
+	print "LICENSE:"
+	print "This program is free software: you can redistribute it and/or modify"
+	print "it under the terms of the GNU General Public License as published by"
+	print "the Free Software Foundation, either version 3 of the License, or"
+	print "(at your option) any later version."
+	print ""
+	print "This program is distributed in the hope that it will be useful,"
+	print "but WITHOUT ANY WARRANTY; without even the implied warranty of"
+	print "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the"
+	print "GNU General Public License for more details."
+	print ""
+	print "You should have received a copy of the GNU General Public License"
+	print "along with this program.  If not, see <http://www.gnu.org/licenses/>."
+	print ""
+	print ""	
+	print "#################################################\n\n"
+###############
+
+#################################################
+######				MAIN					#####
+#################################################
+if __name__ == "__main__":
+	start_time_total = time.time()
+  
+  	## control if options provided or help
+	if len(sys.argv) > 1:
+		print ""
+	else:
+		help_options()
+		exit()    	
+	##
+    	 
+	print "\n######## Starting Process ########"
+	now = datetime.now()
+	date_time = now.strftime("%m/%d/%Y, %H:%M:%S")
+	print date_time, "\n"
+  
+    ########################
+    ## get configuration  ##
+	########################
+	configuration_path_file = os.path.abspath(argv[1])
+	config = configparser.ConfigParser()
+	config.read(configuration_path_file)
+
+	print "------ Get configuration options ------"
+	print "Reading configuration file: ", configuration_path_file, "\n"
+	
+	## dump config file to stdout
+	f = open(configuration_path_file, 'r')
+	print "\n***********************************************"
+	print f.read()
+	f.close()
+	print "\n***********************************************"
+	
+	## configuration options:
+	merge_option = config["VARIABLES"]["merge_samples"]
+	analysis_option = config["VARIABLES"]["option"]
+	threads_option = config["VARIABLES"]["thread"]
+    
+    ####################
+    ## create folder  ##	
+ 	####################
+	print "------ Create project folder ------"
+	project_name = config["GENERAL"]["project"]
+	try:
+		folder_path = os.path.abspath(project_name)
+	except OSError:  
+		path = os.getcwd()  
+		print "The current working directory is %s", path
+		print "Folder for project name: ",  project_name, " will be created here"
+		folder_path = path.append(project_name)
+	    
+    # define the access rights
+	access_rights = 00755
+	try:
+		os.mkdir(folder_path, access_rights)
+	except OSError:  
+	   	print ("Directory %s already exists" % folder_path)
+	else:  
+		print ("Successfully created the directory %s " % folder_path)
+	
+	print ""
+
+    ## checking file(s) exists
+	paired_end = False
+	print "------ Checking files provided ------"
+	file_R1 = config["GENERAL"]["fastq_R1"]
+	file_R2 = []
+	if config.has_option("GENERAL","fastq_R2"):
+		file_R2 = config["GENERAL"]["fastq_R2"]
+		paired_end = True
+
+	try:
+		os.path.isfile(file_R1)
+	except FileNotFoundError:
+		print "ERROR: No file R1 provided\n"
+		print "Exit"
+		exit()
+	else:
+		print "+ Folder for fastq R1 is readable and accessible"
+    
+	if paired_end:
+		try:
+		    os.path.isfile(file_R2)
+		except FileNotFoundError:
+			print "+ Folder for fastq R2 does not exists"
+			print "+ Using single end option"
+		else:
+			print "+ Folder for fastq R2 is readable and accessible"
+			print "+ Using paired-end option\n"
+	else:
+		print "+ Using single end option"
+
+    ## checking prefix provided
+  	print "------ Checking prefix provided ------"
+	prefix_list = config["VARIABLES"]["prefix"]
+
+	if prefix_list == 'all':
+		print "+ All samples will be retrieved"
+	else:
+		prefix_list2 = prefix_list.split(",")
+		prefix_list = prefix_list2
+		for samples in prefix_list:
+			print ("+ Samples with prefix %s will be retrieved" % samples)
+	
+	print ""
+
+	################################################
+  	print "------ Starting pipeline ------"
+	################################################
+  	
+	#####################################
+    ####### Step1: select_samples #######
+	#####################################
+	all_list_R1 = []
+	all_list_R2 = []
+
+	print "\n+ Select samples: "
+	if prefix_list == 'all':
+		sample_listR1 = select_samples("all", file_R1)
+		all_list_R1.extend(sample_listR1)
+
+		if paired_end:
+			sample_listR2 = select_samples("all", file_R2)
+			all_list_R2.extend(sample_listR2)
+	else:
+
+		for samples in prefix_list:
+			print "\t+",samples,"samples"
+			sample_listR1 = select_samples(samples, file_R1)
+			all_list_R1.extend(sample_listR1)
+			if paired_end:
+				sample_listR2 = select_samples(samples, file_R2)
+				all_list_R2.extend(sample_listR2)
+
+	print ""
+
+	##################################
+    ####### Step2: get_samples #######
+	##################################
+	sample_folder = []
+	samplesR1 = []
+	samplesR2 = []
+	sample_folder = create_subfolder("1.samples", path=folder_path)
+
+	### merge_option
+	if merge_option == "YES":
+		print "\n+ Merge samples: "
+		samplesR1 = one_file_per_sample(all_list_R1, file_R1, sample_folder, read="R1")
+		if paired_end:
+			samplesR2 = one_file_per_sample(all_list_R2, file_R2, sample_folder, read="R2")
+	else:
+		print "\n+ Retrieve samples:"
+		samplesR1 = get_symbolic_link(all_list_R1, file_R1, sample_folder)
+		if paired_end:
+			samplesR2 = get_symbolic_link(all_list_R2, file_R2, sample_folder)
+		
+	## timestamp
+	start_time_partial = timestamp(start_time_total)
+	
+	###############################
+    ####### Step3: cutadapt #######
+	###############################
+	print "\n+ Trimming samples: "
+	cutadapt_folder = create_subfolder("2.cutadapt", path=folder_path)
+	trimmed_R1_return, trimmed_R2_return = cutadapt(samplesR1, samplesR2, sample_folder, cutadapt_folder)
+	## timestamp
+	start_time_partial = timestamp(start_time_partial)
+		
+	###############################
+	####### Step: fastqjoin ######
+	###############################
+	folder_id = 3
+	joined_read = []
+	if paired_end:
+		print "\n+ Joining samples: "
+		name = str(folder_id) + ".fastqjoin"
+		folder_id = folder_id + 1
+		fastqjoin_folder = create_subfolder(name, path=folder_path)
+		joined_read = fastqjoin(trimmed_R1_return, trimmed_R2_return, fastqjoin_folder)
+		## timestamp
+		start_time_partial = timestamp(start_time_partial)
+	else:
+		joined_read = trimmed_R1_return
+		
+	######################################
+	####### Step: Small RNA analysis #####
+	######################################
+	if analysis_option == "isomiR":
+		isomiR_analysis(folder_path, folder_id, joined_read, start_time_partial)
+
+	elif analysis_option == "tRFs":
+		tRFs_analysis(folder_path, folder_id, joined_read, start_time_partial)
+				
+	elif analysis_option == "all":
+		isomiR_analysis(folder_path, folder_id, joined_read, start_time_partial)
+		folder_id = folder_id + 1
+		tRFs_analysis(folder_path, folder_id, joined_read, start_time_partial)
+	else:
+		print "**ERROR: No valid analysis provided: ", analysis_option
+		print "Please provide: isomiR|tRFs|all"
+		
+
+	print "\n*************** Finish *******************"
+	start_time_partial = timestamp(start_time_total)
+	
+	
+#############################
 
 #####################
 #### functions ######
@@ -73,62 +334,39 @@ def timestamp (start_time_partial):
 	print '(Time spent: %i h %i min %i s)' %(int(h), int(m), int(s))
 	print '--------------------------------'
 	return time.time()
-###############   
-    
-def help_options():
-	print "\n#################################################"
-	print "fromRaw_to_isomiR\n"
-	print "Version 1.0.0"
-	print "Copyright (C) 2018-2019 Lauro Sumoy Lab, IGTP, Spain"
-	print ""
-	print "Usage:\npython", os.path.abspath(argv[0]),"config_file.txt "
-	print "\nDescription:"
-	print "This script... [Write a description]"
-	print "\nParameters:"
-	print "Configuration file: it includes general and detailed information for the project:"
-	print "*******************************************************"
-	print "[GENERAL]"
-	print "fastq_R1 = /path/to/file/fastqR1"
-	print "fastq_R2 = /path/to/file/fastqR2"
-	print "project = project_name"
-	print "prefix = prefix_name"
-	print ""
-	print "[PARAMETERS]"
-	print "threeprime_adapter = sequence1"
-	print "fiveprime_adapter = sequence2"
-	print ""
-	print "[EXECUTABLES]"
-	print "cutadapt = /path/to/cutadapt/bin"
-	print "*******************************************************"
-	print ""
-	print ""	
-	print "Citation:"
-	print "[to add citation]"
-	print ""
-	print "See [ http://website ] for full documentation"
-	print ""
-	print ""
-	print "#################################################\n\n"
-###############
+############### 
 
 ###############
 def select_samples (samples_prefix, path_to_samples):
     #Get all files in the folder "path_to_samples"    
-    files = os.listdir(path_to_samples)
-    sample_list = []
-    for fastq in files:
-        if fastq.startswith(samples_prefix) and 'merged' not in fastq: 
-            if fastq.endswith('.gz'):
-                sample_list.append(fastq[:-3]) 
-            elif fastq.endswith('fastq'):
-                sample_list.append(fastq)
-            else:
-                print "** ERROR: ", fastq, 'is a file that is neither in fastq.gz or .fastq format, so it is not included'
-    
-    non_duplicate_samples = list(set(sample_list))
-    number_samples = len(non_duplicate_samples)
-    print "\t\t- ", number_samples," samples selected from ", path_to_samples
-    return sorted(non_duplicate_samples)
+	files = os.listdir(path_to_samples)
+	sample_list = []
+	if samples_prefix == 'all':
+		for fastq in files:
+			if 'merged' in fastq: 
+				continue
+				
+			if fastq.endswith('.gz'):
+				sample_list.append(fastq[:-3]) 
+			elif fastq.endswith('fastq'):
+				sample_list.append(fastq)
+			else:
+				print "** ERROR: ", fastq, 'is a file that is neither in fastq.gz or .fastq format, so it is not included'
+	else:
+		for fastq in files:
+		    if fastq.startswith(samples_prefix) and 'merged' not in fastq: 
+				if fastq.endswith('.gz'):
+					sample_list.append(fastq[:-3])
+				elif fastq.endswith('fastq'):
+					sample_list.append(fastq)
+				else:
+					print "** ERROR: ", fastq, 'is a file that is neither in fastq.gz or .fastq format, so it is not included'
+
+									
+	non_duplicate_samples = list(set(sample_list))
+	number_samples = len(non_duplicate_samples)
+	print "\t\t- ", number_samples," samples selected from ", path_to_samples
+	return sorted(non_duplicate_samples)
 ###############
  
 ###############    
@@ -155,8 +393,12 @@ def one_file_per_sample(final_sample_list, path_to_samples, directory, read):
 						subsamples.append(path_to_samples + "/" + sampley)
 						grouped_subsamples.append(sampley)
 				if not os.path.isfile(bigfilepath) or os.stat(bigfilepath).st_size == 0:
-					partsofsample = ' '.join(sorted(subsamples))
+					#partsofsample = ' '.join(sorted(subsamples))
+					partsofsample=subsamples[0]
 					cmd = 'cat %s >> %s' %(partsofsample, bigfilepath)
+					
+					print cmd
+
 					## ToDOs: DUMP in file merge_info.txt
 					try:
 						print '\t+ %s created' %commonname
@@ -392,7 +634,77 @@ def isomiR_analysis (path, count, reads, time_partial):
 	
 	## timestamp
 	time_partial = timestamp(time_partial)
+
+	##############################################
+    ####### Step: create expression matrix #######
+	##############################################
+	name_isomiR_matrix_folder = str(count) + '.isomiR_matrix'
+	isomiR_matrix_folder = create_subfolder(name_isomiR_matrix_folder, path)
+
+	for gtffile in gtfs:
+
+		sample = gtffile.rpartition('/')[-1][:-4]
+		print "\tParsing sample ", sample
+
+		## parse gtf file
+		sample_dict = parse_gtf(gtffile)
+
+		## get filename
+		filename = isomiR_matrix_folder + '/' + sample
+		filenames.append(filename)
+
+		## create matrix
+		make_table(sample_dict, filename)
+		print '\tExpression matrix created for ', sample   
+	
+	## timestamp
+	time_partial = timestamp(time_partial)
+
 	return time_partial
+	
+###############
+
+###############   
+def parse_gtf(gtffile):
+    gtfile = open(gtffile)
+    text = gtfile.read()
+    lines = text.splitlines()
+    sample_dict = {}
+    
+    for line in lines:
+        if not line.startswith('#'):
+            name = line.split('\t')[0]
+            name = line.split('\t')[-1].split(';')[2].split()[-1]
+            variant = line.split('\t')[-1].split(';')[4].split()[-1]
+            variant = '-' + variant
+            if variant == '-NA':
+                variant = ''
+            expression = int(line.split('\t')[-1].split(';')[6].split()[-1])
+            namevariant = name + variant
+            if namevariant in sample_dict.keys():
+                old = sample_dict[namevariant]
+                new = old + expression
+                sample_dict[namevariant] = new
+            else:
+                sample_dict[namevariant] = expression
+            #sample_dict[name+variant]= {}
+    return sample_dict
+###############
+
+###############     
+def make_table(dictionary, filename):
+    fil = open(filename, 'w')    
+    isomirs = dictionary.keys()
+    
+    fil.write('Isomir\t')
+    fil.write(filename.partition('_expression')[0])
+    fil.write('\n')
+    for sample in isomirs:
+        fil.write(sample)
+        fil.write('\t')
+        fil.write(str(dictionary[sample]))
+        fil.write('\n')
+    fil.close()      
 ###############
 
 ###############
@@ -444,220 +756,4 @@ def tRFs_analysis(path, count, reads, time_partial):
 	## timestamp
 	time_partial = timestamp(time_partial)
 ###############
-
-###############     
-def make_table(dictionary, filename):
-    fil = open(filename, 'w')    
-    isomirs = dictionary.keys()
-    
-    fil.write('Isomir\t')
-    fil.write(filename.partition('_expression')[0])
-    fil.write('\n')
-    for sample in isomirs:
-        fil.write(sample)
-        fil.write('\t')
-        fil.write(str(dictionary[sample]))
-        fil.write('\n')
-    fil.close()      
-###############     
-
-    
-#################################################
-######				MAIN					#####
-#################################################
-if __name__ == "__main__":
-	start_time_total = time.time()
-  
-  	## control if options provided or help
-	if len(sys.argv) > 1:
-		print ""
-	else:
-		help_options()
-		exit()    	
-	##
-    	 
-	print "\n######## Starting Process ########"
-	now = datetime.now()
-	date_time = now.strftime("%m/%d/%Y, %H:%M:%S")
-	print date_time, "\n"
-  
-    ########################
-    ## get configuration  ##
-	########################
-	configuration_path_file = os.path.abspath(argv[1])
-	config = configparser.ConfigParser()
-	config.read(configuration_path_file)
-
-	print "------ Get configuration options ------"
-	print "Reading configuration file: ", configuration_path_file, "\n"
-	
-	## dump config file to stdout
-	f = open(configuration_path_file, 'r')
-	print "\n***********************************************"
-	print f.read()
-	f.close()
-	print "\n***********************************************"
-	
-	## configuration options:
-	merge_option = config["VARIABLES"]["merge_samples"]
-	analysis_option = config["VARIABLES"]["option"]
-	threads_option = config["VARIABLES"]["thread"]
-    
-    ####################
-    ## create folder  ##	
- 	####################
-	print "------ Create project folder ------"
-	project_name = config["GENERAL"]["project"]
-	try:
-		folder_path = os.path.abspath(project_name)
-	except OSError:  
-		path = os.getcwd()  
-		print "The current working directory is %s", path
-		print "Folder for project name: ",  project_name, " will be created here"
-		folder_path = path.append(project_name)
-	    
-    # define the access rights
-	access_rights = 00755
-	try:
-		os.mkdir(folder_path, access_rights)
-	except OSError:  
-	   	print ("Directory %s already exists" % folder_path)
-	else:  
-		print ("Successfully created the directory %s " % folder_path)
-	
-	print ""
-
-    ## checking file(s) exists
-	paired_end = False
-	print "------ Checking files provided ------"
-	file_R1 = config["GENERAL"]["fastq_R1"]
-	file_R2 = []
-	if config.has_option("GENERAL","fastq_R2"):
-		file_R2 = config["GENERAL"]["fastq_R2"]
-		paired_end = True
-
-	try:
-		os.path.isfile(file_R1)
-	except FileNotFoundError:
-		print "ERROR: No file R1 provided\n"
-		print "Exit"
-		exit()
-	else:
-		print "+ Folder for fastq R1 is readable and accessible"
-    
-	if paired_end:
-		try:
-		    os.path.isfile(file_R2)
-		except FileNotFoundError:
-			print "+ Folder for fastq R2 does not exists"
-			print "+ Using single end option"
-		else:
-			print "+ Folder for fastq R2 is readable and accessible"
-			print "+ Using paired-end option\n"
-	else:
-		print "+ Using single end option"
-
-    ## checking prefix provided
-  	print "------ Checking prefix provided ------"
-	prefix_list = config["VARIABLES"]["prefix"]
-
-	if prefix_list == 'all':
-		print "+ All samples will be retrieved"
-	else:
-		prefix_list2 = prefix_list.split(",")
-		prefix_list = prefix_list2
-		for samples in prefix_list:
-			print ("+ Samples with prefix %s will be retrieved" % samples)
-	
-	print ""
-
-	################################################
-  	print "------ Starting pipeline ------"
-	################################################
-  	
-	#####################################
-    ####### Step1: select_samples #######
-	#####################################
-	all_list_R1 = []
-	all_list_R2 = []
-
-	print "\n+ Select samples: "
-	for samples in prefix_list:
-		print "\t+",samples,"samples"
-		sample_listR1 = select_samples(samples, file_R1)
-		all_list_R1.extend(sample_listR1)
-		if paired_end:
-			sample_listR2 = select_samples(samples, file_R2)
-			all_list_R2.extend(sample_listR2)
-
-	print ""
-
-	##################################
-    ####### Step2: get_samples #######
-	##################################
-	sample_folder = []
-	samplesR1 = []
-	samplesR2 = []
-	sample_folder = create_subfolder("1.samples", path=folder_path)
-
-	### merge_option
-	if merge_option == "YES":
-		print "\n+ Merge samples: "
-		samplesR1 = one_file_per_sample(all_list_R1, file_R1, sample_folder, read="R1")
-		if paired_end:
-			samplesR2 = one_file_per_sample(all_list_R2, file_R2, sample_folder, read="R2")
-	else:
-		print "\n+ Retrieve samples:"
-		samplesR1 = get_symbolic_link(all_list_R1, file_R1, sample_folder)
-		if paired_end:
-			samplesR2 = get_symbolic_link(all_list_R2, file_R2, sample_folder)
-		
-	## timestamp
-	start_time_partial = timestamp(start_time_total)
-	
-	###############################
-    ####### Step3: cutadapt #######
-	###############################
-	print "\n+ Trimming samples: "
-	cutadapt_folder = create_subfolder("2.cutadapt", path=folder_path)
-	trimmed_R1_return, trimmed_R2_return = cutadapt(samplesR1, samplesR2, sample_folder, cutadapt_folder)
-	## timestamp
-	start_time_partial = timestamp(start_time_partial)
-		
-	###############################
-	####### Step: fastqjoin ######
-	###############################
-	folder_id = 3
-	joined_read = []
-	if paired_end:
-		print "\n+ Joining samples: "
-		name = str(folder_id) + ".fastqjoin"
-		folder_id = folder_id + 1
-		fastqjoin_folder = create_subfolder(name, path=folder_path)
-		joined_read = fastqjoin(trimmed_R1_return, trimmed_R2_return, fastqjoin_folder)
-		## timestamp
-		start_time_partial = timestamp(start_time_partial)
-	else:
-		joined_read = trimmed_R1_return
-		
-	######################################
-	####### Step: Small RNA analysis #####
-	######################################
-	if analysis_option == "isomiR":
-		isomiR_analysis(folder_path, folder_id, joined_read, start_time_partial)
-
-	elif analysis_option == "tRFs":
-		tRFs_analysis(folder_path, folder_id, joined_read, start_time_partial)
-				
-	elif analysis_option == "all":
-		isomiR_analysis(folder_path, folder_id, joined_read, start_time_partial)
-		folder_id = folder_id + 1
-		tRFs_analysis(folder_path, folder_id, joined_read, start_time_partial)
-	else:
-		print "**ERROR: No valid analysis provided: ", analysis_option
-		print "Please provide: isomiR|tRFs|all"
-		
-
-	print "\n*************** Finish *******************"
-	start_time_partial = timestamp(start_time_total)
-
+ 

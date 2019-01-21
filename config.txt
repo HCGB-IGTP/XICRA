@@ -22,11 +22,4 @@ mirtop_exec /path/to/mirtop_bin/mirtop
 MINTmap_folder = /path/to/MINTmap/folder
 
 [miRNA_ANALYSIS]
-miRNA_gtf = /imppc/labs/lslab/aluna/opt/hsa.gff3
-
-[tRF_ANALYSIS]
-MINTplates = /path/to/MINTplates_folder
-MINTmap = /path/to/MINTmap_perl_script.pl
-MINTmap = /path/to/MINTmap_perl_script.pl
-
-
+miRNA_gtf = /path/to/human_genome/gff_file/for/miRNA/file.gff3
