@@ -1,17 +1,21 @@
 #usr/bin/env python
 
 ## useful imports
-import sys
-from sys import argv
 import time
-from datetime import datetime
-from io import open
-import subprocess
+import io
 import os
 import re
+import subprocess
 
-from configparser import ConfigParser
-#import concurrent.futures
+import sys
+from sys import argv
+
+import configparser
+
+from datetime import datetime
+from io import open
+
+import concurrent.futures
 
 #####################
 #### functions ######
@@ -20,7 +24,7 @@ from configparser import ConfigParser
 def help_options():
 	print ("\n#######################################################################")
 	print ("  NAME: fromRaw_to_isomiR")
-	print ("  VERSION: 0.3")
+	print ("  VERSION: 0.4")
 	print ("  AUTHORS: Antonio Luna de Haro (v0.1) & Jose F Sanchez-Herrero (v1).")
 	print ("           Copyright (C) 2018-2019 Lauro Sumoy Lab, IGTP, Spain")
 	print ("#########################################################################")
@@ -30,7 +34,7 @@ def help_options():
 	print ("\t+ miRNA-isomiR analysis using sRNAtoolbox ")
 	print ("\t+ tRFs using MINTmap and MINTbase.")
 	print ("")
-	print ("USAGE:\npython", os.path.abspath(argv[0]),"config_file.txt ")
+	print ("USAGE:\npython3", os.path.abspath(argv[0]),"config_file.txt ")
 	print ("\nPARAMETERS:")
 	print ("A configuration file is necessary that includes general and detailed information for the project.")
 	print ("")
@@ -154,11 +158,38 @@ def select_samples (samples_prefix, path_to_samples):
 				else:
 					print ("** ERROR: ", fastq, 'is a file that is neither in fastq.gz or .fastq format, so it is not included')
 
-									
 	non_duplicate_samples = list(set(sample_list))
 	number_samples = len(non_duplicate_samples)
 	print ("\t\t- ", number_samples," samples selected from ", path_to_samples)
 	return sorted(non_duplicate_samples)
+###############
+
+###############
+def command_sender(string2send):
+	#print (string2send)
+	try:
+		subprocess.check_output(string2send, shell = True)
+	except subprocess.CalledProcessError as err:
+		print ('')
+		
+###############
+
+###############
+def sender(list_cmd):
+	# We can use a with statement to ensure threads are cleaned up promptly
+	with concurrent.futures.ThreadPoolExecutor(max_workers=num_threads) as executor:
+
+		# Start the load operations and mark each future with its URL
+		commandsSent = { executor.submit(command_sender, commands): commands for commands in list_cmd }
+	
+		for cmd2 in concurrent.futures.as_completed(commandsSent):
+			details = commandsSent[cmd2]
+			try:
+				data = cmd2.result()
+			except Exception as exc:
+				print ('***ERROR:')
+				print (string2send)
+				print('%r generated an exception: %s' % (details, exc))
 ###############
  
 ###############    
@@ -166,6 +197,7 @@ def one_file_per_sample(final_sample_list, path_to_samples, directory, read):
 	## merge sequencing files for sample, no matter of sector or lane generated.
 	grouped_subsamples = []
 	bigfile_list = []
+	commands2sent = []
 
 	for samplex in final_sample_list:
 		if samplex not in grouped_subsamples:
@@ -185,19 +217,17 @@ def one_file_per_sample(final_sample_list, path_to_samples, directory, read):
 						subsamples.append(path_to_samples + "/" + sampley)
 						grouped_subsamples.append(sampley)
 				if not os.path.isfile(bigfilepath) or os.stat(bigfilepath).st_size == 0:
-					#partsofsample = ' '.join(sorted(subsamples))
-					partsofsample=subsamples[0]
+					partsofsample = ' '.join(sorted(subsamples))
 					cmd = 'cat %s >> %s' %(partsofsample, bigfilepath)
-					
-					## ToDOs: DUMP in file merge_info.txt
-					try:
-						print ('\t+ %s created' %commonname)
-						subprocess.check_output(cmd, shell = True)
-					except subprocess.CalledProcessError as err:
-						print (err.output)
-						sys.exit()
+					## ToDOs: DUMP in file merge_info.txt					
+					## get command				
+					commands2sent.append(cmd)
 				else:
 					print ('\t + Sample %s is already merged' % commonname)
+	
+	#sent commands on threads
+	sender(commands2sent)
+	
 	print ('There are' , len(bigfile_list) , 'samples after merging for read' , read, '\n')
 	return bigfile_list
 	
@@ -222,7 +252,8 @@ def get_symbolic_link (final_sample_list, path_to_samples, directory):
 ###############   
 def cutadapt (list_R1, list_R2, path, out_path):
 	trimmed_R1 = []
-	trimmed_R2 = [] 
+	trimmed_R2 = []
+	command2sent = []
 
 	for file_R1 in list_R1:
 		file_R1_path = path + "/" + file_R1
@@ -271,14 +302,10 @@ def cutadapt (list_R1, list_R2, path, out_path):
 			## not trimmed
 			else: 
 				## ToDOs: DUMP in file cutadapt_info.txt
-				#print 'The following cmd is being executed at the shell: \n', cmd			
-				try:
-					#print 'Trimming for sample ', name
-					subprocess.check_output(cmd, shell = True)
-					print ('\tAdapters trimmed for the sample ', name)
-				except subprocess.CalledProcessError as err:
-					print (err.output)
-					sys.exit()
+				command2sent.append(cmd)
+				
+	#sent commands on threads			
+	sender(command2sent)
 
 	return trimmed_R1, trimmed_R2
 ###############
@@ -287,6 +314,8 @@ def cutadapt (list_R1, list_R2, path, out_path):
 def fastqjoin (trimmed_R1, trimmed_R2, out_path):
 	joined_files = []
 	cmd = []
+	command2sent = []
+	
 	fastqjoin_exe = config['EXECUTABLES']['fastqjoin']    	
 	error_param = config['PARAMETERS']['fastqjoin_percent_difference']
 	for file_R1 in trimmed_R1:
@@ -314,15 +343,12 @@ def fastqjoin (trimmed_R1, trimmed_R2, out_path):
 			else: ## not merged
 				## ToDOs: print in file fastqjoin_info.txt
 				#print 'The following cmd is being executed at the shell: \n', cmd
-				try:
-					print ('\tMerge sample ', name)
-					subprocess.check_output(cmd, shell = True)
-				except subprocess.CalledProcessError as err:
-					print (err.output)
-					sys.exit()
-			
-			## ToDOs: count and provide statistics for joined reads
-					
+				command2sent.append(cmd)
+				
+	#sent commands on threads			
+	sender(command2sent)
+
+	## ToDOs: count and provide statistics for joined reads
 	return joined_files
 ###############       
     
@@ -330,7 +356,9 @@ def fastqjoin (trimmed_R1, trimmed_R2, out_path):
 def sRNAbench (joined_reads, outpath):
 	results = []
 	sRNAbench_exe = config['EXECUTABLES']['sRNAbenchtoolbox'] + 'exec/sRNAbench.jar'
-	sRNAbench_db = config['EXECUTABLES']['sRNAbenchtoolbox'] 	
+	sRNAbench_db = config['EXECUTABLES']['sRNAbenchtoolbox']
+	command2sent = []
+	
 	for jread in joined_reads:
 		sample_search = re.search('.*\/([a-zA-Z]{2,3})\_(\d{1,2})\_trimmed.*', jread)	
 		if sample_search:
@@ -342,65 +370,97 @@ def sRNAbench (joined_reads, outpath):
 			else:
 				cmd = 'java -jar %s dbPath=%s input=%s output=%s microRNA=hsa isoMiR=true plotLibs=true graphics=true plotMiR=true bedGraphMode=true writeGenomeDist=true chromosomeLevel=true chrMappingByLength=true ' %(sRNAbench_exe, sRNAbench_db, jread, finalpath)
 				# ToDOs: print into file sRNAbench
-				#print 'The following cmd is being executed at the shell: \n', cmd
-				try:
-					subprocess.check_output(cmd, shell = True)
-					print ('\tChecked sample %s for isomiRs' %outdir)
+				command2sent.append(cmd)
+				
+	#sent commands on threads			
+	sender(command2sent)
 
-				except subprocess.CalledProcessError as err:
-					print (err.output)
-					sys.exit()
 	return results
 ###############   
     
 ###############   
 def miRTop (results, outpath):
+
+	## sent miRTop using threads	
+	# We can use a with statement to ensure threads are cleaned up promptly
+	with concurrent.futures.ThreadPoolExecutor(max_workers=num_threads) as executor:
+
+		# Start the load operations and mark each future with its URL
+		commandsSent = { executor.submit(miRTop_threads, fol, outpath): fol for fol in results }
+		for cmd2 in concurrent.futures.as_completed(commandsSent):
+			details = commandsSent[cmd2]
+			try:
+				data = cmd2.result()
+			except Exception as exc:
+				print ('***ERROR:')
+				print (string2send)
+				print('%r generated an exception: %s' % (details, exc))
+	
+	## return gtf file generated/retrieved
+	gtfs2return = []
+	for folder in results:
+		name = folder.split('/')[-2]
+		gtf_name = outpath + '/' + name + "/" + name + ".gff"
+		gtfs2return.append(gtf_name)
+	return gtfs2return
+###############
+
+###############
+def miRTop_threads(folder, outpath):
 	gtfs = []
 	sRNAbench_hairpin = config['EXECUTABLES']['sRNAbenchtoolbox'] + 'libs/hairpin.fa'
 	mirtop_exec = config['EXECUTABLES']['mirtop_exec']
 	miRNA_gtf = config['miRNA_ANALYSIS']['miRNA_gtf']	
 	species = 'hsa' #homo sapiens
-	for folder in results:
-		name = folder.split('/')[-2]
-		outdir = outpath + '/' + name
-		outdir_stats = outdir + "/Stats"
-		outdir_gtf = outdir + "/mirtop.gtf"
-		if (os.path.isdir(outdir)):
-			print ('\tSample %s has already an isomiRs gtf file' %name)
-		else:
-			cmd = mirtop_exec + ' gff --sps %s --hairpin %s --gtf %s --format srnabench -o %s %s' %(species, sRNAbench_hairpin, miRNA_gtf, outdir, folder)
 
-			try:
-				print ("\n##########################################")
-				print ('Creating isomiRs gtf file for sample %s' %name)
-				print ("-------------------------------------------")
-				# ToDOs: print to file mirtop_info.txt
-				print ('The following cmd is being executed at the shell: \n', cmd)
-				print ("")
-				subprocess.check_output(cmd, shell = True)
-
-			except subprocess.CalledProcessError as err:
-				print (err.output)
-				sys.exit()
-
+	name = folder.split('/')[-2]
+	outdir = outpath + '/' + name
+	outdir_stats = outdir + "/stats"
+	outdir_gtf = outdir + "/" + name + ".gff"
+	
+	if folder.endswith("/"):
+		folder = folder[:-1]
+		
+	reads_annot = folder + "/reads.annotation"
+	if not (os.path.isfile(reads_annot)):
+		#print ("\n##########################################")
+		print ('No isomiRs detected for sample %s' %name)
+		#print ("##########################################")
+		return ""
+	
+	if (os.path.isdir(outdir)):
+		print ('\tSample %s has already an isomiRs gtf file' %name)
+	else:
+		cmd = mirtop_exec + ' gff --sps %s --hairpin %s --gtf %s --format srnabench -o %s %s' %(species, sRNAbench_hairpin, miRNA_gtf, outdir, folder)
+		try:
+			#print ("\n##########################################")
+			print ('Creating isomiRs gtf file for sample %s' %name)
+			#print ("-------------------------------------------")
+			# ToDOs: print to file mirtop_info.txt
+			#print ('The following cmd is being executed at the shell: \n', cmd)
+			print ("")
+			subprocess.check_output(cmd, shell = True)
+		
+		except subprocess.CalledProcessError as err:
+			print (err.output)
+			sys.exit()
 		## get stats for each
-		if (os.path.isdir(outdir_stats)):
-			print ('\tSample %s has already an isomiRs stats folder' %name)
-		else:
-			cmd_stats = mirtop_exec + ' stats -o %s %s' %(outdir_stats, outdir_gtf)
-			try:
-				print ("\n##########################################")
-				print ('Creating isomiRs stats for sample %s' %name)
-				print ("-------------------------------------------")
-				# ToDOs: print to file mirtop_info.txt
-				print ('The following cmd is being executed at the shell: \n', cmd_stats)
-				print ("##########################################")
-				subprocess.check_output(cmd_stats, shell = True)
-			except subprocess.CalledProcessError as err:
-				print (err.output)
-				#sys.exit()
-    
-###############
+	if (os.path.isdir(outdir_stats)):
+		print ('\tSample %s has already an isomiRs stats folder' %name)
+	else:
+		cmd_stats = mirtop_exec + ' stats -o %s %s' %(outdir_stats, outdir_gtf)
+		try:
+			#print ("\n##########################################")
+			print ('Creating isomiRs stats for sample %s' %name)
+			#print ("-------------------------------------------")
+			# ToDOs: print to file mirtop_info.txt
+			#print ('The following cmd is being executed at the shell: \n', cmd_stats)
+			#print ("##########################################")
+			subprocess.check_output(cmd_stats, shell = True)
+
+		except subprocess.CalledProcessError as err:
+			print (err.output)
+			#sys.exit()
 
 ###############
 def isomiR_analysis (path, count, reads, time_partial):
@@ -408,7 +468,7 @@ def isomiR_analysis (path, count, reads, time_partial):
     ####### Step: sRNAbench ######
 	##############################
 	print ("\n+ Run sRNAbenchtoolbox:")
-	name_sRNAbench_folder = str(count) + '.isomiR_sRNAbenchtoolbox'
+	name_sRNAbench_folder = str(count) + '.1.isomiR_sRNAbenchtoolbox'
 	sRNAbench_folder = create_subfolder(name_sRNAbench_folder, path)
 	results = sRNAbench(reads, sRNAbench_folder)
 	
@@ -418,7 +478,7 @@ def isomiR_analysis (path, count, reads, time_partial):
 	############################
     ####### Step: miRTop #######
 	############################
-	name_miRTop_folder = str(count) + '.isomiR_miRTop'
+	name_miRTop_folder = str(count) + '.2.isomiR_miRTop'
 	miRTop_folder = create_subfolder(name_miRTop_folder, path)
 	gtfs=miRTop(results, miRTop_folder)
 	
@@ -428,25 +488,21 @@ def isomiR_analysis (path, count, reads, time_partial):
 	##############################################
     ####### Step: create expression matrix #######
 	##############################################
-	name_isomiR_matrix_folder = str(count) + '.isomiR_matrix'
+	name_isomiR_matrix_folder = str(count) + '.3.isomiR_matrix'
 	isomiR_matrix_folder = create_subfolder(name_isomiR_matrix_folder, path)
 
 	for gtffile in gtfs:
-
 		sample = gtffile.rpartition('/')[-1][:-4]
-		print ("\tParsing sample ", sample)
+		print ("\tParsing sample", sample)
+		filename = isomiR_matrix_folder + '/' + sample + '.tsv'
 
-		## parse gtf file
-		sample_dict = parse_gtf(gtffile)
-
-		## get filename
-		filename = isomiR_matrix_folder + '/' + sample
-		filenames.append(filename)
-
-		## create matrix
-		make_table(sample_dict, filename)
-		print ('\tExpression matrix created for ', sample)
-	
+		## parse gtf file & create matrix
+		if not (os.path.isfile(filename)):
+			parse_gtf(gtffile, filename, sample)
+			print ('\t + Expression matrix created...')
+		else:
+			print ('\t + Expression matrix already exists...')
+			
 	## timestamp
 	time_partial = timestamp(time_partial)
 
@@ -455,46 +511,33 @@ def isomiR_analysis (path, count, reads, time_partial):
 ###############
 
 ###############   
-def parse_gtf(gtffile):
-    gtfile = open(gtffile)
-    text = gtfile.read()
-    lines = text.splitlines()
-    sample_dict = {}
-    
-    for line in lines:
-        if not line.startswith('#'):
-            name = line.split('\t')[0]
-            name = line.split('\t')[-1].split(';')[2].split()[-1]
-            variant = line.split('\t')[-1].split(';')[4].split()[-1]
-            variant = '-' + variant
-            if variant == '-NA':
-                variant = ''
-            expression = int(line.split('\t')[-1].split(';')[6].split()[-1])
-            namevariant = name + variant
-            if namevariant in sample_dict.keys():
-                old = sample_dict[namevariant]
-                new = old + expression
-                sample_dict[namevariant] = new
-            else:
-                sample_dict[namevariant] = expression
-            #sample_dict[name+variant]= {}
-    return sample_dict
-###############
+def parse_gtf(gtffile, filename, sample):
 
-###############     
-def make_table(dictionary, filename):
-    fil = open(filename, 'w')    
-    isomirs = dictionary.keys()
-    
-    fil.write('Isomir\t')
-    fil.write(filename.partition('_expression')[0])
-    fil.write('\n')
-    for sample in isomirs:
-        fil.write(sample)
-        fil.write('\t')
-        fil.write(str(dictionary[sample]))
-        fil.write('\n')
-    fil.close()      
+	gtfile = open(gtffile)
+	text = gtfile.read()
+	lines = text.splitlines()
+	sample_dict = {}
+	
+	## Open file
+	fil = open(filename, 'w')    
+	string2write = 'type\tsample_name\tident\tname\tvariant\texpression\tseq\n'
+	fil.write(string2write)
+
+	for line in lines:
+		if not line.startswith('#'):
+        
+			#print ('## ',line)
+			seq = line.split('\t')[-1].split(';')[0].split("Read=")[-1]
+			ident = line.split('\t')[0]
+			name = line.split('\t')[-1].split(';')[2].split("Name=")[-1]
+			parent = line.split('\t')[-1].split(';')[3].split("Parent=")[-1]
+			variant = line.split('\t')[-1].split(';')[4].split("Variant=")[-1]
+			expression = str(line.split('\t')[-1].split(';')[6].split("Expression=")[-1])
+			
+			string2write = 'isomiR\t' + sample + '\t' + ident + '\t' + name + '\t' + variant + '\t' + expression + '\t' + seq + '\n'
+			fil.write(string2write)
+			
+	fil.close()      
 ###############
 
 ###############
@@ -504,32 +547,28 @@ def MINTmap(reads, folder):
 	MINTmap_tRNAseq = config['EXECUTABLES']['MINTmap_folder'] + 'tRNAspace.Spliced.Sequences.MINTmap_v1.fa'
 	MINTmap_tRF = config['EXECUTABLES']['MINTmap_folder'] + 'OtherAnnotations.MINTmap_v1.txt'	
 	MINTmap_MINTplates = config['EXECUTABLES']['MINTmap_folder'] + 'MINTplates/'
-	
 	results = []
+	command2sent = []
 	
 	for jread in reads:
 		sample_search = re.search('.*\/([a-zA-Z]{2,3})\_(\d{1,2})\_trimmed.*', jread)	
 		if sample_search:
 			outdir = sample_search.group(1) + "_" + sample_search.group(2)
 			sample_folder =  folder + '/' + outdir + '/'
+			results.append(sample_folder)
+
 			if (os.path.isdir(sample_folder)):
 				print ('\tMINTmap analysis for sample %s already exists' %outdir) 		
 			else:
 				#MINTmap.pl -f trimmedfastqfile [-p outputprefix] [-l lookuptable] [-s tRNAsequences] [-o tRFtypes] [-d customRPM] [-a assembly] [-j MINTplatesPath] [-h]
 				fol = create_subfolder(outdir, folder)
 				cmd = 'perl '+ MINTmap + ' -f %s -p %s -l %s -s %s -o %s -j %s' %(jread, sample_folder + outdir, MINTmap_table, MINTmap_tRNAseq, MINTmap_tRF, MINTmap_MINTplates) 
-
-				results.append(sample_folder)
-
 				# ToDOs: print into file MINTmap command
-				print ('The following cmd is being executed at the shell: \n', cmd)
-				try:
-					subprocess.check_output(cmd, shell = True)
-					print ('\tChecking sample %s for tRFs (MINTmap)' %outdir)
-				except subprocess.CalledProcessError as err:
-					print (err.output)
-					sys.exit()
-	
+				command2sent.append(cmd)
+				
+	#sent commands on threads			
+	sender(command2sent)
+
 	return results		
 ###############
 
@@ -539,14 +578,71 @@ def tRFs_analysis(path, count, reads, time_partial):
     ####### Step: sRNAbench ######
 	##############################
 	print ("\n+ Run MINTmap: ")
-	name_MINTmap_folder = str(count) + '.tRFs_MINTmap'
+	name_MINTmap_folder = str(count) + '.1.tRFs_MINTmap'
 	MINTmap_folder = create_subfolder(name_MINTmap_folder, path)
 	results = MINTmap(reads, MINTmap_folder)
 	
+	print ("\n+ Get MINTmap matrix: ")
+	name_MINTmap_matrix = str(count) + '.2.tRFs_matrix'
+	MINTmap_matrix_folder = create_subfolder(name_MINTmap_matrix, path)
+
+	for folder in results:
+		files = os.listdir(folder)
+		for item in files:
+			if 'countsmeta' in item:
+				continue
+			if item.endswith('html'):
+				continue
+			if 'ambigu' in item:
+				parse_tRF(folder, item, MINTmap_matrix_folder, 'ambiguous')		
+			elif 'exclu' in item:
+				parse_tRF(folder, item, MINTmap_matrix_folder, 'exclusive')		
+	
 	## timestamp
 	time_partial = timestamp(time_partial)
+	
 ###############
- 
+def parse_tRF(path, fileGiven, matrix_folder, ident):
+	
+	pathFile = path + '/' + fileGiven
+
+	sample_search = re.search('(.*)\-MINTmap_v1.*', fileGiven)	
+	if sample_search:
+		sample_name = sample_search.group(1)
+		#sample_folder =  matrix_folder + '/' + sample_name
+
+		skip = 0
+		tsv_file = matrix_folder + '/' + sample_name + '_' + ident + '.tsv'
+
+		if os.path.isfile(tsv_file):
+			print ('\tMatrix for ', sample_name , ' (' + ident + ') is already generated')
+			skip = 1
+
+		if skip == 0:
+
+ 			## Open file
+			fil = open(tsv_file, 'w')    
+			string2write = 'type\tsample_name\tident\tname\tvariant\texpression\tseq\n'
+			fil.write(string2write)
+			
+			## Read file
+			expression_file = open(pathFile)
+			expression_text = expression_file.read()
+			expression_lines = expression_text.splitlines()
+			
+			for line in expression_lines:
+				if not line.startswith('MINTbase'):
+					ID = line.split('\t')[0]
+					seq = line.split('\t')[1]
+					variant = line.split('\t')[2]
+					expression = line.split('\t')[3]
+					string2write = 'tRFs\t'+ sample_name + '\t' + ident + '\t' + ID +'\t' + variant + '\t' + expression + '\t' + seq+ '\n'
+					fil.write(string2write)
+
+			fil.close()      
+
+###############
+
 #################################################
 ######				MAIN					#####
 #################################################
@@ -580,15 +676,15 @@ if __name__ == "__main__":
 	## dump config file to stdout
 	f = open(configuration_path_file, 'r')
 	print ("\n***********************************************")
-	config = f.read()
+	configuration_file = f.read()
 	f.close()
-	print (config)
+	print (configuration_file)
 	print ("\n***********************************************")
 	
 	## configuration options:
-	merge_option = config["VARIABLES"]["merge_samples"]
-	analysis_option = config["VARIABLES"]["option"]
-	threads_option = config["VARIABLES"]["thread"]
+	merge_option = config['VARIABLES']['merge_samples']
+	analysis_option = config['VARIABLES']['option']
+	num_threads = int(config['VARIABLES']['thread'])	
     
     ####################
     ## create folder  ##	
