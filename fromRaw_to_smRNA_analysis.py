@@ -679,9 +679,7 @@ def tRFs_analysis(path, count, reads, time_partial, output_file):
 	
 ###############
 def parse_tRF(path, fileGiven, matrix_folder, ident):
-	
 	pathFile = path + '/' + fileGiven
-
 	sample_search = re.search('(.*)\-MINTmap_v1.*', fileGiven)	
 	if sample_search:
 		sample_name = sample_search.group(1)
@@ -715,10 +713,56 @@ def parse_tRF(path, fileGiven, matrix_folder, ident):
 					string2write = 'tRFs\t'+ sample_name + '\t' + ident + '\t' + ID +'\t' + variant + '\t' + expression + '\t' + seq+ '\n'
 					fil.write(string2write)
 
-			fil.close()      
+			fil.close()
+###############
+
+###############
+def RNABiotype(read, folder, output_file_name):
+	## open file
+	output_file = open(output_file_name, 'a')
+	output_file.write("\nSTAR command for RNA Biotype identification:\n")
+	
+	STAR_executable = config['RNA_biotype']['STAR_exe']
+	genomeDir = config['RNA_biotype']['STAR_genomeDir']
+	script = 
+	
+	for jread in reads:
+	
+		for prefix in prefix_list:
+		
+			sample_search = re.search(r"(%s)\_(\d{1,2})\_(.*)" % prefix, jread)
+			if sample_search:
+
+				outdir = sample_search.group(1) + "_" + sample_search.group(2)
+				sample_folder =  folder + '/' + outdir + '/'
+				results.append(sample_folder)
+				logfile = sample_folder + outdir + '_logfile.txt'
+
+				if (os.path.isfile(logfile)):
+					print ('\tRNA biotype analysis for sample %s already exists' %outdir) 		
+					
+				else:
+					cmd = 'python3 %s %s 1 %s > %s' %(script, STAR_executable, genomeDir, outdir, jread, logfile)
+
+					# get command
+					command2sent.append(cmd)
+
+					# print into file
+					output_file.write(cmd)
+					output_file.write('\n')
+				
+	#sent commands on threads			
+	sender(command2sent)
+	
+	output_file.close()
+
+	return results		
+
+	
+
+###############
 
 #########################################################################################################
-
 #################################################
 ######				MAIN					#####
 #################################################
@@ -906,14 +950,29 @@ if __name__ == "__main__":
 	if paired_end:
 		print ("\n+ Joining samples: ")
 		name = str(folder_id) + ".fastqjoin"
-		folder_id = folder_id + 1
 		fastqjoin_folder = create_subfolder(name, path=folder_path)
 		joined_read = fastqjoin(trimmed_R1_return, trimmed_R2_return, fastqjoin_folder, command_file_name)
 		## timestamp
 		start_time_partial = timestamp(start_time_partial)
+
+		folder_id = folder_id + 1
+
 	else:
 		joined_read = trimmed_R1_return
+
+	######################################
+	########## RNA Biotype analisis ######
+	######################################
+	name_RNABiotype = str(folder_id) + ".RNA_Biotype"
+	RNABiotype_folder = create_subfolder(folder_RNABiotype, path=folder_path)
+
+	print ("\n+ Get RNA Biotype for samples: ")
+	RNABiotype(joined_read, RNABiotype_folder, command_file_name)
 		
+	folder_id = folder_id + 1
+	## timestamp
+	start_time_partial = timestamp(start_time_partial)
+
 	######################################
 	####### Step: Small RNA analysis #####
 	######################################
