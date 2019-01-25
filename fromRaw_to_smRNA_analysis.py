@@ -25,10 +25,15 @@ def help_options():
 	print ("           Copyright (C) 2018-2019 Lauro Sumoy Lab, IGTP, Spain")
 	print ("#########################################################################")
 	print ("\nDESCRIPTION:")
-	print ("- This script is a pipeline generated for the trimming and joining of paired-end or single end reads from small RNA-seq data.")
+	print ("- This script is a pipeline generated for the analysis of paired-end or single end reads from small RNA-seq data.")
 	print ("\n- Available analysis are:")
-	print ("\t+ miRNA-isomiR analysis using sRNAtoolbox ")
-	print ("\t+ tRFs using MINTmap and MINTbase.")
+	print ("\t+ General:")
+	print ("\t\t+ Trimming using Cutadapt")
+	print ("\t\t+ Merge paired-end reads using FastqJoin")
+	print ("\t\t+ RNA Biotype analysis using STAR.")
+	print ("\n\t+ Small RNA seq:")
+	print ("\t\t+ miRNA-isomiR analysis using sRNAtoolbox ")
+	print ("\t\t+ tRFs using MINTmap and MINTbase.")
 	print ("")
 	print ("USAGE:\npython3", os.path.abspath(argv[0]),"config_file.txt ")
 	print ("\nPARAMETERS:")
@@ -47,6 +52,7 @@ def help_options():
 	print ("thread = num_threads")
 	print ("option = isomiR|tRFs|all")
 	print ("merge_samples = YES|NO")
+	print ("RNAbiotype = YES|NO")
 	print ("")
 	print ("[PARAMETERS]")
 	print ("adapter_3 = sequence1")
@@ -62,6 +68,11 @@ def help_options():
 	print ("")
 	print ("[miRNA_ANALYSIS]")
 	print ("miRNA_gtf = /path/to/human_genome/gff_file/for/miRNA/file.gff3")
+	print ("")
+	print ("[RNA_biotype]")
+	print ("STAR_exe = /path/to/STAR_executable")
+	print ("STAR_genomeDir = /path/to/STAR/genomeDir_index")
+	print ("")
 	print ("")
 	print ("*******************************************************")
 	print ("")
@@ -724,10 +735,31 @@ def RNABiotype(read, folder, output_file_name):
 	
 	STAR_executable = config['RNA_biotype']['STAR_exe']
 	genomeDir = config['RNA_biotype']['STAR_genomeDir']
-	script = 
 	
+	## For many samples it will have to load genome index in memory every time.
+	## For a unique sample it will not matter. Take care genome might stay in memory.
+	## Use before loop option LoadAndExit and then:
+		## in loop
+		## Use option LoadAndKeep, set shared memory > 30 Gb
+	## when finished loop Remove memory
+	
+	## --genomeLoad LoadAndExit
+	LoadDir = folder + '/LoadMem'
+	cmd_LD = "%s --genomeDir %s --runThreadN 1 --genomeLoad LoadAndExit" %(STAR_exe, removeDir)
+	## send command	
+	try:
+		print ('Loading memory for STAR mapping')
+		subprocess.check_output(cmd_LD, shell = True)
+		
+	except subprocess.CalledProcessError as err:
+		print (err.output)
+	
+	# print into file
+	output_file.write(cmd_LD)
+	output_file.write('\n')
+
+	## Send a process for each sample
 	for jread in reads:
-	
 		for prefix in prefix_list:
 		
 			sample_search = re.search(r"(%s)\_(\d{1,2})\_(.*)" % prefix, jread)
@@ -735,6 +767,7 @@ def RNABiotype(read, folder, output_file_name):
 
 				outdir = sample_search.group(1) + "_" + sample_search.group(2)
 				sample_folder =  folder + '/' + outdir + '/'
+
 				results.append(sample_folder)
 				logfile = sample_folder + outdir + '_logfile.txt'
 
@@ -742,7 +775,14 @@ def RNABiotype(read, folder, output_file_name):
 					print ('\tRNA biotype analysis for sample %s already exists' %outdir) 		
 					
 				else:
-					cmd = 'python3 %s %s 1 %s > %s' %(script, STAR_executable, genomeDir, outdir, jread, logfile)
+					## prepare command
+					cmd = "%s --genomeDir %s --runThreadN 1 --readFilesIn %s" %(STAR_exe, genomeDir, jread)
+
+					## all this options and parameters have been obtained from https://www.encodeproject.org/rna-seq/small-rnas/
+					cmd = cmd + " --outFilterMultimapNmax 20 --alignIntronMax 1 --outFilterMismatchNoverLmax 0.03 --outFilterScoreMinOverLread 0 "
+					cmd = cmd + "--outFilterMatchNminOverLread 0 --outFilterMatchNmin 16 --outSAMheaderHD @HD VN:1.4 SO:coordinate --outSAMunmapped Within "
+					cmd = cmd + "--outSAMtype BAM SortedByCoordinate --genomeLoad LoadAndKeep --quantMode GeneCounts --alignSJDBoverhangMin 1000 "
+					cmd = cmd + "--outFileNamePrefix %s" %outdir
 
 					# get command
 					command2sent.append(cmd)
@@ -751,15 +791,28 @@ def RNABiotype(read, folder, output_file_name):
 					output_file.write(cmd)
 					output_file.write('\n')
 				
+	
 	#sent commands on threads			
-	sender(command2sent)
+	sender(command2sent)	
 	
+	## --genomeLoad Remove
+	removeDir = folder + '/RemoveMem'
+	cmd_RM = "%s --genomeDir %s --runThreadN 1 --genomeLoad Remove" %(STAR_exe, removeDir)
+	## send command	
+	try:
+		print ('Removing memory loaded for STAR mapping')
+		subprocess.check_output(cmd_RM, shell = True)
+	except subprocess.CalledProcessError as err:
+		print (err.output)
+	
+	# print into file
+	output_file.write(cmd_RM)
+	output_file.write('\n')
+
+	## close file output commands
 	output_file.close()
-
+		
 	return results		
-
-	
-
 ###############
 
 #########################################################################################################
@@ -963,15 +1016,17 @@ if __name__ == "__main__":
 	######################################
 	########## RNA Biotype analisis ######
 	######################################
-	name_RNABiotype = str(folder_id) + ".RNA_Biotype"
-	RNABiotype_folder = create_subfolder(folder_RNABiotype, path=folder_path)
+	option_RNAbiotype = config['VARIABLES']['RNAbiotype']
+	if option_RNAbiotype == "YES":
+		name_RNABiotype = str(folder_id) + ".RNA_Biotype"
+		RNABiotype_folder = create_subfolder(folder_RNABiotype, path=folder_path)
 
-	print ("\n+ Get RNA Biotype for samples: ")
-	RNABiotype(joined_read, RNABiotype_folder, command_file_name)
-		
-	folder_id = folder_id + 1
-	## timestamp
-	start_time_partial = timestamp(start_time_partial)
+		print ("\n+ Get RNA Biotype for samples: ")
+		RNABiotype(joined_read, RNABiotype_folder, command_file_name)
+
+		folder_id = folder_id + 1
+		## timestamp
+		start_time_partial = timestamp(start_time_partial)
 
 	######################################
 	####### Step: Small RNA analysis #####
