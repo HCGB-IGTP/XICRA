@@ -93,7 +93,7 @@ def help_options():
 ###############
 
 ###############   
-def getime (start_time):
+def gettime (start_time):
     total_sec = time.time() - start_time
     m, s = divmod(int(total_sec), 60)
     h, m = divmod(m, 60)
@@ -119,7 +119,7 @@ def create_subfolder (name, path):
     
 ###############   
 def timestamp (start_time_partial):
-	h,m,s = getime(start_time_partial)
+	h,m,s = gettime(start_time_partial)
 	print ('--------------------------------')
 	print ('(Time spent: %i h %i min %i s)' %(int(h), int(m), int(s)))
 	print ('--------------------------------')
