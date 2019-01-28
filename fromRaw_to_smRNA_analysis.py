@@ -12,6 +12,8 @@ import configparser
 from datetime import datetime
 from io import open
 import concurrent.futures
+import pandas as pd
+import matplotlib 
 
 #####################
 #### functions ######
@@ -380,8 +382,7 @@ def fastqjoin (trimmed_R1, trimmed_R2, out_path, file_name):
 					command2sent.append(cmd)
 
 	## close file
-	output_file.close()
-				
+	output_file.close()				
 	#sent commands on threads			
 	sender(command2sent)
 
@@ -594,18 +595,15 @@ def parse_gtf(gtffile, filename, sample):
 	fil = open(filename, 'w')    
 	string2write = 'type\tsample_name\tident\tname\tvariant\texpression\tseq\n'
 	fil.write(string2write)
-
 	for line in lines:
-		if not line.startswith('#'):
-        
+		if not line.startswith('#'):        
 			#print ('## ',line)
 			seq = line.split('\t')[-1].split(';')[0].split("Read=")[-1]
 			ident = line.split('\t')[0]
 			name = line.split('\t')[-1].split(';')[2].split("Name=")[-1]
 			parent = line.split('\t')[-1].split(';')[3].split("Parent=")[-1]
 			variant = line.split('\t')[-1].split(';')[4].split("Variant=")[-1]
-			expression = str(line.split('\t')[-1].split(';')[6].split("Expression=")[-1])
-			
+			expression = str(line.split('\t')[-1].split(';')[6].split("Expression=")[-1])			
 			string2write = 'isomiR\t' + sample + '\t' + ident + '\t' + name + '\t' + variant + '\t' + expression + '\t' + seq + '\n'
 			fil.write(string2write)
 			
@@ -631,31 +629,25 @@ def MINTmap(reads, folder, file_name):
 		for prefix in prefix_list:
 			sample_search = re.search(r"(%s)\_(\d{1,2})\_(.*)" % prefix, jread)
 			if sample_search:
-
 				outdir = sample_search.group(1) + "_" + sample_search.group(2)
 				sample_folder =  folder + '/' + outdir + '/'
 				results.append(sample_folder)
 				logfile = sample_folder + outdir + '_logfile.txt'
-
 				if (os.path.isdir(sample_folder)):
 					print ('\tMINTmap analysis for sample %s already exists' %outdir) 		
 				else:
 					#MINTmap.pl -f trimmedfastqfile [-p outputprefix] [-l lookuptable] [-s tRNAsequences] [-o tRFtypes] [-d customRPM] [-a assembly] [-j MINTplatesPath] [-h]
 					fol = create_subfolder(outdir, folder)
 					cmd = 'perl '+ MINTmap + ' -f %s -p %s -l %s -s %s -o %s -j %s > %s' %(jread, sample_folder + outdir, MINTmap_table, MINTmap_tRNAseq, MINTmap_tRF, MINTmap_MINTplates, logfile) 
-
 					# get command
 					command2sent.append(cmd)
-
 					# print into file
 					output_file.write(cmd)
 					output_file.write('\n')
-				
+
 	#sent commands on threads			
 	sender(command2sent)
-	
 	output_file.close()
-
 	return results		
 ###############
 
@@ -695,26 +687,20 @@ def parse_tRF(path, fileGiven, matrix_folder, ident):
 	if sample_search:
 		sample_name = sample_search.group(1)
 		#sample_folder =  matrix_folder + '/' + sample_name
-
 		skip = 0
 		tsv_file = matrix_folder + '/' + sample_name + '_' + ident + '.tsv'
-
 		if os.path.isfile(tsv_file):
 			print ('\tMatrix for ', sample_name , ' (' + ident + ') is already generated')
 			skip = 1
-
 		if skip == 0:
-
  			## Open file
 			fil = open(tsv_file, 'w')    
 			string2write = 'type\tsample_name\tident\tname\tvariant\texpression\tseq\n'
 			fil.write(string2write)
-			
 			## Read file
 			expression_file = open(pathFile)
 			expression_text = expression_file.read()
 			expression_lines = expression_text.splitlines()
-			
 			for line in expression_lines:
 				if not line.startswith('MINTbase'):
 					ID = line.split('\t')[0]
@@ -733,8 +719,10 @@ def RNABiotype(read, folder, output_file_name):
 	output_file = open(output_file_name, 'a')
 	output_file.write("\nSTAR command for RNA Biotype identification:\n")
 	
-	STAR_executable = config['RNA_biotype']['STAR_exe']
+	STAR_exe = config['RNA_biotype']['STAR_exe']
 	genomeDir = config['RNA_biotype']['STAR_genomeDir']
+	num_threads = config['VARIABLES']['thread']
+	limitRAM_option = config['RNA_biotype']['limitRAM']	
 	
 	## For many samples it will have to load genome index in memory every time.
 	## For a unique sample it will not matter. Take care genome might stay in memory.
@@ -742,78 +730,152 @@ def RNABiotype(read, folder, output_file_name):
 		## in loop
 		## Use option LoadAndKeep, set shared memory > 30 Gb
 	## when finished loop Remove memory
-	
-	## --genomeLoad LoadAndExit
-	LoadDir = folder + '/LoadMem'
-	cmd_LD = "%s --genomeDir %s --runThreadN 1 --genomeLoad LoadAndExit" %(STAR_exe, removeDir)
-	## send command	
-	try:
-		print ('Loading memory for STAR mapping')
-		subprocess.check_output(cmd_LD, shell = True)
 		
-	except subprocess.CalledProcessError as err:
-		print (err.output)
-	
-	# print into file
-	output_file.write(cmd_LD)
-	output_file.write('\n')
-
 	## Send a process for each sample
-	for jread in reads:
+	command2sent = []
+	item = 0
+	results_STAR = {}
+	for jread in read:
 		for prefix in prefix_list:
-		
 			sample_search = re.search(r"(%s)\_(\d{1,2})\_(.*)" % prefix, jread)
 			if sample_search:
-
 				outdir = sample_search.group(1) + "_" + sample_search.group(2)
 				sample_folder =  folder + '/' + outdir + '/'
-
-				results.append(sample_folder)
+				results_STAR[outdir] = sample_folder
 				logfile = sample_folder + outdir + '_logfile.txt'
-
+				out_folder = create_subfolder(outdir, folder)		
 				if (os.path.isfile(logfile)):
-					print ('\tRNA biotype analysis for sample %s already exists' %outdir) 		
-					
+					print ('\tRNA biotype analysis for sample %s is done...' %outdir)
 				else:
 					## prepare command
-					cmd = "%s --genomeDir %s --runThreadN 1 --readFilesIn %s" %(STAR_exe, genomeDir, jread)
-
+					cmd = "%s --genomeDir %s --runThreadN 1 --readFilesIn %s " %(STAR_exe, genomeDir, jread)
 					## all this options and parameters have been obtained from https://www.encodeproject.org/rna-seq/small-rnas/
-					cmd = cmd + " --outFilterMultimapNmax 20 --alignIntronMax 1 --outFilterMismatchNoverLmax 0.03 --outFilterScoreMinOverLread 0 "
-					cmd = cmd + "--outFilterMatchNminOverLread 0 --outFilterMatchNmin 16 --outSAMheaderHD @HD VN:1.4 SO:coordinate --outSAMunmapped Within "
-					cmd = cmd + "--outSAMtype BAM SortedByCoordinate --genomeLoad LoadAndKeep --quantMode GeneCounts --alignSJDBoverhangMin 1000 "
-					cmd = cmd + "--outFileNamePrefix %s" %outdir
-
+					cmd = cmd + "--outFilterMultimapNmax 1 --alignIntronMax 1"
+					cmd = cmd + "--outFilterMismatchNoverLmax 0.03 --outFilterScoreMinOverLread 0 --outFilterMatchNminOverLread 0 --outFilterMatchNmin 16 "
+					cmd = cmd + "--outSAMheaderHD @HD VN:1.4 SO:coordinate --outSAMtype BAM SortedByCoordinate "
+					cmd = cmd + "--genomeLoad LoadAndKeep --quantMode GeneCounts --alignSJDBoverhangMin 1000 "
+					cmd = cmd + "--limitBAMsortRAM %s --outFileNamePrefix %s > %s" %(limitRAM_option, sample_folder, logfile)
 					# get command
 					command2sent.append(cmd)
-
 					# print into file
 					output_file.write(cmd)
 					output_file.write('\n')
-				
+					item = item + 1
 	
-	#sent commands on threads			
-	sender(command2sent)	
+	## check if samples are done
+	if (item > 1):
+		## --genomeLoad LoadAndExit
+		LoadDir = 'LoadMem'
+		Load_folder = create_subfolder(LoadDir, folder)
+		cmd_LD = "%s --genomeDir %s --runThreadN %s --outFileNamePrefix %s --genomeLoad LoadAndExit" %(STAR_exe, genomeDir, num_threads, Load_folder)
+		## send command	
+		try:
+			print ('\t+ Loading memory for STAR mapping')
+			subprocess.check_output(cmd_LD, shell = True)
+		except subprocess.CalledProcessError as err:
+			print (err.output)
+		# print into file
+		output_file.write(cmd_LD)
+		output_file.write('\n')
+		print ("\t+ Done...\n")
+
+		#sent commands on threads			
+		sender(command2sent)	
 	
-	## --genomeLoad Remove
-	removeDir = folder + '/RemoveMem'
-	cmd_RM = "%s --genomeDir %s --runThreadN 1 --genomeLoad Remove" %(STAR_exe, removeDir)
+		## --genomeLoad Remove
+		removeDir = 'RemoveMem'
+		remove_folder = create_subfolder(removeDir, folder)
+		cmd_RM = "%s --genomeDir %s --outFileNamePrefix %s --runThreadN %s --genomeLoad Remove" %(STAR_exe, genomeDir, remove_folder, num_threads)
+		## send command	
+		try:
+			print ('\t+ Removing memory loaded for STAR mapping')
+			subprocess.check_output(cmd_RM, shell = True)
+		except subprocess.CalledProcessError as err:
+			print (err.output)
+	
+		# print into file
+		output_file.write(cmd_RM)
+		output_file.write('\n')
+	else:
+		## there is no need to load info on memory as there are no samples to process
+		## They are all done already
+		print ("")
+	
+	## Send threads por parsing
+	with concurrent.futures.ThreadPoolExecutor(max_workers= int(num_threads)) as executor:
+		# Start the load operations and mark each future with its URL
+		commandsSent = { executor.submit(parse_RNAbiotype, fol, ID): fol for ID,fol in results_STAR.items() }
+		for cmd2 in concurrent.futures.as_completed(commandsSent):
+			details = commandsSent[cmd2]
+			try:
+				data = cmd2.result()
+			except Exception as exc:
+				print ('***ERROR:')
+				print (cmd2)
+				print('%r generated an exception: %s' % (details, exc))
+
+	#return results		
+###############
+
+###############
+def parse_RNAbiotype(folder, ID):
+
+	## parse ReadsPerGene.out.tab file for each
+	fileReadsPerGene = str(folder + 'ReadsPerGene.out.tab')
+	fileReadsPerGene_filter_name = fileReadsPerGene + '.filter.txt'
+	fileReadsPerGene_filter = open(fileReadsPerGene_filter_name, 'a')
+	## IDS
+	fileReadsPerGene_ID_name = fileReadsPerGene + '.IDs.txt'
+	fileReadsPerGene_ID = open(fileReadsPerGene_ID_name, 'a')
+
+	#print (key, "=>", val)
+	#print (fileReadsPerGene)
+	if (os.path.isfile(fileReadsPerGene)):
+		print ("\t + Parsing ReadsPerGene for sample ", ID)
+		parse_file = open(fileReadsPerGene)
+		text = parse_file.read()
+		lines = text.splitlines()			
+		for line in lines:
+			if line.startswith('ENS'):
+				#print ('## ',line)
+				each = int(line.split('\t')[1])
+				if (each > 0):
+					fileReadsPerGene_filter.write(line)
+					fileReadsPerGene_filter.write('\n')
+					fileReadsPerGene_ID.write(line.split('\t')[0])
+					fileReadsPerGene_ID.write('\n')
+	
+	fileReadsPerGene_ID.close()
+	fileReadsPerGene_filter.close()
+	
+	## get gene_type
+	genetype_tab = config['RNA_biotype']['genetype_tab']
+
+	## get genetype for sample
+	genetype_ID_out = folder + 'genetype.txt'
+	cmd = 'grep -f %s %s > %s' %(fileReadsPerGene_ID_name, genetype_tab, genetype_ID_out)
+	
 	## send command	
+	#print (str(cmd))
+	
 	try:
-		print ('Removing memory loaded for STAR mapping')
-		subprocess.check_output(cmd_RM, shell = True)
+		subprocess.check_output(str(cmd), shell = True)
 	except subprocess.CalledProcessError as err:
 		print (err.output)
+		# get results
 	
-	# print into file
-	output_file.write(cmd_RM)
-	output_file.write('\n')
-
-	## close file output commands
-	output_file.close()
+	df_genetype = pd.read_csv(genetype_ID_out, sep="\t", header=None)
+	df_genetype_sum = df_genetype[1].str.get_dummies(sep="/").values.sum()
+	df_genetype_count = df_genetype[1].str.get_dummies(sep="/").sum()
 		
-	return results		
-###############
+	## save figure and csv information
+	csv_name = folder + 'RNA_biotypes.csv'
+	df_genetype_count.to_csv(csv_name,header=False)
+	figure_count = df_genetype_count.plot.pie().get_figure()
+	
+	figure_name = folder + 'RNA_biotypes.pdf'
+	figure_count.savefig(figure_name)
+
 
 #########################################################################################################
 #################################################
@@ -1019,7 +1081,7 @@ if __name__ == "__main__":
 	option_RNAbiotype = config['VARIABLES']['RNAbiotype']
 	if option_RNAbiotype == "YES":
 		name_RNABiotype = str(folder_id) + ".RNA_Biotype"
-		RNABiotype_folder = create_subfolder(folder_RNABiotype, path=folder_path)
+		RNABiotype_folder = create_subfolder(name_RNABiotype, path=folder_path)
 
 		print ("\n+ Get RNA Biotype for samples: ")
 		RNABiotype(joined_read, RNABiotype_folder, command_file_name)
