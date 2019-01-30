@@ -8,12 +8,19 @@ import re
 import subprocess
 import sys
 from sys import argv
-import configparser
 from datetime import datetime
 from io import open
+
+## configuration
+import configparser
 import concurrent.futures
+
+## plots
 import pandas as pd
-import matplotlib 
+import matplotlib
+matplotlib.use('agg')
+import matplotlib.pyplot as plt
+from pandas.plotting import table
 
 #####################
 #### functions ######
@@ -801,10 +808,28 @@ def RNABiotype(read, folder, output_file_name):
 		## They are all done already
 		print ("")
 	
+
+	## get gene_type
+	genetype_tab = config['RNA_biotype']['genetype_tab']
+	
+	## split file for faster preprocessing
+	print ("+ Splitting tabular gene file for speeding up process...\n")
+	split_folder = create_subfolder("split_files", folder)		
+	files_generated = folder + '/files_splitted.txt'
+	file_splitter_perl = os.path.dirname(argv[0]) + '/file_splitter.pl'
+	cmd_split = 'perl %s %s 10 tab %s > %s' %(file_splitter_perl, genetype_tab, split_folder, files_generated)
+	output_file.write("Split genetype tabular file")
+	output_file.write(cmd_split)
+	output_file.write('\n')
+	try:
+		subprocess.check_output(cmd_split, shell = True)
+	except subprocess.CalledProcessError as err:
+		print (err.output)
+
 	## Send threads por parsing
 	with concurrent.futures.ThreadPoolExecutor(max_workers= int(num_threads)) as executor:
 		# Start the load operations and mark each future with its URL
-		commandsSent = { executor.submit(parse_RNAbiotype, fol, ID): fol for ID,fol in results_STAR.items() }
+		commandsSent = { executor.submit(parse_RNAbiotype, fol, ID, output_file_name, files_generated): fol for ID,fol in results_STAR.items() }
 		for cmd2 in concurrent.futures.as_completed(commandsSent):
 			details = commandsSent[cmd2]
 			try:
@@ -813,20 +838,27 @@ def RNABiotype(read, folder, output_file_name):
 				print ('***ERROR:')
 				print (cmd2)
 				print('%r generated an exception: %s' % (details, exc))
-
+				
+	
+	output_file.close()
+	
+					
 	#return results		
 ###############
 
 ###############
-def parse_RNAbiotype(folder, ID):
+def parse_RNAbiotype(folder, ID, output_file_name, files_generated):
 
+	output_file = open(output_file_name, 'a')
+	output_file.write("\nParse RNA Biotype results:\n")
+	
 	## parse ReadsPerGene.out.tab file for each
 	fileReadsPerGene = str(folder + 'ReadsPerGene.out.tab')
 	fileReadsPerGene_filter_name = fileReadsPerGene + '.filter.txt'
-	fileReadsPerGene_filter = open(fileReadsPerGene_filter_name, 'a')
+	fileReadsPerGene_filter = open(fileReadsPerGene_filter_name, 'w')
 	## IDS
-	fileReadsPerGene_ID_name = fileReadsPerGene + '.IDs.txt'
-	fileReadsPerGene_ID = open(fileReadsPerGene_ID_name, 'a')
+	fileReadsPerGene_ID_name = fileReadsPerGene + '.IDs_tmp.txt'
+	fileReadsPerGene_ID = open(fileReadsPerGene_ID_name, 'w')
 
 	#print (key, "=>", val)
 	#print (fileReadsPerGene)
@@ -844,37 +876,75 @@ def parse_RNAbiotype(folder, ID):
 					fileReadsPerGene_filter.write('\n')
 					fileReadsPerGene_ID.write(line.split('\t')[0])
 					fileReadsPerGene_ID.write('\n')
-	
 	fileReadsPerGene_ID.close()
 	fileReadsPerGene_filter.close()
-	
-	## get gene_type
-	genetype_tab = config['RNA_biotype']['genetype_tab']
 
-	## get genetype for sample
-	genetype_ID_out = folder + 'genetype.txt'
-	cmd = 'grep -f %s %s > %s' %(fileReadsPerGene_ID_name, genetype_tab, genetype_ID_out)
-	
+	## sort uniq file
+	fileReadsPerGene_ID_def = fileReadsPerGene + '.IDs.txt'
+	cmd_sort = 'sort %s | uniq > %s' %(fileReadsPerGene_ID_name, fileReadsPerGene_ID_def)
 	## send command	
-	#print (str(cmd))
-	
 	try:
-		subprocess.check_output(str(cmd), shell = True)
+		subprocess.check_output(str(cmd_sort), shell = True)
 	except subprocess.CalledProcessError as err:
 		print (err.output)
-		# get results
 	
-	df_genetype = pd.read_csv(genetype_ID_out, sep="\t", header=None)
-	df_genetype_sum = df_genetype[1].str.get_dummies(sep="/").values.sum()
-	df_genetype_count = df_genetype[1].str.get_dummies(sep="/").sum()
+	## loop around huge file
+	tabular_files = open(files_generated)
+	text = tabular_files.read()
+	lines = text.splitlines()
+	genetype_ID_out = folder + 'genetype.txt'
+	if os.path.isfile(genetype_ID_out):
+		#remove file
+		os.remove(genetype_ID_out)
+
+	for line in lines:
+		## get genetype for sample
+		cmd_grep = 'grep --line-buffered -f %s %s >> %s' %(fileReadsPerGene_ID_def, line, genetype_ID_out)
+		output_file.write(cmd_grep)
+		output_file.write('\n')	
+
+		## send command	
+		try:
+			subprocess.check_output(str(cmd_grep), shell = True)
+		except subprocess.CalledProcessError as err:
+			print (err.output)
+			# get results
+
+	## parse results	
+	df_genetype = pd.read_csv(genetype_ID_out, sep="\t", header=None)	
+	df_genetype_sum = df_genetype[1].str.get_dummies(sep="/").values.sum() ## total
 		
-	## save figure and csv information
+	## save csv information
+	df_genetype_count = df_genetype[1].str.get_dummies(sep="/").sum()
 	csv_name = folder + 'RNA_biotypes.csv'
 	df_genetype_count.to_csv(csv_name,header=False)
-	figure_count = df_genetype_count.plot.pie().get_figure()
 	
-	figure_name = folder + 'RNA_biotypes.pdf'
-	figure_count.savefig(figure_name)
+	# create plot
+	plt.figure(figsize=(16,8))
+	df_genetype_2 = pd.DataFrame({'type':df_genetype_count.index, 'count':df_genetype_count.values})
+
+	## filter 1% values
+	minimun = df_genetype_sum * 0.01
+	df_genetype_filter_greater = df_genetype_2[ df_genetype_2['count'] >= minimun ]
+	df_genetype_filter_smaller = df_genetype_2[ df_genetype_2['count'] < minimun ]
+	
+	## merge and generate Other class
+	df_genetype_filter_smaller_sum = df_genetype_filter_smaller['count'].sum() ## total filter smaller
+	df_genetype_filter_greater2 = df_genetype_filter_greater.append({'count':df_genetype_filter_smaller_sum, 'type':'Other'}, ignore_index=True)
+	
+	## Create Plot
+	ax1 = plt.subplot(121,aspect='equal')
+	df_genetype_filter_greater2.plot.pie(y = 'count', ax=ax1, autopct='%1.1f%%', shadow=False, labels=df_genetype_filter_greater2['type'], legend = False)
+
+	# plot table
+	ax2 = plt.subplot(122)
+	plt.axis('off')
+	tbl = table(ax2, df_genetype_2, loc='center', rowLoc='center', cellLoc='center')
+	tbl.auto_set_font_size(True)
+	
+	name_figure = folder + 'figure.pdf'
+	## generate image
+	plt.savefig(name_figure)
 
 
 #########################################################################################################
