@@ -839,10 +839,7 @@ def RNABiotype(read, folder, output_file_name):
 				print (cmd2)
 				print('%r generated an exception: %s' % (details, exc))
 				
-	
-	output_file.close()
-	
-					
+	output_file.close()					
 	#return results		
 ###############
 
@@ -921,32 +918,32 @@ def parse_RNAbiotype(folder, ID, output_file_name, files_generated):
 	
 	# create plot
 	plt.figure(figsize=(16,8))
-	df_genetype_2 = pd.DataFrame({'type':df_genetype_count.index, 'count':df_genetype_count.values})
+	df_genetype_2 = pd.DataFrame({'Type':df_genetype_count.index, 'Count':df_genetype_count.values}).sort_values(by=['Count'])
 
 	## filter 1% values
 	minimun = df_genetype_sum * 0.01
-	df_genetype_filter_greater = df_genetype_2[ df_genetype_2['count'] >= minimun ]
-	df_genetype_filter_smaller = df_genetype_2[ df_genetype_2['count'] < minimun ]
+	df_genetype_filter_greater = df_genetype_2[ df_genetype_2['Count'] >= minimun ]
+	df_genetype_filter_smaller = df_genetype_2[ df_genetype_2['Count'] < minimun ]
 	
 	## merge and generate Other class
-	df_genetype_filter_smaller_sum = df_genetype_filter_smaller['count'].sum() ## total filter smaller
-	df_genetype_filter_greater2 = df_genetype_filter_greater.append({'count':df_genetype_filter_smaller_sum, 'type':'Other'}, ignore_index=True)
+	df_genetype_filter_smaller_sum = df_genetype_filter_smaller['Count'].sum() ## total filter smaller
+	df_genetype_filter_greater2 = df_genetype_filter_greater.append({'Count':df_genetype_filter_smaller_sum, 'Type':'Other'}, ignore_index=True)
 	
 	## Create Plot
-	ax1 = plt.subplot(121,aspect='equal')
-	df_genetype_filter_greater2.plot.pie(y = 'count', ax=ax1, autopct='%1.1f%%', shadow=False, labels=df_genetype_filter_greater2['type'], legend = False)
+	ax1 = plt.subplot(121, aspect='equal')
+	df_genetype_filter_greater2.plot.pie(y = 'Count', ax=ax1, autopct='%1.2f%%', shadow=False, labels=df_genetype_filter_greater2['Type'], legend = False)
 
 	# plot table
 	ax2 = plt.subplot(122)
 	plt.axis('off')
-	tbl = table(ax2, df_genetype_2, loc='center', rowLoc='center', cellLoc='center')
+	tbl = table(ax2, df_genetype_2, loc='center', rowLoc='left', cellLoc='center', colWidths=[0.15, 0.5])
 	tbl.auto_set_font_size(True)
+	tbl.scale(1.1,1.1)
 	
-	name_figure = folder + 'figure.pdf'
+	name_figure = folder + 'RNAbiotypes.pdf'
 	## generate image
 	plt.savefig(name_figure)
-
-
+	
 #########################################################################################################
 #################################################
 ######				MAIN					#####
