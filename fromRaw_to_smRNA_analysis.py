@@ -887,7 +887,6 @@ def parse_RNAbiotype(folder, ID, output_file_name):
 		RNA_biotypes_file.close()
 		out_tsv_file.close()
 
-		return "" ## exit point
 		plot_RNAbiotype(RNA_biotypes, folder)
 		output_file.close()
 				
