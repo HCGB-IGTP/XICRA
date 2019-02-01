@@ -21,11 +21,13 @@ fastqjoin = /path/to/fastqjoin_path/fastq-join
 sRNAbenchtoolbox = /path/to/sRNAtoolboxDB_folder
 mirtop_exec /path/to/mirtop_bin/mirtop
 MINTmap_folder = /path/to/MINTmap/folder
+STAR_exe = /path/to/STAR_executable
+featureCount_exe = /path/featureCounts/bin/featureCounts
 
 [miRNA_ANALYSIS]
-miRNA_gtf = /path/to/human_genome/gff_file/for/miRNA/file.gff3
+miRNA_gff = /path/to/gff_file/for/miRNA/file.gff3
 
 [RNA_biotype]
-STAR_exe = /path/to/STAR_executable
 STAR_genomeDir = /path/to/STAR/genomeDir_index
-limitRAM = 30000000 
+limitRAM = 30000000
+gtf_file = /path/to/gff_file/for/RNA_biotypes/file.gtf

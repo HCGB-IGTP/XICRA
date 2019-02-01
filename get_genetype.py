@@ -14,7 +14,7 @@ gfffile = argv[1]
 
 ## get important lines
 parse_gff = "tmp.gff3"
-cmd = "awk '{ if ($3 ==\"gene\") {print $0} }' %s > %s" %(gfffile, parse_gff)
+cmd = "awk '{ if ($3 ==\"gene\"||$3==\"tRNA\" || $3==\"spike\") {print $0} }' %s > %s" %(gfffile, parse_gff)
 #print (cmd)
 
 try:
@@ -22,7 +22,7 @@ try:
 except subprocess.CalledProcessError as err:
 	print ('')
 
-## parse
+## parsecc
 parse_file = open(parse_gff)
 text = parse_file.read()
 lines = text.splitlines()
@@ -31,5 +31,10 @@ for line in lines:
 	if not line.startswith('#'):
 		#print ('## ',line)
 		gene = line.split('\t')[-1].split(';')[0].split("ID=")[1]
-		gene_type = line.split('\t')[-1].split(';')[2].split("gene_type=")[1]
+		
+		if (line.split('\t')[2] == 'gene'):
+			gene_type = line.split('\t')[-1].split(';')[2].split("gene_type=")[1]
+		else:
+			gene_type = line.split('\t')[-1].split(';')[3].split("gene_type=")[1]
+		
 		print ("%s\t%s" %(gene, gene_type))
