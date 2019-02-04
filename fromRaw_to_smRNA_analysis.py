@@ -904,7 +904,7 @@ def plot_RNAbiotype(file_results, folder2):
 	df_genetype_ReadCount_sum = df_genetype_2['Read_Count'].sum()
 
 	## filter 1% values
-	minimun = df_genetype_ReadCount_sum * 0.005
+	minimun = df_genetype_ReadCount_sum * 0.01
 	df_genetype_filter_greater = df_genetype_2[ df_genetype_2['Read_Count'] >= minimun ]
 	df_genetype_filter_smaller = df_genetype_2[ df_genetype_2['Read_Count'] < minimun ]
 	
