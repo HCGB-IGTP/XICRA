@@ -6,14 +6,16 @@ project = project_name
 [VARIABLES]
 prefix = prefix_name_sample_selection
 thread = num_threads
-option = isomiR|tRFs|all
+option = isomiR|tRFs|piRNA|all
 merge_samples = YES|NO
-RNAbiotype = YES|NO
 
 [PARAMETERS]
 adapter_3 = sequence1
 adapter_5 = sequence2
 fastqjoin_percent_difference = 8
+STAR_genomeDir = /path/to/STAR/genomeDir_index
+limitRAM = 30000000
+gtf_file = /path/to/gff_file/for/RNA_biotypes/file.gtf
 
 [EXECUTABLES]
 cutadapt = /path/to/cutadapt/bin/cutadapt
@@ -23,11 +25,9 @@ mirtop_exec /path/to/mirtop_bin/mirtop
 MINTmap_folder = /path/to/MINTmap/folder
 STAR_exe = /path/to/STAR_executable
 featureCount_exe = /path/featureCounts/bin/featureCounts
+bedtools_exe = /software/debian-8/bin/bedtools
+samtools_exe = /software/debian-8/bin/samtools
 
 [miRNA_ANALYSIS]
 miRNA_gff = /path/to/gff_file/for/miRNA/file.gff3
 
-[RNA_biotype]
-STAR_genomeDir = /path/to/STAR/genomeDir_index
-limitRAM = 30000000
-gtf_file = /path/to/gff_file/for/RNA_biotypes/file.gtf

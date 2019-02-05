@@ -15,13 +15,6 @@ from io import open
 import configparser
 import concurrent.futures
 
-## plots
-import pandas as pd
-import matplotlib
-matplotlib.use('agg')
-import matplotlib.pyplot as plt
-from pandas.plotting import table
-
 #####################
 #### functions ######
 #####################
@@ -51,36 +44,6 @@ def help_options():
 	print ("*******************************************************")
 	print (" Configuration file details:")
 	print ("*******************************************************")
-	print ("[GENERAL]")
-	print ("fastq_R1 = /path/to/file/fastqR1")
-	print ("fastq_R2 = /path/to/file/fastqR2")
-	print ("project = project_name")
-	print ("")
-	print ("[VARIABLES]")
-	print ("prefix = prefix_name_sample_selection")
-	print ("thread = num_threads")
-	print ("option = isomiR|tRFs|all")
-	print ("merge_samples = YES|NO")
-	print ("RNAbiotype = YES|NO")
-	print ("")
-	print ("[PARAMETERS]")
-	print ("adapter_3 = sequence1")
-	print ("adapter_5 = sequence2")
-	print ("fastqjoin_percent_difference = 8")
-	print ("")
-	print ("[EXECUTABLES]")
-	print ("cutadapt = /path/to/cutadapt/bin/cutadapt")
-	print ("fastqjoin = /path/to/fastqjoin_path/fastq-join")
-	print ("sRNAbenchtoolbox = /path/to/sRNAtoolboxDB_folder")
-	print ("mirtop_exec /path/to/mirtop_bin/mirtop")
-	print ("MINTmap_folder = /path/to/MINTmap/folder")
-	print ("")
-	print ("[miRNA_ANALYSIS]")
-	print ("miRNA_gff = /path/to/mirbase_gff_file/for/miRNA/file.gff3")
-	print ("")
-	print ("[RNA_biotype]")
-	print ("STAR_exe = /path/to/STAR_executable")
-	print ("STAR_genomeDir = /path/to/STAR/genomeDir_index")
 	print ("")
 	print ("")
 	print ("*******************************************************")
@@ -186,10 +149,8 @@ def sender(list_cmd):
 	
 	# We can use a with statement to ensure threads are cleaned up promptly
 	with concurrent.futures.ThreadPoolExecutor(max_workers=num_threads) as executor:
-
 		# Start the load operations and mark each future with its URL
-		commandsSent = { executor.submit(command_sender, commands): commands for commands in list_cmd }
-	
+		commandsSent = { executor.submit(command_sender, commands): commands for commands in list_cmd }	
 		for cmd2 in concurrent.futures.as_completed(commandsSent):
 			details = commandsSent[cmd2]
 			try:
@@ -415,7 +376,6 @@ def sRNAbench (joined_reads, outpath, file_name):
 	output_file.close()				
 	#sent commands on threads			
 	sender(command2sent)
-
 	return results
 ###############   
     
@@ -425,7 +385,6 @@ def miRTop (results, outpath, output_file):
 	## sent miRTop using threads	
 	# We can use a with statement to ensure threads are cleaned up promptly
 	with concurrent.futures.ThreadPoolExecutor(max_workers=num_threads) as executor:
-
 		# Start the load operations and mark each future with its URL
 		commandsSent = { executor.submit(miRTop_threads, fol, outpath, output_file): fol for fol in results }
 		for cmd2 in concurrent.futures.as_completed(commandsSent):
@@ -702,15 +661,15 @@ def parse_tRF(path, fileGiven, matrix_folder, ident):
 ###############
 
 ###############
-def RNABiotype(read, folder, output_file_name):
+def mapReads(read, folder, output_file_name):
 	## open file
 	output_file = open(output_file_name, 'a')
-	output_file.write("\nSTAR command for RNA Biotype identification:\n")
+	output_file.write("\nSTAR command for Mapping RNA:\n")
 	
 	STAR_exe = config['EXECUTABLES']['STAR_exe']
-	genomeDir = config['RNA_biotype']['STAR_genomeDir']
+	genomeDir = config['PARAMETERS']['STAR_genomeDir']
 	num_threads = config['VARIABLES']['thread']
-	limitRAM_option = config['RNA_biotype']['limitRAM']
+	limitRAM_option = config['PARAMETERS']['limitRAM']
 	
 	## For many samples it will have to load genome index in memory every time.
 	## For a unique sample it will not matter. Take care genome might stay in memory.
@@ -728,13 +687,15 @@ def RNABiotype(read, folder, output_file_name):
 			if sample_search:
 				outdir = sample_search.group(1) + "_" + sample_search.group(2)
 				sample_folder =  folder + '/' + outdir + '/'
-				results_STAR[outdir] = sample_folder
 				logfile = sample_folder + outdir + '_logfile.txt'
 				out_folder = create_subfolder(outdir, folder)
 				bam_file = sample_folder + 'Aligned.sortedByCoord.out.bam'
 
+				## to return
+				results_STAR[outdir] = bam_file
+
 				if (os.path.isfile(bam_file)):
-					print ('\tRNA biotype analysis for sample %s is done...' %outdir)
+					print ('\tMapping for sample %s is done...' %outdir)
 				else:
 					## prepare command
 					cmd = "%s --genomeDir %s --runThreadN 1 --readFilesIn %s " %(STAR_exe, genomeDir, jread)
@@ -802,135 +763,67 @@ def RNABiotype(read, folder, output_file_name):
 		## They are all done already
 		print ("")	
 	
-	## Get feature Counts and plot
-	## Send threads por parsing featureCounts	
-	print ("+ Parse RNA Biotype results:")
-	with concurrent.futures.ThreadPoolExecutor(max_workers= int(num_threads)) as executor:
-		# Start the load operations and mark each future with its URL
-		commandsSent = { executor.submit(parse_RNAbiotype, fol, ID, output_file_name): fol for ID,fol in results_STAR.items() }
-
-		for cmd2 in concurrent.futures.as_completed(commandsSent):
-			details = commandsSent[cmd2]
-			try:
-				data = cmd2.result()
-			except Exception as exc:
-				print ('***ERROR:')
-				print ('[CMD: %s ]' %details)
-				print('%r generated an exception: %s' % (details, exc))
-				
 	output_file.close()					
-	#return results		
+
+	return results_STAR
 ###############
 
 ###############
-def parse_RNAbiotype(folder, ID, output_file_name):
+def parse_RNAbiotype(bam, ID, output_file_name, RNABiotype_folder):
+	## call script to get RNAbiotype
+	# get path for file
+	RNAbiotype_script = os.path.dirname(argv[0]) + '/tools/RNAbiotype.py'
+	
+	## create folder	
+	name_RNABiotype_sample = str(ID)
+	RNABiotype_folder_sample = create_subfolder(name_RNABiotype_sample, path=RNABiotype_folder)
+	
+	## get variables
+	gtf_annotation = config['RNA_biotype']['gtf_file']
+	featureCount_bin = config['EXECUTABLES']['featureCount_exe']
+	
+	cmd = ('python3 %s %s %s %s %s %s' %(RNAbiotype_script, bam, RNABiotype_folder_sample, gtf_annotation, featureCount_bin, output_file_name))
+	## send command	
+	try:
+		print ('\t+ Parsing mapping reads for RNAbiotype results for samples %s' %ID)
+		subprocess.check_output(cmd, shell = True)
+	except subprocess.CalledProcessError as err:
+		print (err.output)
+###############
 
-	output_file = open(output_file_name, 'a')
-	output_file.write("\nParse RNA Biotype results:\n")	
-	## variables
-	featureCount_exe = config['EXECUTABLES']['featureCount_exe']
-	gtf_file = config['RNA_biotype']['gtf_file']
-	bam_file = folder + 'Aligned.sortedByCoord.out.bam'
-	logfile = folder + 'featureCount_logfile.txt'
-	out_file = folder + 'featureCount.out'
-	out_tsv = folder + 'featureCount.out.tsv'
-	RNA_biotypes = folder + 'RNAbiotypes.tsv'
+###############
+def	piRNA_analysis(path, count, bam_files, command_file_name):
 
-	if (os.path.isfile(bam_file)):
-		## send command for feature count
-		cmd_featureCount = '%s -M -O -T 1 -p -t exon -g gene_type -a %s -o %s %s 2> %s' %(featureCount_exe, gtf_file, out_file, bam_file, logfile)
-		
-		output_file.write(cmd_featureCount)
-		output_file.write("\n")		
+	print ("\n+ Run piRNA analysis: ")
+	name_piRNA_folder = str(count) + '.piRNA'
+	piRNA_folder = create_subfolder(name_piRNA_folder, path)
+
+	## bam_files is  a dictionary containing IDs and bam file paths
+
+	## call script to get convert bam into PILFER Input
+	samtools_bin = config['EXECUTABLES']['samtools_exe']
+	bedtools_bin = config['EXECUTABLES']['bedtools_exe']	
+	# get path for file
+	PILFERconversion_script = os.path.dirname(argv[0]) + '/tools/convertBAMtoPILFER.py'
+
+	## loop around dictionary
+	for ID, bam in bam_files.items():
+
+		print ('\t+ Converting BAM file in PILFER input for sample' %ID)
+		cmd = ('python3 %s %s %s %s %s' %(PILFERconversion_script, bam, bedtools_bin, samtools_bin, command_file_name ))
 		## send command	
 		try:
-			subprocess.check_output(str(cmd_featureCount), shell = True)
+			subprocess.check_output(cmd, shell = True)
 		except subprocess.CalledProcessError as err:
-			print ('***ERROR:')
-			print ('[CMD: %s ]' %cmd_featureCount)
 			print (err.output)
-	
-		## parse count
-		
-		## prepare file for plot
-		count_file = open(out_file)
-		count_file_text = count_file.read()
-		count_file_lines = count_file_text.splitlines()	
 
-		out_tsv_file = open(out_tsv, 'w')
 
-		RNA_biotypes_file = open(RNA_biotypes, 'w')
-		tRNA_count = 0
-	
-		for line in count_file_lines:
-			if line.startswith('#'):
-				continue
-			elif line.startswith('Geneid'):
-				continue
-			else:
-				
-				ID = line.split('\t')[0]
-				count = int(line.split('\t')[-1])
 
-				string2write_raw = "%s\t%s\n" %(ID, count)
-				out_tsv_file.write(string2write_raw)
+###############
 
-				tRNA_search = re.search(r".*tRNA", ID)
-				if tRNA_search:
-					tRNA_count = int(tRNA_count) + int(count)				
-				elif (count > 0):
-					RNA_biotypes_file.write(string2write_raw)
-		
-		string2write = "tRNA\t%s\n" %tRNA_count
-		RNA_biotypes_file.write(string2write)
-
-		RNA_biotypes_file.close()
-		out_tsv_file.close()
-
-		plot_RNAbiotype(RNA_biotypes, folder)
-		output_file.close()
-				
-def plot_RNAbiotype(file_results, folder2):
-
-	# PLOT and SHOW results
-	## parse results	
-	df_genetype = pd.read_csv(file_results, sep="\t", header=None)	
-
-	# create plot
-	plt.figure(figsize=(16,8))
-	df_genetype_2 = pd.DataFrame({'Type':df_genetype[0], 'Read_Count':df_genetype[1]}).sort_values(by=['Read_Count'])
-
-	## get total count
-	df_genetype_ReadCount_sum = df_genetype_2['Read_Count'].sum()
-
-	## filter 1% values
-	minimun = df_genetype_ReadCount_sum * 0.01
-	df_genetype_filter_greater = df_genetype_2[ df_genetype_2['Read_Count'] >= minimun ]
-	df_genetype_filter_smaller = df_genetype_2[ df_genetype_2['Read_Count'] < minimun ]
-	
-	## merge and generate Other class
-	df_genetype_filter_smaller_sum = df_genetype_filter_smaller['Read_Count'].sum() ## total filter smaller
-	df_genetype_filter_greater2 = df_genetype_filter_greater.append({'Read_Count':df_genetype_filter_smaller_sum, 'Type':'Other'}, ignore_index=True)
-	
-	## Create Plot
-	ax1 = plt.subplot(121, aspect='equal')
-	df_genetype_filter_greater2.plot.pie(y = 'Read_Count', ax=ax1, autopct='%1.2f%%', shadow=False, labels=df_genetype_filter_greater2['Type'], legend = False)
-
-	# plot table
-	ax2 = plt.subplot(122)
-	plt.axis('off')
-	tbl = table(ax2, df_genetype_2, loc='center', rowLoc='left', cellLoc='center', colWidths=[0.15, 0.5])
-	tbl.auto_set_font_size(True)
-	tbl.scale(1.1,1.1)
-	
-	name_figure = folder2 + 'RNAbiotypes.pdf'
-	## generate image
-	plt.savefig(name_figure)
-	
-#########################################################################################################
-#################################################
-######				MAIN					#####
-#################################################
+#***************************#
+#*****		MAIN		****#
+#***************************#
 if __name__ == "__main__":
 
 	start_time_total = time.time()
@@ -1125,20 +1018,42 @@ if __name__ == "__main__":
 	else:
 		joined_read = trimmed_R1_return
 
+	###################################
+	######## Step: Map RNA reads ######
+	###################################
+	name_MapReads = str(folder_id) + ".MapRNA"
+	MapReads_folder = create_subfolder(name_MapReads, path=folder_path)
+
+	print ("\n+ Map RNA reads for samples: ")
+	results_STAR = mapReads(joined_read, MapReads_folder, command_file_name)
+
+	folder_id = folder_id + 1
+	## timestamp
+	start_time_partial = timestamp(start_time_partial)
+
 	######################################
 	########## RNA Biotype analisis ######
 	######################################
-	option_RNAbiotype = config['VARIABLES']['RNAbiotype']
-	if option_RNAbiotype == "YES":
-		name_RNABiotype = str(folder_id) + ".RNA_Biotype"
-		RNABiotype_folder = create_subfolder(name_RNABiotype, path=folder_path)
+	name_RNABiotype = str(folder_id) + ".RNA_Biotype"
+	RNABiotype_folder = create_subfolder(name_RNABiotype, path=folder_path)
 
-		print ("\n+ Get RNA Biotype for samples: ")
-		RNABiotype(joined_read, RNABiotype_folder, command_file_name)
+	## Get feature Counts and plot
+	print ("\n+ Get RNA Biotype for samples: ")
+	with concurrent.futures.ThreadPoolExecutor(max_workers= int(num_threads)) as executor:
+		# Start the load operations and mark each future with its URL
+		commandsSent = { executor.submit(parse_RNAbiotype, bam, ID, command_file_name, RNABiotype_folder): bam for ID,bam in results_STAR.items() }
+		for cmd2 in concurrent.futures.as_completed(commandsSent):
+			details = commandsSent[cmd2]
+			try:
+				data = cmd2.result()
+			except Exception as exc:
+				print ('***ERROR:')
+				print ('[CMD: %s ]' %details)
+				print('%r generated an exception: %s' % (details, exc))
 
-		folder_id = folder_id + 1
-		## timestamp
-		start_time_partial = timestamp(start_time_partial)
+	folder_id = folder_id + 1
+	## timestamp
+	start_time_partial = timestamp(start_time_partial)
 
 	######################################
 	####### Step: Small RNA analysis #####
@@ -1148,11 +1063,27 @@ if __name__ == "__main__":
 
 	elif analysis_option == "tRFs":
 		tRFs_analysis(folder_path, folder_id, joined_read, start_time_partial, command_file_name)
-				
+
+	elif analysis_option == "piRNA":
+		piRNA_analysis(folder_path, folder_id, results_STAR, command_file_name)
+		
 	elif analysis_option == "all":
+		## isomiR
 		isomiR_analysis(folder_path, folder_id, joined_read, start_time_partial, command_file_name)
+		
+		## tRFS
 		folder_id = folder_id + 1
+		## timestamp
+		start_time_partial = timestamp(start_time_partial)
 		tRFs_analysis(folder_path, folder_id, joined_read, start_time_partial, command_file_name)
+
+		## timestamp
+		start_time_partial = timestamp(start_time_partial)
+		folder_id = folder_id + 1
+
+		## piRNA analysis
+		piRNA_analysis(folder_path, folder_id, results_STAR, command_file_name)
+
 	else:
 		print ("**ERROR: No valid analysis provided: ", analysis_option)
 		print ("Please provide: isomiR|tRFs|all")
@@ -1163,10 +1094,3 @@ if __name__ == "__main__":
 	
 	
 #############################
-
-## ADD Spike-ins
-## http://www.roymfrancis.com/read-counts-of-rna-seq-spike-ins/
-## https://groups.google.com/forum/#!topic/rna-star/w4-K7OKd7yM
-## --sjdbGTFtagExonParentTranscript to "transcript_id" 
-
-
