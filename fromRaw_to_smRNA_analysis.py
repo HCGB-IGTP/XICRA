@@ -410,7 +410,7 @@ def miRTop_threads(folder, outpath, file_name):
 	gtfs = []
 	sRNAbench_hairpin = config['EXECUTABLES']['sRNAbenchtoolbox'] + 'libs/hairpin.fa'
 	mirtop_exec = config['EXECUTABLES']['mirtop_exec']
-	miRNA_gff = config['miRNA_ANALYSIS']['miRNA_gff']	
+	miRNA_gff = config['FILES']['miRNA_gff']	
 	species = 'hsa' #homo sapiens
 	name = folder.split('/')[-2]
 	outdir = outpath + '/' + name
@@ -495,11 +495,9 @@ def isomiR_analysis (path, count, reads, time_partial, file_name):
 	output_file = open(file_name, 'a')
 	output_file.write("\nmiRTop samples:\n")
 	output_file.close()
-
 	name_miRTop_folder = str(count) + '.2.isomiR_miRTop'
 	miRTop_folder = create_subfolder(name_miRTop_folder, path)
-	gtfs=miRTop(results, miRTop_folder, file_name)
-	
+	gtfs=miRTop(results, miRTop_folder, file_name)	
 	## timestamp
 	time_partial = timestamp(time_partial)
 
@@ -526,9 +524,7 @@ def isomiR_analysis (path, count, reads, time_partial, file_name):
 			
 	## timestamp
 	time_partial = timestamp(time_partial)
-
-	return time_partial
-	
+	return time_partial	
 ###############
 
 ###############   
@@ -667,7 +663,7 @@ def mapReads(read, folder, output_file_name):
 	output_file.write("\nSTAR command for Mapping RNA:\n")
 	
 	STAR_exe = config['EXECUTABLES']['STAR_exe']
-	genomeDir = config['PARAMETERS']['STAR_genomeDir']
+	genomeDir = config['FILES']['STAR_genomeDir']
 	num_threads = config['VARIABLES']['thread']
 	limitRAM_option = config['PARAMETERS']['limitRAM']
 	
@@ -776,48 +772,153 @@ def parse_RNAbiotype(bam, ID, output_file_name, RNABiotype_folder):
 	
 	## create folder	
 	name_RNABiotype_sample = str(ID)
-	RNABiotype_folder_sample = create_subfolder(name_RNABiotype_sample, path=RNABiotype_folder)
-	
+	RNABiotype_folder_sample = create_subfolder(name_RNABiotype_sample, path=RNABiotype_folder)	
 	## get variables
-	gtf_annotation = config['RNA_biotype']['gtf_file']
-	featureCount_bin = config['EXECUTABLES']['featureCount_exe']
-	
+	gtf_annotation = config['FILES']['gtf_file']
+	featureCount_bin = config['EXECUTABLES']['featureCount_exe']	
 	cmd = ('python3 %s %s %s %s %s %s' %(RNAbiotype_script, bam, RNABiotype_folder_sample, gtf_annotation, featureCount_bin, output_file_name))
 	## send command	
 	try:
 		print ('\t+ Parsing mapping reads for RNAbiotype results for samples %s' %ID)
-		subprocess.check_output(cmd, shell = True)
+		subprocess.check_output(cmd, shell = True)		
 	except subprocess.CalledProcessError as err:
 		print (err.output)
+		
 ###############
 
-###############
-def	piRNA_analysis(path, count, bam_files, command_file_name):
+def BAMtoPILFER(bam, ID, piRNA_folder, command_file_name, bed_file, repeatmasker_bed):
 
-	print ("\n+ Run piRNA analysis: ")
-	name_piRNA_folder = str(count) + '.piRNA'
-	piRNA_folder = create_subfolder(name_piRNA_folder, path)
+	output_file = open(command_file_name, 'a')	
+	name_piRNA_folder_sample = str(ID)
+	folder_sample = create_subfolder(name_piRNA_folder_sample, piRNA_folder)		
 
-	## bam_files is  a dictionary containing IDs and bam file paths
+	## results conversion	
+	split_name_bam = os.path.splitext( os.path.basename(bam) )
+	pilfer_file = folder_sample + '/' + split_name_bam[0] + '.pilfer.bed'
 
-	## call script to get convert bam into PILFER Input
-	samtools_bin = config['EXECUTABLES']['samtools_exe']
 	bedtools_bin = config['EXECUTABLES']['bedtools_exe']	
-	# get path for file
-	PILFERconversion_script = os.path.dirname(argv[0]) + '/tools/convertBAMtoPILFER.py'
+	samtools_bin = config['EXECUTABLES']['samtools_exe']
 
-	## loop around dictionary
-	for ID, bam in bam_files.items():
-
-		print ('\t+ Converting BAM file in PILFER input for sample' %ID)
-		cmd = ('python3 %s %s %s %s %s' %(PILFERconversion_script, bam, bedtools_bin, samtools_bin, command_file_name ))
+	print ('+ Convert BAM file in PILFER input file for sample %s' %ID)			
+	if (os.path.isfile(pilfer_file)):
+		print ('\t + Conversion done for sample %s' %ID)		
+	else:
+		## call script to get convert bam into PILFER Input
+		# get path for file
+		PILFERconversion_script = os.path.dirname(argv[0]) + '/tools/convertBAMtoPILFER.py'
+		print ('\t+ Converting BAM file in PILFER input for sample %s' %ID)
+		cmd = ('python3 %s %s %s %s %s %s' %(PILFERconversion_script, bam, folder_sample, bedtools_bin, samtools_bin, command_file_name ))
+		output_file.write(cmd)
+		output_file.write('\n')
 		## send command	
 		try:
 			subprocess.check_output(cmd, shell = True)
 		except subprocess.CalledProcessError as err:
 			print (err.output)
 
+	## discard other non-coding annotations
+	# bedtools substract	
+	print ('+ Filter PILFER input file for sample %s' %ID)			
+	ncRNA_bed = bed_file
+	filter_pilfer_file = folder_sample + '/' + split_name_bam[0] + '.pilfer_filtered.bed'
+	if (os.path.isfile(filter_pilfer_file)):
+		print ('\t+ PILFER file filtered for %s' %ID)
+	else:
+		cmd_subtract = '%s subtract -b %s -a %s -s -f 0.5 -A > %s' %(bedtools_bin, ncRNA_bed, pilfer_file, filter_pilfer_file)
+		output_file.write(cmd_subtract)
+		## send command	
+		try:
+			subprocess.check_output(cmd_subtract, shell = True)
+		except subprocess.CalledProcessError as err:
+			print (err.output)
 
+	## generate clusters
+	# pilfer
+	print ('+ Generate PILFER clusters for sample %s' %ID)			
+	pilfer_cluster = folder_sample + '/' + split_name_bam[0] + '.pilfer_clustered.bed'
+	pilfer_python = config['EXECUTABLES']['pilfer']
+	if (os.path.isfile(pilfer_cluster)):
+		print ('\t+ PILFER file clustered for %s' %ID)
+	else:
+		cmd_pilfer = 'python2 %s -i %s > %s' %(pilfer_python, filter_pilfer_file, pilfer_cluster)
+		output_file.write(cmd_pilfer)
+		## send command	
+		try:
+			subprocess.check_output(cmd_pilfer, shell = True)
+		except subprocess.CalledProcessError as err:
+			print (err.output)
+
+	## intersect with repeat annotations
+	# bedtools intersect -a <path/>retro-transposons.bed -b $out_dir_prefix"bed/ncrna_subtract_putative/"$prefix.bed -s -F 1 -wa -wb |
+	# awk 'BEGIN{OFS="\t"}{print $7,$8,$9,$10,$11,$12,$4}' > $out_dir_prefix"bed/TE_origin/"$prefix
+	pilfer_intersect = folder_sample + '/' + split_name_bam[0] + '.pilfer_clustered_intersection.bed'
+
+	if (os.path.isfile(pilfer_intersect)):
+		print ('\t+ PILFER file intersected for %s' %ID)
+	else:
+		cmd_intersect = '%s intersect -a %s -b %s -s -F 1 -wa -wb > %s' %(bedtools_bin, repeatmasker_bed, pilfer_cluster, pilfer_intersect)
+		output_file.write(cmd_intersect)
+		## send command	
+		try:
+			subprocess.check_output(cmd_intersect, shell = True)
+		except subprocess.CalledProcessError as err:
+			print (err.output)
+
+	output_file.close()
+	
+###############
+def	piRNA_analysis(path, count, bam_files, command_file_name, bed_file):
+
+	output_file = open(command_file_name, 'a')
+	output_file.write("\npiRNA Analysis:\n")
+	print ("\n+ Run piRNA analysis: ")
+	name_piRNA_folder = str(count) + '.piRNA'
+	piRNA_folder = create_subfolder(name_piRNA_folder, path)
+
+	## repeatmasker information
+	# get path for file
+	repeatmasker2bed = os.path.dirname(argv[0]) + '/tools/repeatMasker2bed.py'
+
+	#send
+	repeatmasker_file = config['FILES']['repeatmasker']
+	info_file = config['FILES']['Sequence_Names']
+	cmd_repeatmasker2bed = 'python3 %s %s %s %s' %(repeatmasker2bed, repeatmasker_file, info_file, piRNA_folder)
+
+	print ("+ Check repeatmasker and generate BED annotation.")
+	split_name_repeat = os.path.splitext( os.path.basename(repeatmasker_file) )
+	repeatmasker_bed = piRNA_folder + '/' + split_name_repeat[0] + '.bed'
+	
+	if os.path.isfile(repeatmasker_bed):
+		# do not send command
+		print ("\t+ Repeatmasker BED file already exists")
+
+	else:
+		output_file.write("repeatmasker2bed conversion:\n")
+		output_file.write(cmd_repeatmasker2bed)
+		output_file.write('\n')		
+		# send command
+		try:
+			subprocess.check_output(cmd_repeatmasker2bed, shell = True)
+		except subprocess.CalledProcessError as err:
+			print (err.output)
+			exit()
+	
+	output_file.close()
+	
+	## bam_files is  a dictionary containing IDs and bam file paths
+	# We can use a with statement to ensure threads are cleaned up promptly
+	with concurrent.futures.ThreadPoolExecutor(max_workers=num_threads) as executor:
+		commandsSent = { executor.submit(BAMtoPILFER, bam, ID, piRNA_folder, command_file_name, bed_file, repeatmasker_bed): bam for ID, bam in bam_files.items() }
+		for cmd2 in concurrent.futures.as_completed(commandsSent):
+			details = commandsSent[cmd2]
+			try:
+				data = cmd2.result()
+			except Exception as exc:
+				print ('***ERROR:')
+				print (cmd2)
+				print('%r generated an exception: %s' % (details, exc))
+
+	
 
 ###############
 
@@ -897,7 +998,6 @@ if __name__ == "__main__":
 	## print out
 	folder_string = '\nDirectory: ' + folder_path + '\n'
 	command_file.write(folder_string)
-	command_file.close()      
 
     ## checking file(s) exists
 	paired_end = False
@@ -1012,9 +1112,7 @@ if __name__ == "__main__":
 		joined_read = fastqjoin(trimmed_R1_return, trimmed_R2_return, fastqjoin_folder, command_file_name)
 		## timestamp
 		start_time_partial = timestamp(start_time_partial)
-
 		folder_id = folder_id + 1
-
 	else:
 		joined_read = trimmed_R1_return
 
@@ -1038,6 +1136,7 @@ if __name__ == "__main__":
 	RNABiotype_folder = create_subfolder(name_RNABiotype, path=folder_path)
 
 	## Get feature Counts and plot
+	command_file.write('RNA biotype')
 	print ("\n+ Get RNA Biotype for samples: ")
 	with concurrent.futures.ThreadPoolExecutor(max_workers= int(num_threads)) as executor:
 		# Start the load operations and mark each future with its URL
@@ -1056,6 +1155,34 @@ if __name__ == "__main__":
 	start_time_partial = timestamp(start_time_partial)
 
 	######################################
+	## Prepare GTF file for later
+	######################################
+	print ("\n+ Parsing GTF annotation for further analysis: ")
+	# get path for file
+	## save names
+	GTF_file = config['FILES']['gtf_file']
+	tmp_folder = create_subfolder("tmp", path=folder_path)
+	split_name_GTF = os.path.splitext( os.path.basename(GTF_file) )		
+	Exon_gtf = tmp_folder + '/' + split_name_GTF[0] + '_exon.gtf' 
+	miRNA_gtf = tmp_folder + '/' + split_name_GTF[0] + '_miRNA.gtf' 
+	ncRNA_bed = tmp_folder + '/' + split_name_GTF[0] + '_ncRNA.bed' 
+	
+	if (os.path.isfile(ncRNA_bed)):
+		print ('\t+ Process is already done')
+	else:
+		command_file.write('Parse GTF')
+		get_genetype_GTF = os.path.dirname(argv[0]) + '/tools/get_genetype_gtf.py'
+		cmd_genetype_GTF = 'python3 %s %s %s' %(get_genetype_GTF, GTF_file, tmp_folder)
+		command_file.write(cmd_genetype_GTF)
+
+		# send command
+		try:
+			subprocess.check_output(cmd_genetype_GTF, shell = True)
+		except subprocess.CalledProcessError as err:
+			print (err.output)
+			exit()
+
+	######################################
 	####### Step: Small RNA analysis #####
 	######################################
 	if analysis_option == "isomiR":
@@ -1065,7 +1192,7 @@ if __name__ == "__main__":
 		tRFs_analysis(folder_path, folder_id, joined_read, start_time_partial, command_file_name)
 
 	elif analysis_option == "piRNA":
-		piRNA_analysis(folder_path, folder_id, results_STAR, command_file_name)
+		piRNA_analysis(folder_path, folder_id, results_STAR, command_file_name, ncRNA_bed)
 		
 	elif analysis_option == "all":
 		## isomiR
@@ -1082,7 +1209,7 @@ if __name__ == "__main__":
 		folder_id = folder_id + 1
 
 		## piRNA analysis
-		piRNA_analysis(folder_path, folder_id, results_STAR, command_file_name)
+		piRNA_analysis(folder_path, folder_id, results_STAR, command_file_name, ncRNA_bed)
 
 	else:
 		print ("**ERROR: No valid analysis provided: ", analysis_option)
@@ -1091,6 +1218,7 @@ if __name__ == "__main__":
 
 	print ("\n*************** Finish *******************")
 	start_time_partial = timestamp(start_time_total)
-	
+
+	command_file.close()      
 	
 #############################

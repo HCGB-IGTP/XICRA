@@ -13,9 +13,7 @@ merge_samples = YES|NO
 adapter_3 = sequence1
 adapter_5 = sequence2
 fastqjoin_percent_difference = 8
-STAR_genomeDir = /path/to/STAR/genomeDir_index
-limitRAM = 30000000
-gtf_file = /path/to/gff_file/for/RNA_biotypes/file.gtf
+limitRAM = 40000000000
 
 [EXECUTABLES]
 cutadapt = /path/to/cutadapt/bin/cutadapt
@@ -25,9 +23,14 @@ mirtop_exec /path/to/mirtop_bin/mirtop
 MINTmap_folder = /path/to/MINTmap/folder
 STAR_exe = /path/to/STAR_executable
 featureCount_exe = /path/featureCounts/bin/featureCounts
-bedtools_exe = /software/debian-8/bin/bedtools
-samtools_exe = /software/debian-8/bin/samtools
+bedtools_exe = /path/to/bedtools
+samtools_exe = /path/to/samtools
+pilfer = /path/to/pilfer.py
 
-[miRNA_ANALYSIS]
-miRNA_gff = /path/to/gff_file/for/miRNA/file.gff3
+[FILES]
+miRNA_gff = /path/to/mirBase_file/for/miRNA/file.gff3
+gtf_file = /path/to/gff_file/for/RNA_biotypes/file.gtf
+STAR_genomeDir = /path/to/STAR/genomeDir_index
+repeatmasker = /path/to/genome_repeatmasker/file_rm.out
+Sequence_Names = /path/to/genome_repeatmasker/sequence_conversion-file.txt
 

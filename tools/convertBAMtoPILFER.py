@@ -10,15 +10,16 @@ from sys import argv
 import subprocess
 
 ## ARGV
-if len (sys.argv) < 4:
+if len (sys.argv) < 5:
 	print ("\nUsage:")
-	print ("python3 %s bam_file bedtools_bin samtools_bin logfile\n" %argv[0])
+	print ("python3 %s bam_file folder bedtools_bin samtools_bin logfile\n" %argv[0])
 	exit()
 
 bam_file = os.path.abspath(argv[1])
-bedtools_exe = argv[2]
-samtools_exe = argv[3]
-logFile = argv[4]
+folder = argv[2]
+bedtools_exe = argv[3]
+samtools_exe = argv[4]
+logFile = argv[5]
 
 # start
 output_file = open(logFile, 'a')
@@ -27,10 +28,10 @@ output_file.write("\nConvert BAM to Pilfer Input file:\n")
 ## Variables
 dirname_name = os.path.dirname(bam_file)
 split_name = os.path.splitext( os.path.basename(bam_file) )
-bed_file = dirname_name + '/' + split_name[0] + '.bed'
-sam_file = dirname_name + '/' + split_name[0] +  '.sam'
-pilfer_tmp = dirname_name + '/' + split_name[0] + '.tmp.pilfer.bed'
-pilfer_file = dirname_name + '/' + split_name[0] + '.pilfer.bed'
+bed_file = folder + '/' + split_name[0] + '.bed'
+sam_file = folder + '/' + split_name[0] +  '.sam'
+pilfer_tmp = folder + '/' + split_name[0] + '.tmp.pilfer.bed'
+pilfer_file = folder + '/' + split_name[0] + '.pilfer.bed'
 
 ## START
 print ("\n+ Converting BAM file into PILFER input file")
@@ -98,7 +99,7 @@ while True:
 		break;
 
 	seq = line.split('\t')[3]
-	real_seq = seq.split('::PI')
+	real_seq = seq.split('::PU')
 	seq_len = len(str(real_seq[0]))
 
 	## Discard smaller
@@ -125,6 +126,6 @@ while True:
 			counter = 1
 			break;
  
-# Close Close    
+## close and finish
 fileHandler.close()
 output_file.close()
