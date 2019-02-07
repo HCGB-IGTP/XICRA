@@ -826,6 +826,7 @@ def BAMtoPILFER(bam, ID, piRNA_folder, command_file_name, bed_file, repeatmasker
 	else:
 		cmd_subtract = '%s subtract -b %s -a %s -s -f 0.5 -A > %s' %(bedtools_bin, ncRNA_bed, pilfer_file, filter_pilfer_file)
 		output_file.write(cmd_subtract)
+		output_file.write('\n')
 		## send command	
 		try:
 			subprocess.check_output(cmd_subtract, shell = True)
@@ -842,6 +843,8 @@ def BAMtoPILFER(bam, ID, piRNA_folder, command_file_name, bed_file, repeatmasker
 	else:
 		cmd_pilfer = 'python2 %s -i %s > %s' %(pilfer_python, filter_pilfer_file, pilfer_cluster)
 		output_file.write(cmd_pilfer)
+		output_file.write('\n')
+
 		## send command	
 		try:
 			subprocess.check_output(cmd_pilfer, shell = True)
@@ -856,13 +859,16 @@ def BAMtoPILFER(bam, ID, piRNA_folder, command_file_name, bed_file, repeatmasker
 	if (os.path.isfile(pilfer_intersect)):
 		print ('\t+ PILFER file intersected for %s' %ID)
 	else:
-		cmd_intersect = '%s intersect -a %s -b %s -s -F 1 -wa -wb > %s' %(bedtools_bin, repeatmasker_bed, pilfer_cluster, pilfer_intersect)
+		cmd_intersect = '%s intersect -a %s -b %s -s -F 1 -wa -wb > %s' %(bedtools_bin, repeatmasker_bed, filter_pilfer_file, pilfer_intersect)
 		output_file.write(cmd_intersect)
+		output_file.write('\n')
 		## send command	
 		try:
 			subprocess.check_output(cmd_intersect, shell = True)
 		except subprocess.CalledProcessError as err:
 			print (err.output)
+			
+	
 
 	output_file.close()
 	
@@ -1136,7 +1142,7 @@ if __name__ == "__main__":
 	RNABiotype_folder = create_subfolder(name_RNABiotype, path=folder_path)
 
 	## Get feature Counts and plot
-	command_file.write('RNA biotype')
+	command_file.write('\nRNA biotype\n')
 	print ("\n+ Get RNA Biotype for samples: ")
 	with concurrent.futures.ThreadPoolExecutor(max_workers= int(num_threads)) as executor:
 		# Start the load operations and mark each future with its URL
