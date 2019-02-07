@@ -22,7 +22,7 @@ import concurrent.futures
 def help_options():
 	print ("\n#######################################################################")
 	print ("  NAME: fromRaw_to_isomiR")
-	print ("  VERSION: 0.4")
+	print ("  VERSION: 0.5")
 	print ("  AUTHORS: Antonio Luna de Haro (v0.1) & Jose F Sanchez-Herrero (v1).")
 	print ("           Copyright (C) 2018-2019 Lauro Sumoy Lab, IGTP, Spain")
 	print ("#########################################################################")
@@ -36,6 +36,7 @@ def help_options():
 	print ("\n\t+ Small RNA seq:")
 	print ("\t\t+ miRNA-isomiR analysis using sRNAtoolbox ")
 	print ("\t\t+ tRFs using MINTmap and MINTbase.")
+	print ("\t\t+ piRNA using PILFER and Repeatmasker information")
 	print ("")
 	print ("USAGE:\npython3", os.path.abspath(argv[0]),"config_file.txt ")
 	print ("\nPARAMETERS:")
@@ -116,7 +117,7 @@ def select_samples (samples_prefix, path_to_samples):
 	files = os.listdir(path_to_samples)
 	sample_list = []
 	for fastq in files:	
-		samplename_search = re.search(r"(%s)\_(\d{1,2})\_([a-zA-Z]{6})(.*)" % samples_prefix, fastq)
+		samplename_search = re.search(r"(%s)\_(\d{1,2})\_(.*)" % samples_prefix, fastq)
 		if samplename_search:
 			if 'merged' not in fastq:
 				if fastq.endswith('.gz'):
@@ -176,7 +177,7 @@ def one_file_per_sample(final_sample_list, path_to_samples, directory, read, out
 			samplename = []
 			subsamples = []
 			for prefix in prefix_list:
-				samplename_search = re.search(r"(%s)\_(\d{1,2})\_([a-zA-Z]{6})(.*)" % prefix, samplex)
+				samplename_search = re.search(r"(%s)\_(\d{1,2})\_(.*)" % prefix, samplex)
 				if samplename_search:			
 					name = samplename_search.group(1)
 					sample = samplename_search.group(2)

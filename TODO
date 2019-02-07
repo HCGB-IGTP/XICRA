@@ -1,0 +1,8 @@
+
+## This is a file only intended for developers of this pipeline
+#
+1. Fix PILFER implementation for piRNA
+2. Add summary statistics for every process, count, biotypes, etc.
+3. Circos PLOT of hits along the Chromosomes
+
+
