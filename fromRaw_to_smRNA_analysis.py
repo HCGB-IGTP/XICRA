@@ -22,7 +22,7 @@ import concurrent.futures
 def help_options():
 	print ("\n#######################################################################")
 	print ("  NAME: fromRaw_to_isomiR")
-	print ("  VERSION: 0.5")
+	print ("  VERSION: 0.6")
 	print ("  AUTHORS: Antonio Luna de Haro (v0.1) & Jose F Sanchez-Herrero (v1).")
 	print ("           Copyright (C) 2018-2019 Lauro Sumoy Lab, IGTP, Spain")
 	print ("#########################################################################")
