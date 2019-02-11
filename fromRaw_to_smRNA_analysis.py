@@ -638,8 +638,8 @@ def parse_tRF(path, fileGiven, matrix_folder, ident):
 			skip = 1
 		if skip == 0:
  			## Open file
-			fil = open(tsv_file, 'w')    
-			string2write = 'type\tsample_name\tident\tname\tvariant\texpression\tseq\n'
+			fil = open(tsv_file, 'w')
+			string2write = 'type\tsample_name\tident\tname\tvariant\tUID\tseq\texpression\n'
 			fil.write(string2write)
 			## Read file
 			expression_file = open(pathFile)
@@ -647,11 +647,22 @@ def parse_tRF(path, fileGiven, matrix_folder, ident):
 			expression_lines = expression_text.splitlines()
 			for line in expression_lines:
 				if not line.startswith('MINTbase'):
-					ID = line.split('\t')[0]
+					UID = line.split('\t')[0]
 					seq = line.split('\t')[1]
 					variant = line.split('\t')[2]
 					expression = line.split('\t')[3]
-					string2write = 'tRFs\t'+ sample_name + '\t' + ident + '\t' + ID +'\t' + variant + '\t' + expression + '\t' + seq+ '\n'
+					tRNA_name = line.split('\t')[-1].split(',')[0]
+
+					# tRF-31-87R8WP9N1EWJ0	TCCCTGGTGGTCTAGTGGTTAGGATTCGGCG	5'-tRF	921	7026.67	452.60	na	trna77_GluCTC_6_+_28949976_28950047@1.31.31, trna80_GluCTC_1_-_161417018_161417089@1.31.31
+					tRNA_search = re.search(r"trna.{1,3}\_(.{6})\_(.{1,2})\_.*", tRNA_name)
+					tRNA_family = 'na'
+					if tRNA_search:
+						tRNA_family = tRNA_search.group(1)
+						if (tRNA_search.group(2) == 'MT'):
+							tRNA_family = tRNA_family + '_MT'
+						
+					
+					string2write = 'tRFs\t'+ sample_name + '\t' + ident + '\t' + tRNA_family +'\t' + variant +'\t' + UID + '\t' + seq + '\t' + expression + '\n'
 					fil.write(string2write)
 
 			fil.close()
