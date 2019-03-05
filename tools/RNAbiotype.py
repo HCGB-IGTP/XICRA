@@ -19,7 +19,7 @@ from pandas.plotting import table
 ## ARGV
 if len (sys.argv) < 5:
 	print ("\nUsage:")
-	print ("python3 %s bam_file folder gtf_file featureCount_bin logFile\n" %os.path.abspath(argv[0]))
+	print ("python3 %s bam_file folder gtf_file featureCount_bin logFile\n" %os.path.realpath(__file__))
 	exit()
 
 bam_file = os.path.abspath(argv[1])

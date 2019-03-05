@@ -11,7 +11,7 @@ import subprocess
 ## ARGV
 if len (sys.argv) < 2:
 	print ("\nUsage:")
-	print ("python3 %s gtffile folder\n" %os.path.abspath(argv[0]))
+	print ("python3 %s gtffile folder\n" %os.path.realpath(__file__))
 	exit()
 
 gtfFile = os.path.abspath(argv[1])

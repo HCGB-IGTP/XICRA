@@ -15,6 +15,11 @@ from io import open
 import configparser
 import concurrent.futures
 
+toolDir = os.path.dirname(os.path.realpath(__file__)) + '/tools/'
+sys.path.append(toolDir)
+import functions
+import sampleParser
+
 #####################
 #### functions ######
 #####################
@@ -38,7 +43,7 @@ def help_options():
 	print ("\t\t+ tRFs using MINTmap and MINTbase.")
 	print ("\t\t+ piRNA using PILFER and Repeatmasker information")
 	print ("")
-	print ("USAGE:\npython3", os.path.abspath(argv[0]),"config_file.txt ")
+	print ("USAGE:\npython3", os.path.realpath(__file__),"config_file.txt ")
 	print ("\nPARAMETERS:")
 	print ("A configuration file is necessary that includes general and detailed information for the project.")
 	print ("")
@@ -75,159 +80,9 @@ def help_options():
 	print ("")
 	print ("#################################################\n\n")
 ###############
-
-###############   
-def gettime (start_time):
-    total_sec = time.time() - start_time
-    m, s = divmod(int(total_sec), 60)
-    h, m = divmod(m, 60)
-    return h, m, s
-###############   
     
 ###############   
-def create_subfolder (name, path):
-    ## create subfolder  ##	
-	subfolder_path = path + "/" + name
-	    
-    # define the access rights
-	try:
-		os.mkdir(subfolder_path, access_rights)
-	except OSError:  
-	   	print ("\tDirectory %s already exists" % subfolder_path)
-	else:  
-		print ("\tSuccessfully created the directory %s " % subfolder_path)
-	
-	print ("")
-	return subfolder_path
-###############   
-    
-###############   
-def timestamp (start_time_partial):
-	h,m,s = gettime(start_time_partial)
-	print ('--------------------------------')
-	print ('(Time spent: %i h %i min %i s)' %(int(h), int(m), int(s)))
-	print ('--------------------------------')
-	return time.time()
-############### 
-
-###############
-def select_samples (samples_prefix, path_to_samples):
-    
-    #Get all files in the folder "path_to_samples"    
-	files = os.listdir(path_to_samples)
-	sample_list = []
-	for fastq in files:	
-		samplename_search = re.search(r"(%s)\_(\d{1,2})\_(.*)" % samples_prefix, fastq)
-		if samplename_search:
-			if 'merged' not in fastq:
-				if fastq.endswith('.gz'):
-					sample_list.append(fastq[:-3])
-				elif fastq.endswith('fastq'):
-					sample_list.append(fastq)
-				else:
-					print ("** ERROR: ", fastq, 'is a file that is neither in fastq.gz or .fastq format, so it is not included')
-
-	non_duplicate_samples = list(set(sample_list))
-	number_samples = len(non_duplicate_samples)
-	
-	print ("\t\t- ", number_samples," samples selected from ", path_to_samples)
-	return sorted(non_duplicate_samples)
-	
-###############
-
-###############
-def command_sender(string2send):
-	#print (string2send)
-	try:
-		subprocess.check_output(string2send, shell = True)
-	except subprocess.CalledProcessError as err:
-		print ('')
-		
-###############
-
-###############
-def sender(list_cmd):
-	
-	# We can use a with statement to ensure threads are cleaned up promptly
-	with concurrent.futures.ThreadPoolExecutor(max_workers=num_threads) as executor:
-		# Start the load operations and mark each future with its URL
-		commandsSent = { executor.submit(command_sender, commands): commands for commands in list_cmd }	
-		for cmd2 in concurrent.futures.as_completed(commandsSent):
-			details = commandsSent[cmd2]
-			try:
-				data = cmd2.result()
-			except Exception as exc:
-				print ('***ERROR:')
-				print (string2send)
-				print('%r generated an exception: %s' % (details, exc))
-###############
- 
-###############    
-def one_file_per_sample(final_sample_list, path_to_samples, directory, read, output_file):
-	## merge sequencing files for sample, no matter of sector or lane generated.
-	grouped_subsamples = []
-	bigfile_list = []
-	commands2sent = []
-	
-	output_file = open(output_file, 'a')
-	output_file.write("\nMerge samples:\n")
-	
-	for samplex in final_sample_list:
-		if samplex not in grouped_subsamples:
-			samplename = []
-			subsamples = []
-			for prefix in prefix_list:
-				samplename_search = re.search(r"(%s)\_(\d{1,2})\_(.*)" % prefix, samplex)
-				if samplename_search:			
-					name = samplename_search.group(1)
-					sample = samplename_search.group(2)
-					original_name = name + "_" + sample + "_"
-					commonname = name + "_" + sample + "_" + read + ".fastq"
-					bigfilepath = directory + "/" + commonname
-					bigfile_list.append(commonname)	
-					
-					for sampley in final_sample_list:
-						if original_name in sampley:
-							subsamples.append(path_to_samples + "/" + sampley)
-							grouped_subsamples.append(sampley)
-					if not os.path.isfile(bigfilepath) or os.stat(bigfilepath).st_size == 0:
-						partsofsample = ' '.join(sorted(subsamples))
-						cmd = 'cat %s >> %s' %(partsofsample, bigfilepath)						
-						## DUMP in file					
-						output_file.write(cmd)   
-						output_file.write('\n')						
-						## get command				
-						commands2sent.append(cmd)
-					else:
-						print ('\t + Sample %s is already merged' % commonname)
-	
-	## close file
-	output_file.close()		
-	#sent commands on threads
-	sender(commands2sent)	
-	print ('There are' , len(bigfile_list) , 'samples after merging for read' , read, '\n')
-	return bigfile_list
-	
-###############
-
-###############
-def get_symbolic_link (final_sample_list, path_to_samples, directory):
-	for samplex in final_sample_list:
-		sample_path = path_to_samples + '/' + samplex
-		cmd = 'ln -s %s %s' %(sample_path, directory)
-		try:
-			print ('Symbolic link sample ', samplex)
-			subprocess.check_output(cmd, shell = True)
-		except subprocess.CalledProcessError as err:
-			print (err.output)
-			#sys.exit()
-
-	files2return = os.listdir(directory)
-	return files2return
-###############
-
-###############   
-def cutadapt (list_R1, list_R2, path, out_path, file_name):
+def cutadapt (list_R1, list_R2, path, out_path, file_name, num_threads):
 	trimmed_R1 = []
 	trimmed_R2 = []
 	command2sent = []	
@@ -289,13 +144,13 @@ def cutadapt (list_R1, list_R2, path, out_path, file_name):
 	## close file
 	output_file.close()
 	#sent commands on threads			
-	sender(command2sent)
+	functions.sender(command2sent, num_threads)
 
 	return trimmed_R1, trimmed_R2
 ###############
 
 ###############     
-def fastqjoin (trimmed_R1, trimmed_R2, out_path, file_name):
+def fastqjoin (trimmed_R1, trimmed_R2, out_path, file_name, num_threads):
 	joined_files = []
 	cmd = []
 	command2sent = []
@@ -340,14 +195,14 @@ def fastqjoin (trimmed_R1, trimmed_R2, out_path, file_name):
 	## close file
 	output_file.close()				
 	#sent commands on threads			
-	sender(command2sent)
+	functions.sender(command2sent, num_threads)
 
 	## ToDOs: count and provide statistics for joined reads
 	return joined_files
 ###############       
     
 ###############       
-def sRNAbench (joined_reads, outpath, file_name):
+def sRNAbench (joined_reads, outpath, file_name, num_threads):
 	results = []
 	sRNAbench_exe = config['EXECUTABLES']['sRNAbenchtoolbox'] + 'exec/sRNAbench.jar'
 	sRNAbench_db = config['EXECUTABLES']['sRNAbenchtoolbox']
@@ -376,12 +231,12 @@ def sRNAbench (joined_reads, outpath, file_name):
 	## close file
 	output_file.close()				
 	#sent commands on threads			
-	sender(command2sent)
+	functions.sender(command2sent, num_threads)
 	return results
 ###############   
     
 ###############   
-def miRTop (results, outpath, output_file):
+def miRTop (results, outpath, output_file, num_threads):
 
 	## sent miRTop using threads	
 	# We can use a with statement to ensure threads are cleaned up promptly
@@ -473,7 +328,7 @@ def miRTop_threads(folder, outpath, file_name):
 ###############sRNAbenchtoolbox:
 
 ###############
-def isomiR_analysis (path, count, reads, time_partial, file_name):
+def isomiR_analysis (path, count, reads, time_partial, file_name, num_threads):
 	##############################
     ####### Step: sRNAbench ######
 	##############################
@@ -484,10 +339,10 @@ def isomiR_analysis (path, count, reads, time_partial, file_name):
 	
 	print ("\n+ Run sRNAbenchtoolbox:")
 	name_sRNAbench_folder = str(count) + '.1.isomiR_sRNAbenchtoolbox'
-	sRNAbench_folder = create_subfolder(name_sRNAbench_folder, path)
-	results = sRNAbench(reads, sRNAbench_folder, file_name)	
-	## timestamp
-	time_partial = timestamp(time_partial)
+	sRNAbench_folder = functions.create_subfolder(name_sRNAbench_folder, path)
+	results = sRNAbench(reads, sRNAbench_folder, file_name, num_threads)	
+	## functions.timestamp
+	time_partial = functions.timestamp(time_partial)
 	
 	############################
     ####### Step: miRTop #######
@@ -497,16 +352,16 @@ def isomiR_analysis (path, count, reads, time_partial, file_name):
 	output_file.write("\nmiRTop samples:\n")
 	output_file.close()
 	name_miRTop_folder = str(count) + '.2.isomiR_miRTop'
-	miRTop_folder = create_subfolder(name_miRTop_folder, path)
-	gtfs=miRTop(results, miRTop_folder, file_name)	
-	## timestamp
-	time_partial = timestamp(time_partial)
+	miRTop_folder = functions.create_subfolder(name_miRTop_folder, path)
+	gtfs=miRTop(results, miRTop_folder, file_name, num_threads)	
+	## functions.timestamp
+	time_partial = functions.timestamp(time_partial)
 
 	##############################################
     ####### Step: create expression matrix #######
 	##############################################
 	name_isomiR_matrix_folder = str(count) + '.3.isomiR_matrix'
-	isomiR_matrix_folder = create_subfolder(name_isomiR_matrix_folder, path)
+	isomiR_matrix_folder = functions.create_subfolder(name_isomiR_matrix_folder, path)
 
 	for gtffile in gtfs:
 		sample = gtffile.rpartition('/')[-1][:-4]
@@ -523,8 +378,8 @@ def isomiR_analysis (path, count, reads, time_partial, file_name):
 		else:
 			print ('\t + Expression matrix already exists...')
 			
-	## timestamp
-	time_partial = timestamp(time_partial)
+	## functions.timestamp
+	time_partial = functions.timestamp(time_partial)
 	return time_partial	
 ###############
 
@@ -556,7 +411,7 @@ def parse_gtf(gtffile, filename, sample):
 ###############
 
 ###############
-def MINTmap(reads, folder, file_name):
+def MINTmap(reads, folder, file_name, num_threads):
 	MINTmap = config['EXECUTABLES']['MINTmap_folder'] + 'MINTmap.pl'	
 	MINTmap_table = config['EXECUTABLES']['MINTmap_folder'] + 'LookupTable.tRFs.MINTmap_v1.txt'
 	MINTmap_tRNAseq = config['EXECUTABLES']['MINTmap_folder'] + 'tRNAspace.Spliced.Sequences.MINTmap_v1.fa'
@@ -581,7 +436,7 @@ def MINTmap(reads, folder, file_name):
 					print ('\tMINTmap analysis for sample %s already exists' %outdir) 		
 				else:
 					#MINTmap.pl -f trimmedfastqfile [-p outputprefix] [-l lookuptable] [-s tRNAsequences] [-o tRFtypes] [-d customRPM] [-a assembly] [-j MINTplatesPath] [-h]
-					fol = create_subfolder(outdir, folder)
+					fol = functions.create_subfolder(outdir, folder)
 					cmd = 'perl '+ MINTmap + ' -f %s -p %s -l %s -s %s -o %s -j %s > %s' %(jread, sample_folder + outdir, MINTmap_table, MINTmap_tRNAseq, MINTmap_tRF, MINTmap_MINTplates, logfile) 
 					# get command
 					command2sent.append(cmd)
@@ -590,24 +445,24 @@ def MINTmap(reads, folder, file_name):
 					output_file.write('\n')
 
 	#sent commands on threads			
-	sender(command2sent)
+	functions.sender(command2sent, num_threads)
 	output_file.close()
 	return results		
 ###############
 
 ###############
-def tRFs_analysis(path, count, reads, time_partial, output_file):
+def tRFs_analysis(path, count, reads, time_partial, output_file, num_threads):
 	##############################
     ####### Step: sRNAbench ######
 	##############################
 	print ("\n+ Run MINTmap: ")
 	name_MINTmap_folder = str(count) + '.1.tRFs_MINTmap'
-	MINTmap_folder = create_subfolder(name_MINTmap_folder, path)
-	results = MINTmap(reads, MINTmap_folder, output_file)
+	MINTmap_folder = functions.create_subfolder(name_MINTmap_folder, path)
+	results = MINTmap(reads, MINTmap_folder, output_file, num_threads)
 	
 	print ("\n+ Get MINTmap matrix: ")
 	name_MINTmap_matrix = str(count) + '.2.tRFs_matrix'
-	MINTmap_matrix_folder = create_subfolder(name_MINTmap_matrix, path)
+	MINTmap_matrix_folder = functions.create_subfolder(name_MINTmap_matrix, path)
 
 	for folder in results:
 		files = os.listdir(folder)
@@ -621,8 +476,8 @@ def tRFs_analysis(path, count, reads, time_partial, output_file):
 			elif 'exclu' in item:
 				parse_tRF(folder, item, MINTmap_matrix_folder, 'exclusive')		
 	
-	## timestamp
-	time_partial = timestamp(time_partial)
+	## functions.timestamp
+	time_partial = functions.timestamp(time_partial)
 	
 ###############
 def parse_tRF(path, fileGiven, matrix_folder, ident):
@@ -676,7 +531,7 @@ def mapReads(read, folder, output_file_name):
 	
 	STAR_exe = config['EXECUTABLES']['STAR_exe']
 	genomeDir = config['FILES']['STAR_genomeDir']
-	num_threads = config['VARIABLES']['thread']
+	num_threads = int(config['VARIABLES']['thread'])
 	limitRAM_option = config['PARAMETERS']['limitRAM']
 	
 	## For many samples it will have to load genome index in memory every time.
@@ -696,7 +551,7 @@ def mapReads(read, folder, output_file_name):
 				outdir = sample_search.group(1) + "_" + sample_search.group(2)
 				sample_folder =  folder + '/' + outdir + '/'
 				logfile = sample_folder + outdir + '_logfile.txt'
-				out_folder = create_subfolder(outdir, folder)
+				out_folder = functions.create_subfolder(outdir, folder)
 				bam_file = sample_folder + 'Aligned.sortedByCoord.out.bam'
 
 				## to return
@@ -724,7 +579,7 @@ def mapReads(read, folder, output_file_name):
 	if (item > 1):	
 		## --genomeLoad Remove
 		removeDir = 'RemoveMem'
-		remove_folder = create_subfolder(removeDir, folder)
+		remove_folder = functions.create_subfolder(removeDir, folder)
 		cmd_RM = "%s --genomeDir %s --outFileNamePrefix %s --runThreadN %s --genomeLoad Remove" %(STAR_exe, genomeDir, remove_folder, num_threads)
 		## send command	
 		try:
@@ -735,7 +590,7 @@ def mapReads(read, folder, output_file_name):
 	
 		## --genomeLoad LoadAndExit
 		LoadDir = 'LoadMem'
-		Load_folder = create_subfolder(LoadDir, folder)
+		Load_folder = functions.create_subfolder(LoadDir, folder)
 		cmd_LD = "%s --genomeDir %s --runThreadN %s --outFileNamePrefix %s --genomeLoad LoadAndExit" %(STAR_exe, genomeDir, num_threads, Load_folder)
 		## send command	
 		try:
@@ -750,11 +605,11 @@ def mapReads(read, folder, output_file_name):
 		print ("\t+ Mapping now...\n")
 		
 		#sent commands on threads			
-		sender(command2sent)	
+		functions.sender(command2sent, num_threads)	
 	
 		## --genomeLoad Remove
 		removeDir = 'RemoveMem'
-		remove_folder = create_subfolder(removeDir, folder)
+		remove_folder = functions.create_subfolder(removeDir, folder)
 		cmd_RM = "%s --genomeDir %s --outFileNamePrefix %s --runThreadN %s --genomeLoad Remove" %(STAR_exe, genomeDir, remove_folder, num_threads)
 		## send command	
 		try:
@@ -780,11 +635,11 @@ def mapReads(read, folder, output_file_name):
 def parse_RNAbiotype(bam, ID, output_file_name, RNABiotype_folder):
 	## call script to get RNAbiotype
 	# get path for file
-	RNAbiotype_script = os.path.dirname(argv[0]) + '/tools/RNAbiotype.py'
+	RNAbiotype_script = toolDir + 'RNAbiotype.py'
 	
 	## create folder	
 	name_RNABiotype_sample = str(ID)
-	RNABiotype_folder_sample = create_subfolder(name_RNABiotype_sample, path=RNABiotype_folder)	
+	RNABiotype_folder_sample = functions.create_subfolder(name_RNABiotype_sample, path=RNABiotype_folder)	
 	## get variables
 	gtf_annotation = config['FILES']['gtf_file']
 	featureCount_bin = config['EXECUTABLES']['featureCount_exe']	
@@ -802,7 +657,7 @@ def BAMtoPILFER(bam, ID, piRNA_folder, command_file_name, bed_file, repeatmasker
 
 	output_file = open(command_file_name, 'a')	
 	name_piRNA_folder_sample = str(ID)
-	folder_sample = create_subfolder(name_piRNA_folder_sample, piRNA_folder)		
+	folder_sample = functions.create_subfolder(name_piRNA_folder_sample, piRNA_folder)		
 
 	## results conversion	
 	split_name_bam = os.path.splitext( os.path.basename(bam) )
@@ -817,7 +672,7 @@ def BAMtoPILFER(bam, ID, piRNA_folder, command_file_name, bed_file, repeatmasker
 	else:
 		## call script to get convert bam into PILFER Input
 		# get path for file
-		PILFERconversion_script = os.path.dirname(argv[0]) + '/tools/convertBAMtoPILFER.py'
+		PILFERconversion_script = toolDir + 'convertBAMtoPILFER.py'
 		print ('\t+ Converting BAM file in PILFER input for sample %s' %ID)
 		cmd = ('python3 %s %s %s %s %s %s' %(PILFERconversion_script, bam, folder_sample, bedtools_bin, samtools_bin, command_file_name ))
 		output_file.write(cmd)
@@ -885,17 +740,17 @@ def BAMtoPILFER(bam, ID, piRNA_folder, command_file_name, bed_file, repeatmasker
 	output_file.close()
 	
 ###############
-def	piRNA_analysis(path, count, bam_files, command_file_name, bed_file):
+def	piRNA_analysis(path, count, bam_files, command_file_name, bed_file, num_threads):
 
 	output_file = open(command_file_name, 'a')
 	output_file.write("\npiRNA Analysis:\n")
 	print ("\n+ Run piRNA analysis: ")
 	name_piRNA_folder = str(count) + '.piRNA'
-	piRNA_folder = create_subfolder(name_piRNA_folder, path)
+	piRNA_folder = functions.create_subfolder(name_piRNA_folder, path)
 
 	## repeatmasker information
 	# get path for file
-	repeatmasker2bed = os.path.dirname(argv[0]) + '/tools/repeatMasker2bed.py'
+	repeatmasker2bed = toolDir + 'repeatMasker2bed.py'
 
 	#send
 	repeatmasker_file = config['FILES']['repeatmasker']
@@ -1068,20 +923,20 @@ if __name__ == "__main__":
 
 	print ("\n+ Select samples: ")
 	if prefix_list == 'all':
-		sample_listR1 = select_samples("all", file_R1)
+		sample_listR1 = sampleParser.select_samples("all", file_R1) ## is it working??, need debugging
 		all_list_R1.extend(sample_listR1)
 
 		if paired_end:
-			sample_listR2 = select_samples("all", file_R2)
+			sample_listR2 = sampleParser.select_samples("all", file_R2) ## is it working??, need debugging
 			all_list_R2.extend(sample_listR2)
 	else:
 
 		for samples in prefix_list:
 			print ("\t+",samples,"samples")
-			sample_listR1 = select_samples(samples, file_R1)
+			sample_listR1 = sampleParser.select_samples(samples, file_R1)
 			all_list_R1.extend(sample_listR1)
 			if paired_end:
-				sample_listR2 = select_samples(samples, file_R2)
+				sample_listR2 = sampleParser.select_samples(samples, file_R2)
 				all_list_R2.extend(sample_listR2)
 
 	print ("")
@@ -1092,31 +947,31 @@ if __name__ == "__main__":
 	sample_folder = []
 	samplesR1 = []
 	samplesR2 = []
-	sample_folder = create_subfolder("1.samples", path=folder_path)
+	sample_folder = functions.create_subfolder("1.samples", path=folder_path)
 
 	### merge_option
 	if merge_option == "YES":
 		print ("\n+ Merge samples: ")
-		samplesR1 = one_file_per_sample(all_list_R1, file_R1, sample_folder, read="R1", output_file=command_file_name)
+		samplesR1 = sampleParser.one_file_per_sample(all_list_R1, file_R1, sample_folder, "R1", command_file_name, prefix_list, num_threads)
 		if paired_end:
-			samplesR2 = one_file_per_sample(all_list_R2, file_R2, sample_folder, read="R2", output_file=command_file_name)
+			samplesR2 = sampleParser.one_file_per_sample(all_list_R2, file_R2, sample_folder, "R2", command_file_name, prefix_list, num_threads)
 	else:
 		print ("\n+ Retrieve samples:")
-		samplesR1 = get_symbolic_link(all_list_R1, file_R1, sample_folder)
+		samplesR1 = functions.get_symbolic_link(all_list_R1, file_R1, sample_folder)
 		if paired_end:
-			samplesR2 = get_symbolic_link(all_list_R2, file_R2, sample_folder)
+			samplesR2 = functions.get_symbolic_link(all_list_R2, file_R2, sample_folder)
 		
-	## timestamp
-	start_time_partial = timestamp(start_time_total)
+	## functions.timestamp
+	start_time_partial = functions.timestamp(start_time_total)
 
 	###############################
     ####### Step3: cutadapt #######
 	###############################
 	print ("\n+ Trimming samples: ")
-	cutadapt_folder = create_subfolder("2.cutadapt", path=folder_path)
-	trimmed_R1_return, trimmed_R2_return = cutadapt(samplesR1, samplesR2, sample_folder, cutadapt_folder, command_file_name)
-	## timestamp
-	start_time_partial = timestamp(start_time_partial)
+	cutadapt_folder = functions.create_subfolder("2.cutadapt", path=folder_path)
+	trimmed_R1_return, trimmed_R2_return = cutadapt(samplesR1, samplesR2, sample_folder, cutadapt_folder, command_file_name, num_threads)
+	## functions.timestamp
+	start_time_partial = functions.timestamp(start_time_partial)
 		
 	###############################
 	####### Step: fastqjoin ######
@@ -1126,10 +981,10 @@ if __name__ == "__main__":
 	if paired_end:
 		print ("\n+ Joining samples: ")
 		name = str(folder_id) + ".fastqjoin"
-		fastqjoin_folder = create_subfolder(name, path=folder_path)
-		joined_read = fastqjoin(trimmed_R1_return, trimmed_R2_return, fastqjoin_folder, command_file_name)
-		## timestamp
-		start_time_partial = timestamp(start_time_partial)
+		fastqjoin_folder = functions.create_subfolder(name, path=folder_path)
+		joined_read = fastqjoin(trimmed_R1_return, trimmed_R2_return, fastqjoin_folder, command_file_name, num_threads)
+		## functions.timestamp
+		start_time_partial = functions.timestamp(start_time_partial)
 		folder_id = folder_id + 1
 	else:
 		joined_read = trimmed_R1_return
@@ -1138,20 +993,20 @@ if __name__ == "__main__":
 	######## Step: Map RNA reads ######
 	###################################
 	name_MapReads = str(folder_id) + ".MapRNA"
-	MapReads_folder = create_subfolder(name_MapReads, path=folder_path)
+	MapReads_folder = functions.create_subfolder(name_MapReads, path=folder_path)
 
 	print ("\n+ Map RNA reads for samples: ")
 	results_STAR = mapReads(joined_read, MapReads_folder, command_file_name)
 
 	folder_id = folder_id + 1
-	## timestamp
-	start_time_partial = timestamp(start_time_partial)
+	## functions.timestamp
+	start_time_partial = functions.timestamp(start_time_partial)
 
 	######################################
 	########## RNA Biotype analisis ######
 	######################################
 	name_RNABiotype = str(folder_id) + ".RNA_Biotype"
-	RNABiotype_folder = create_subfolder(name_RNABiotype, path=folder_path)
+	RNABiotype_folder = functions.create_subfolder(name_RNABiotype, path=folder_path)
 
 	## Get feature Counts and plot
 	command_file.write('\nRNA biotype\n')
@@ -1169,8 +1024,8 @@ if __name__ == "__main__":
 				print('%r generated an exception: %s' % (details, exc))
 
 	folder_id = folder_id + 1
-	## timestamp
-	start_time_partial = timestamp(start_time_partial)
+	## functions.timestamp
+	start_time_partial = functions.timestamp(start_time_partial)
 
 	######################################
 	## Prepare GTF file for later
@@ -1179,7 +1034,7 @@ if __name__ == "__main__":
 	# get path for file
 	## save names
 	GTF_file = config['FILES']['gtf_file']
-	tmp_folder = create_subfolder("tmp", path=folder_path)
+	tmp_folder = functions.create_subfolder("tmp", path=folder_path)
 	split_name_GTF = os.path.splitext( os.path.basename(GTF_file) )		
 	Exon_gtf = tmp_folder + '/' + split_name_GTF[0] + '_exon.gtf' 
 	miRNA_gtf = tmp_folder + '/' + split_name_GTF[0] + '_miRNA.gtf' 
@@ -1189,7 +1044,7 @@ if __name__ == "__main__":
 		print ('\t+ Process is already done')
 	else:
 		command_file.write('Parse GTF')
-		get_genetype_GTF = os.path.dirname(argv[0]) + '/tools/get_genetype_gtf.py'
+		get_genetype_GTF = toolDir + 'get_genetype_gtf.py'
 		cmd_genetype_GTF = 'python3 %s %s %s' %(get_genetype_GTF, GTF_file, tmp_folder)
 		command_file.write(cmd_genetype_GTF)
 
@@ -1204,30 +1059,30 @@ if __name__ == "__main__":
 	####### Step: Small RNA analysis #####
 	######################################
 	if analysis_option == "isomiR":
-		isomiR_analysis(folder_path, folder_id, joined_read, start_time_partial, command_file_name)
+		isomiR_analysis(folder_path, folder_id, joined_read, start_time_partial, command_file_name, num_threads)
 
 	elif analysis_option == "tRFs":
-		tRFs_analysis(folder_path, folder_id, joined_read, start_time_partial, command_file_name)
+		tRFs_analysis(folder_path, folder_id, joined_read, start_time_partial, command_file_name,  num_threads)
 
 	elif analysis_option == "piRNA":
-		piRNA_analysis(folder_path, folder_id, results_STAR, command_file_name, ncRNA_bed)
+		piRNA_analysis(folder_path, folder_id, results_STAR, command_file_name, ncRNA_bed,  num_threads)
 		
 	elif analysis_option == "all":
 		## isomiR
-		isomiR_analysis(folder_path, folder_id, joined_read, start_time_partial, command_file_name)
+		isomiR_analysis(folder_path, folder_id, joined_read, start_time_partial, command_file_name, num_threads)
 		
 		## tRFS
 		folder_id = folder_id + 1
-		## timestamp
-		start_time_partial = timestamp(start_time_partial)
-		tRFs_analysis(folder_path, folder_id, joined_read, start_time_partial, command_file_name)
+		## functions.timestamp
+		start_time_partial = functions.timestamp(start_time_partial)
+		tRFs_analysis(folder_path, folder_id, joined_read, start_time_partial, command_file_name,  num_threads)
 
-		## timestamp
-		start_time_partial = timestamp(start_time_partial)
+		## functions.timestamp
+		start_time_partial = functions.timestamp(start_time_partial)
 		folder_id = folder_id + 1
 
 		## piRNA analysis
-		piRNA_analysis(folder_path, folder_id, results_STAR, command_file_name, ncRNA_bed)
+		piRNA_analysis(folder_path, folder_id, results_STAR, command_file_name, ncRNA_bed,  num_threads)
 
 	else:
 		print ("**ERROR: No valid analysis provided: ", analysis_option)
@@ -1235,7 +1090,7 @@ if __name__ == "__main__":
 		
 
 	print ("\n*************** Finish *******************")
-	start_time_partial = timestamp(start_time_total)
+	start_time_partial = functions.timestamp(start_time_total)
 
 	command_file.close()      
 	
