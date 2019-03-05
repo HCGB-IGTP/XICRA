@@ -12,7 +12,7 @@ import subprocess
 ## ARGV
 if len (sys.argv) < 5:
 	print ("\nUsage:")
-	print ("python3 %s bam_file folder bedtools_bin samtools_bin logfile\n" %argv[0])
+	print ("python3 %s bam_file folder bedtools_bin samtools_bin logfile\n" %os.path.realpath(__file__))
 	exit()
 
 bam_file = os.path.abspath(argv[1])
