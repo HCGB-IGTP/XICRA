@@ -17,9 +17,9 @@ import matplotlib.pyplot as plt
 from pandas.plotting import table
 
 ## ARGV
-if len (sys.argv) < 5:
+if len (sys.argv) < 6:
 	print ("\nUsage:")
-	print ("python3 %s bam_file folder gtf_file featureCount_bin logFile\n" %os.path.realpath(__file__))
+	print ("python3 %s bam_file folder gtf_file featureCount_bin logFile threads\n" %os.path.realpath(__file__))
 	exit()
 
 bam_file = os.path.abspath(argv[1])
@@ -27,6 +27,7 @@ folder = argv[2]
 gtf_file = argv[3]
 featureCount_exe = argv[4]
 logFile = argv[5]
+threads = argv[6]
 
 ## start
 output_file = open(logFile, 'a')
@@ -49,11 +50,11 @@ else:
 		output_file.write("\nParse RNA Biotype results:\n")	
 		
 		## send command for feature count
-		cmd_featureCount = '%s -M -O -T 1 -p -t exon -g gene_type -a %s -o %s %s 2> %s' %(featureCount_exe, gtf_file, out_file, bam_file, logfile)
+		cmd_featureCount = '%s -M -O -T %s -p -t exon -g transcript_biotype -a %s -o %s %s 2> %s' %(featureCount_exe, threads, gtf_file, out_file, bam_file, logfile)
 		
 		output_file.write(cmd_featureCount)
 		output_file.write("\n")		
-		## send command	
+		# send command	
 		try:
 			subprocess.check_output(str(cmd_featureCount), shell = True)
 		except subprocess.CalledProcessError as err:
@@ -119,6 +120,7 @@ else:
 		df_genetype_filter_smaller_sum = df_genetype_filter_smaller['Read_Count'].sum() ## total filter smaller
 		df_genetype_filter_greater2 = df_genetype_filter_greater.append({'Read_Count':df_genetype_filter_smaller_sum, 'Type':'Other'}, ignore_index=True)
 	
+	
 		## Create Plot
 		ax1 = plt.subplot(121, aspect='equal')
 		df_genetype_filter_greater2.plot.pie(y = 'Read_Count', ax=ax1, autopct='%1.2f%%', shadow=False, labels=df_genetype_filter_greater2['Type'], legend = False)
@@ -126,7 +128,7 @@ else:
 		# plot table
 		ax2 = plt.subplot(122)
 		plt.axis('off')
-		tbl = table(ax2, df_genetype_2, loc='center', rowLoc='left', cellLoc='center', colWidths=[0.15, 0.5])
+		tbl = ax2.table(cellText=df_genetype_2.values, colLabels=df_genetype_2.columns, loc='center', rowLoc='left', cellLoc='center', colWidths=[0.15, 0.5])
 		tbl.auto_set_font_size(True)
 		tbl.scale(1.1,1.1)
 	

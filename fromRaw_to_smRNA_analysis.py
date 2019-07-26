@@ -91,24 +91,24 @@ def cutadapt (list_R1, list_R2, path, out_path, file_name, num_threads):
 	
 	for file_R1 in list_R1:
 		file_R1_path = path + "/" + file_R1
+	
 		cmd = []
 		cutadapt_exe = config['EXECUTABLES']['cutadapt']  	
 		adapter_3 = config['PARAMETERS']['adapter_3']		
 		for prefix in prefix_list:
-			sampleR1_search = re.search(r"(%s)\_(\d{1,2})\_(.*)" % prefix, file_R1)
-			if sampleR1_search:
-				name = sampleR1_search.group(1) + '_' + sampleR1_search.group(2)
-				path_name = out_path + "/" + name
-				common = path_name + '_trimmed_'
-				o_param = common + "R1.fastq"
-				p_param = common + "R2.fastq"
-				trimmed_R1.append(o_param)
-				logfile = common + 'logfile.txt'
+		
+			if paired_end:
+				## paired-end
+				sampleR1_search = re.search(r"(%s)\_(\d{1,2})\_(.*)" % prefix, file_R1)
+				if sampleR1_search:
+					name = sampleR1_search.group(1) + '_' + sampleR1_search.group(2)
+					path_name = out_path + "/" + name
+					common = path_name + '_trimmed_'
+					o_param = common + "R1.fastq"
+					p_param = common + "R2.fastq"
+					trimmed_R1.append(o_param)
+					logfile = common + 'logfile.txt'
 
-				if paired_end == False:
-					## single-end
-					cmd = '%s -a %s -o %s %s > %s' %(cutadapt_exe, adapter_3, o_param, file_R1_path, logfile)
-				else: ## paired-end
 					if list_R2: ## paired-end
 						sampleR2 = path + "/" + sampleR1_search.group(1) + '_' + sampleR1_search.group(2) + '_R2.fastq'
 						try:
@@ -124,23 +124,26 @@ def cutadapt (list_R1, list_R2, path, out_path, file_name, num_threads):
 							file_R2_path = sampleR2
 							cmd = '%s -a %s -A %s -o %s -p %s %s %s > %s' %(cutadapt_exe, adapter_3, adapter_5, o_param, p_param, file_R1_path, file_R2_path, logfile)
 							trimmed_R2.append(p_param)
-					else:
-						## single-end
-						cmd = '%s -a %s -o %s %s > %s' %(cutadapt_exe, adapter_3, o_param, file_R1_path, logfile)
+			else:
+				## single-end
+				sample_search = re.search(r"(.*)\.f*", file_R1)
+				o_param = sample_search.group(1) + '_trimmed.fastq'
+				logfile = sample_search.group(1) + '_logfile.txt'
+				cmd = '%s -a %s -o %s %s > %s' %(cutadapt_exe, adapter_3, o_param, file_R1_path, logfile)
 	
-				if (os.path.isfile(o_param)):
-					if (os.path.isfile(p_param)):
-						print ('\tSample %s is already trimmed in paired-end mode' % name)
-					else:
-						print ('\tSample %s is already trimmed in single-end mode' % name)	
-				## not trimmed
-				else: 
-					## DUMP in file					
-					output_file.write(cmd)   
-					output_file.write('\n')	
-					# get command 
-					command2sent.append(cmd)
-					
+			if (os.path.isfile(o_param)):
+				if (os.path.isfile(p_param)):
+					print ('\tSample %s is already trimmed in paired-end mode' % name)
+				else:
+					print ('\tSample %s is already trimmed in single-end mode' % name)	
+			## not trimmed
+			else: 
+				## DUMP in file					
+				output_file.write(cmd)   
+				output_file.write('\n')	
+				# get command 
+				command2sent.append(cmd)
+	
 	## close file
 	output_file.close()
 	#sent commands on threads			
@@ -182,7 +185,7 @@ def fastqjoin (trimmed_R1, trimmed_R2, out_path, file_name, num_threads):
 				if sampleR2[0] in trimmed_R2:
 					cmd = fastqjoin_exe + ' -p %s %s %s -o %s -o %s -o %s > %s' %(error_param, file_R1, sampleR2[0], unjoined_1, unjoined_2, path_name, logfile)
 				else: ## single-end
-					cmd = 'cp %s %s' %(file_R1, path_name)
+					cmd = 'cp %s %s' %(file_R1, path_name) ## use shutil
 				if (os.path.isfile(path_name)):
 					print ('\tSample %s is already joined' %name)
 				else: ## not merged
