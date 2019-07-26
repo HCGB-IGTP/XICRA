@@ -8,7 +8,6 @@ import re
 import subprocess
 import sys
 from datetime import datetime
-from xtract import xtract
 import concurrent.futures
 
 ###############   
@@ -87,7 +86,8 @@ def system_call(cmd):
 
 ###############	
 def extract(fileGiven):
-	xtract(fileGiven, all=True)
+	print ("")
+	#xtract(fileGiven, all=True)
 	
 ###############
 def sender(list_cmd, num_threads):	

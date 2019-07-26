@@ -96,7 +96,7 @@ def cutadapt (list_R1, list_R2, path, out_path, file_name, num_threads):
 		cutadapt_exe = config['EXECUTABLES']['cutadapt']  	
 		adapter_3 = config['PARAMETERS']['adapter_3']		
 		for prefix in prefix_list:
-		
+			o_param=""
 			if paired_end:
 				## paired-end
 				sampleR1_search = re.search(r"(%s)\_(\d{1,2})\_(.*)" % prefix, file_R1)
@@ -117,25 +117,28 @@ def cutadapt (list_R1, list_R2, path, out_path, file_name, num_threads):
 							print ("**ERROR: pair for sample ",o_param," doest not exist")
 							print ("Sample will be treated as single end")
 							## set cmd for single eng as no R2 file
-							cmd = '%s -a %s -o %s %s' %(cutadapt_exe, adapter_3, o_param, file_R1_path)
+							cmd = '%s -m 15 -a %s -o %s %s' %(cutadapt_exe, adapter_3, o_param, file_R1_path)
 						else:
 							#paired end:
 							adapter_5 = config['PARAMETERS']['adapter_5']
 							file_R2_path = sampleR2
-							cmd = '%s -a %s -A %s -o %s -p %s %s %s > %s' %(cutadapt_exe, adapter_3, adapter_5, o_param, p_param, file_R1_path, file_R2_path, logfile)
+							cmd = '%s -m 15 -a %s -A %s -o %s -p %s %s %s > %s' %(cutadapt_exe, adapter_3, adapter_5, o_param, p_param, file_R1_path, file_R2_path, logfile)
 							trimmed_R2.append(p_param)
 			else:
 				## single-end
 				sample_search = re.search(r"(.*)\.f*", file_R1)
-				o_param = sample_search.group(1) + '_trimmed.fastq'
-				logfile = sample_search.group(1) + '_logfile.txt'
-				cmd = '%s -a %s -o %s %s > %s' %(cutadapt_exe, adapter_3, o_param, file_R1_path, logfile)
+				o_param = out_path + "/" + sample_search.group(1) + '_trimmed.fastq'
+				trimmed_R1.append(o_param)
+				trimmed_R2 = ""
+				logfile = out_path + "/" + sample_search.group(1) + '_logfile.txt'
+				cmd = '%s -m 15 -a %s -o %s %s > %s' %(cutadapt_exe, adapter_3, o_param, file_R1_path, logfile)
 	
 			if (os.path.isfile(o_param)):
-				if (os.path.isfile(p_param)):
-					print ('\tSample %s is already trimmed in paired-end mode' % name)
+				if paired_end:
+					if (os.path.isfile(p_param)):
+						print ('\tSample is already trimmed in paired-end mode')
 				else:
-					print ('\tSample %s is already trimmed in single-end mode' % name)	
+					print ('\tSample is already trimmed in single-end mode')	
 			## not trimmed
 			else: 
 				## DUMP in file					
@@ -148,8 +151,9 @@ def cutadapt (list_R1, list_R2, path, out_path, file_name, num_threads):
 	output_file.close()
 	#sent commands on threads			
 	functions.sender(command2sent, num_threads)
-
-	return trimmed_R1, trimmed_R2
+	
+	return (trimmed_R1, trimmed_R2)
+	
 ###############
 
 ###############     
@@ -201,7 +205,8 @@ def fastqjoin (trimmed_R1, trimmed_R2, out_path, file_name, num_threads):
 	functions.sender(command2sent, num_threads)
 
 	## ToDOs: count and provide statistics for joined reads
-	return joined_files
+	return (joined_files)
+	
 ###############       
     
 ###############       
@@ -215,9 +220,20 @@ def sRNAbench (joined_reads, outpath, file_name, num_threads):
 
 	for jread in joined_reads:
 		for prefix in prefix_list:
-			sample_search = re.search(r"(%s)\_(\d{1,2})\_(.*)" % prefix, jread)
+			
+			if paired_end:
+				sample_search = re.search(r"(%s)\_(\d{1,2})\_(.*)" % prefix, jread)
+			else:
+				name_sample = os.path.basename(jread)
+				name_dir = os.path.dirname(jread)
+				sample_search = re.search(r"(.*)\_trimmed\.fastq", name_sample)
+				
 			if sample_search:
-				outdir = sample_search.group(1) + "_" + sample_search.group(2)
+				if paired_end:
+					outdir = sample_search.group(1) + "_" + sample_search.group(2)
+				else:
+					outdir = sample_search.group(1)
+
 				finalpath = outpath + '/' + outdir + '/'
 				logfile	= outpath + '/' + outdir + '_logfile.txt'			
 				results.append(finalpath)				
@@ -429,9 +445,20 @@ def MINTmap(reads, folder, file_name, num_threads):
 	
 	for jread in reads:	
 		for prefix in prefix_list:
-			sample_search = re.search(r"(%s)\_(\d{1,2})\_(.*)" % prefix, jread)
+		
+			if paired_end:
+				sample_search = re.search(r"(%s)\_(\d{1,2})\_(.*)" % prefix, jread)
+			else:
+				name_sample = os.path.basename(jread)
+				name_dir = os.path.dirname(jread)
+				sample_search = re.search(r"(.*)\_trimmed\.fastq", name_sample)
+				
 			if sample_search:
-				outdir = sample_search.group(1) + "_" + sample_search.group(2)
+				if paired_end:
+					outdir = sample_search.group(1) + "_" + sample_search.group(2)
+				else:
+					outdir = sample_search.group(1)
+
 				sample_folder =  folder + '/' + outdir + '/'
 				results.append(sample_folder)
 				logfile = sample_folder + outdir + '_logfile.txt'
@@ -549,9 +576,19 @@ def mapReads(read, folder, output_file_name):
 	results_STAR = {}
 	for jread in read:
 		for prefix in prefix_list:
-			sample_search = re.search(r"(%s)\_(\d{1,2})\_(.*)" % prefix, jread)
+			if paired_end:
+				sample_search = re.search(r"(%s)\_(\d{1,2})\_(.*)" % prefix, jread)
+			else:
+				name_sample = os.path.basename(jread)
+				name_dir = os.path.dirname(jread)
+				sample_search = re.search(r"(.*)\_trimmed\.fastq", name_sample)
+				
 			if sample_search:
-				outdir = sample_search.group(1) + "_" + sample_search.group(2)
+				if paired_end:
+					outdir = sample_search.group(1) + "_" + sample_search.group(2)
+				else:
+					outdir = sample_search.group(1)
+					
 				sample_folder =  folder + '/' + outdir + '/'
 				logfile = sample_folder + outdir + '_logfile.txt'
 				out_folder = functions.create_subfolder(outdir, folder)
@@ -646,7 +683,7 @@ def parse_RNAbiotype(bam, ID, output_file_name, RNABiotype_folder):
 	## get variables
 	gtf_annotation = config['FILES']['gtf_file']
 	featureCount_bin = config['EXECUTABLES']['featureCount_exe']	
-	cmd = ('python3 %s %s %s %s %s %s' %(RNAbiotype_script, bam, RNABiotype_folder_sample, gtf_annotation, featureCount_bin, output_file_name))
+	cmd = ('python3 %s %s %s %s %s %s' %(RNAbiotype_script, bam, RNABiotype_folder_sample, gtf_annotation, featureCount_bin, output_file_name, 1))
 	## send command	
 	try:
 		print ('\t+ Parsing mapping reads for RNAbiotype results for samples %s' %ID)
@@ -972,7 +1009,7 @@ if __name__ == "__main__":
 	###############################
 	print ("\n+ Trimming samples: ")
 	cutadapt_folder = functions.create_subfolder("2.cutadapt", path=folder_path)
-	trimmed_R1_return, trimmed_R2_return = cutadapt(samplesR1, samplesR2, sample_folder, cutadapt_folder, command_file_name, num_threads)
+	(trimmed_R1_return, trimmed_R2_return) = cutadapt(samplesR1, samplesR2, sample_folder, cutadapt_folder, command_file_name, num_threads)
 	## functions.timestamp
 	start_time_partial = functions.timestamp(start_time_partial)
 		
