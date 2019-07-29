@@ -150,6 +150,7 @@ def cutadapt (list_R1, list_R2, path, out_path, file_name, num_threads):
 	## close file
 	output_file.close()
 	#sent commands on threads			
+	command2sent = set(command2sent) ## BUG: if single-end option, it sends as many as prefixes each command 
 	functions.sender(command2sent, num_threads)
 	
 	return (trimmed_R1, trimmed_R2)
@@ -201,7 +202,7 @@ def fastqjoin (trimmed_R1, trimmed_R2, out_path, file_name, num_threads):
 
 	## close file
 	output_file.close()				
-	#sent commands on threads			
+	#sent commands on threads
 	functions.sender(command2sent, num_threads)
 
 	## ToDOs: count and provide statistics for joined reads
@@ -250,6 +251,7 @@ def sRNAbench (joined_reads, outpath, file_name, num_threads):
 	## close file
 	output_file.close()				
 	#sent commands on threads			
+	command2sent = set(command2sent) ## BUG: if single-end option, it sends as many as prefixes each command 
 	functions.sender(command2sent, num_threads)
 	return results
 ###############   
@@ -644,7 +646,10 @@ def mapReads(read, folder, output_file_name):
 		print ("\t+ Done...\n")
 		print ("\t+ Mapping now...\n")
 		
-		#sent commands on threads			
+		#sent commands on threads
+		command2sent = set(command2sent) ## BUG: if single-end option, it sends as many as prefixes each command 			
+		print ("Commands:")
+		print (len(command2sent))
 		functions.sender(command2sent, num_threads)	
 	
 		## --genomeLoad Remove
