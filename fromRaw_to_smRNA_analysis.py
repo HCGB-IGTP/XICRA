@@ -220,8 +220,7 @@ def sRNAbench (joined_reads, outpath, file_name, num_threads):
 	output_file = open(file_name, 'a')
 
 	for jread in joined_reads:
-		for prefix in prefix_list:
-			
+		for prefix in prefix_list:			
 			if paired_end:
 				sample_search = re.search(r"(%s)\_(\d{1,2})\_(.*)" % prefix, jread)
 			else:
@@ -252,8 +251,15 @@ def sRNAbench (joined_reads, outpath, file_name, num_threads):
 	output_file.close()				
 	#sent commands on threads			
 	command2sent = set(command2sent) ## BUG: if single-end option, it sends as many as prefixes each command 
+	#print ("Commands:")
+	#print (len(command2sent))
 	functions.sender(command2sent, num_threads)
-	return results
+
+	results = set(results) ## BUG: if single-end option, it sends as many as prefixes each command 
+	#print ("results:")
+	#print (len(results))
+
+	return (results)
 ###############   
     
 ###############   
@@ -446,8 +452,7 @@ def MINTmap(reads, folder, file_name, num_threads):
 	output_file.write("\nMINTmap:\n")
 	
 	for jread in reads:	
-		for prefix in prefix_list:
-		
+		for prefix in prefix_list:		
 			if paired_end:
 				sample_search = re.search(r"(%s)\_(\d{1,2})\_(.*)" % prefix, jread)
 			else:
@@ -477,8 +482,16 @@ def MINTmap(reads, folder, file_name, num_threads):
 					output_file.write('\n')
 
 	#sent commands on threads			
-	functions.sender(command2sent, num_threads)
 	output_file.close()
+	
+	#print ("Commands:")
+	#print (len(command2sent))
+	functions.sender(command2sent, num_threads)
+
+	results = set(results) ## BUG: if single-end option, it sends as many as prefixes each command 
+	#print ("results:")
+	#print (len(results))
+	
 	return results		
 ###############
 
@@ -648,8 +661,8 @@ def mapReads(read, folder, output_file_name):
 		
 		#sent commands on threads
 		command2sent = set(command2sent) ## BUG: if single-end option, it sends as many as prefixes each command 			
-		print ("Commands:")
-		print (len(command2sent))
+		#print ("Commands:")
+		#print (len(command2sent))
 		functions.sender(command2sent, num_threads)	
 	
 		## --genomeLoad Remove
@@ -697,7 +710,6 @@ def parse_RNAbiotype(bam, ID, output_file_name, RNABiotype_folder):
 		print (err.output)
 		
 ###############
-
 def BAMtoPILFER(bam, ID, piRNA_folder, command_file_name, bed_file, repeatmasker_bed):
 
 	output_file = open(command_file_name, 'a')	

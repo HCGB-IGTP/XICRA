@@ -50,8 +50,9 @@ else:
 		output_file.write("\nParse RNA Biotype results:\n")	
 		
 		## send command for feature count
-		cmd_featureCount = '%s -M -O -T %s -p -t exon -g transcript_biotype -a %s -o %s %s 2> %s' %(featureCount_exe, threads, gtf_file, out_file, bam_file, logfile)
+		cmd_featureCount = ('%s -M -O -T %s -p -t exon -g transcript_biotype -a %s -o %s %s 2> %s' %(featureCount_exe, threads, gtf_file, out_file, bam_file, logfile))
 		
+		print (cmd_featureCount)
 		output_file.write(cmd_featureCount)
 		output_file.write("\n")		
 		# send command	
