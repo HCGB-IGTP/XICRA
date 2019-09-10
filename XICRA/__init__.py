@@ -8,7 +8,6 @@
 
 
 __all__ = [
-	'sampleParser',
 	'modules'
 ]
 

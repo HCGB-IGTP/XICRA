@@ -8,9 +8,8 @@ import XICRA
 ## initiate parser
 parser = argparse.ArgumentParser(
     prog='XICRA',
-    description='sRNA pipeline...'
-  	epilog="(c) 2019. Jose F. Sanchez and Lauro Sumoy."
-    
+    description='sRNA pipeline for...'
+  	##,epilog="(c) 2019. Jose F. Sanchez and Lauro Sumoy."
 )
 subparsers = parser.add_subparsers(title='Available modules', help='', metavar='')
 
@@ -29,15 +28,10 @@ help_options = ('--help_format',
 
 ##--------------------------- prepareSamples ----------------- ##
 subparser_prep = subparsers.add_parser(
-    'prep',
+    'sample',
     help='Prepares FASTQ files from samples',
     description='This module prepares fastq files from a sequencing run. It could renamed, copy, link or merge them when multiples files have been generated for the same sample e.g different lanes. It concatenates these files according the common identifier and generates a unique file, one per paired-read if necessary',
 )
-
-prep_mode_name = subparser_prep.add_argument_group("Mode")
-prep_mode = prep_mode_name.add_mutually_exclusive_group(required= not any(elem in help_options for elem in sys.argv))
-prep_mode.add_argument("--project", action="store_true", help="It initiates --output_folder folder to contain a project with samples, metadata, configuration etc. [Default]")
-prep_mode.add_argument("--detached", action="store_true", help="Isolated mode. No project folder initiated for further steps.")
 
 in_out_group_prep = subparser_prep.add_argument_group("Input/Output")
 in_out_group_prep.add_argument("--input", help="Folder containing fastq files. Files could be .fastq/.fq/ or fastq.gz/.fq.gz. All files would be retrieved.", required= not any(elem in help_options for elem in sys.argv))
@@ -57,6 +51,23 @@ info_group_prep = subparser_prep.add_argument_group("Additional information")
 info_group_prep.add_argument("--help_format", action="store_true", help="Show additional help on name format for files.")
 info_group_prep.add_argument("--debug", action="store_true", help="Show additional message for debugging purposes.")
 
-subparser_prep.set_defaults(func=XICRA.modules.sample_prepare.retrieve)
+subparser_prep.set_defaults(func=XICRA.modules.sampleParser.retrieve)
 ##-------------------------------------------------------------##
+
+
+##--------------------------- citation ------------------------##
+subparser_citation = subparsers.add_parser(
+    'citation',
+    help='Packages & software citations.',
+    description='This code prints an index of citation for the different packages and other softwares employed here',
+)
+subparser_citation.add_argument("option", help="Print only this pipeline citation or all packages references.", choices=['only','all'])
+subparser_citation.set_defaults(func=XICRA.modules.citation.run)
+
+#####
+args = parser.parse_args()
+if hasattr(args, 'func'):
+    args.func(args)
+else:
+    parser.print_help()
 

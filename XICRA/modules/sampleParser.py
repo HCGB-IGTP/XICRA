@@ -10,9 +10,11 @@ import sys
 from sys import argv
 
 ## import functions
-toolDir = os.path.dirname(argv[0])
-sys.path.append(toolDir)
-import functions
+from XICRA import functions
+
+###############
+def retrieve (options):
+	return()
 
 ###############
 def select_samples (samples_prefix, path_to_samples):
