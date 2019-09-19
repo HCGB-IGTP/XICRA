@@ -701,7 +701,8 @@ def parse_RNAbiotype(bam, ID, output_file_name, RNABiotype_folder):
 	## get variables
 	gtf_annotation = config['FILES']['gtf_file']
 	featureCount_bin = config['EXECUTABLES']['featureCount_exe']	
-	cmd = ('python3 %s %s %s %s %s %s' %(RNAbiotype_script, bam, RNABiotype_folder_sample, gtf_annotation, featureCount_bin, output_file_name, 1))
+	cmd = 'python3 %s %s %s %s %s %s %s' %(RNAbiotype_script, bam, RNABiotype_folder_sample, gtf_annotation, featureCount_bin, output_file_name, 1)
+
 	## send command	
 	try:
 		print ('\t+ Parsing mapping reads for RNAbiotype results for samples %s' %ID)
@@ -1083,6 +1084,8 @@ if __name__ == "__main__":
 	folder_id = folder_id + 1
 	## functions.timestamp
 	start_time_partial = functions.timestamp(start_time_partial)
+
+	exit()
 
 	######################################
 	## Prepare GTF file for later
