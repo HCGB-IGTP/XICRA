@@ -31,7 +31,7 @@ def generate_matrix(dict_files, abs_path_folder):
 		## get info, generate unique name and merge for samples
 		data = data.set_index('RNAbiotypes')
 		all_data = pd.concat([all_data, data], axis=1, sort=True)
-
+		
 	##
 	return (all_data)	
 
@@ -48,7 +48,7 @@ def main():
 	list_files = os.listdir(abs_path_folder)
 	dict_files = {}
 	for l in list_files:
-		dict_files[l] = abs_path_folder + '/' + l + '/RNAbiotypes.tsv'
+		dict_files[l] = abs_path_folder + '/' + l + '/featureCount.out.tsv'
 	
 	##	
 	all_data = generate_matrix(dict_files, abs_path_folder)

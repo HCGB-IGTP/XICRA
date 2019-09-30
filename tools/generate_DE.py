@@ -10,6 +10,54 @@ import pandas as pd
 import csv
 
 ######
+def discard_UID_duplicated(df_data):
+	
+	## get data index
+	df_data['ID'] = df_data.index
+	new_data = df_data.filter(['ID'], axis=1)	
+
+	# split ID (hsa-let-7a-2-3p&NA&qNkjr6Ov2) into miRNA, variant and UID
+	tmp = new_data['ID'].str.split('&', expand = True)
+	new_data['miRNA']  = tmp[0]
+	new_data['variant']  = tmp[1]
+	new_data['UID']  = tmp[2]
+
+	## count 
+	count_groups = new_data.groupby('UID').count()
+	## print to file?
+	
+	## get duplicated
+	bigger1count = count_groups[ count_groups['ID'] > 1 ]
+	## print counts to file?
+	
+	## get list of UIDs duplicate
+	bigger1count_list = bigger1count.index.to_list()
+	duplicates = new_data[new_data['UID'].isin(bigger1count_list)]
+	## print duplicate to file?
+
+	## get duplicated data
+	duplicates_indes_list = duplicates.index.to_list()
+	duplicates_expression = df_data[df_data.index.isin(duplicates_indes_list)]
+	#duplicates_expression['UID'] = duplicates_expression['ID'].str.split('&', expand = True)[2]
+	duplicates_expression = duplicates_expression.drop(['ID'], axis=1)
+	duplicates_expression.index.name = "isomiR_ID"
+	
+	## get clean data
+	clean_data_expression = df_data[~df_data.index.isin(duplicates_indes_list)]
+	#clean_data_expression['UID'] = clean_data_expression['ID'].str.split('&', expand = True)[2]
+	clean_data_expression =	clean_data_expression.drop(['ID'], axis=1)
+	clean_data_expression.index.name = "isomiR_ID"
+	## Fix this error
+	## A value is trying to be set on a copy of a slice from a DataFrame.
+	## Try using .loc[row_indexer,col_indexer] = value instead
+	## 
+	## See the caveats in the documentation: http://pandas.pydata.org/pandas-docs/stable/indexing.html#indexing-view-versus-copy
+	##   clean_data_expression['UID'] = clean_data_expression['ID'].str.split('&', expand = True)[2]
+	
+	
+	return (clean_data_expression, duplicates_expression)
+
+######
 def generate_matrix(list_files, abs_path_folder):
 	######################################################
 	### For a list of files, generates a count matrix with a unique index id by merging:
@@ -54,13 +102,23 @@ def main():
 		print ("python3 %s folder out_csv\n" %os.path.realpath(__file__))
 		exit()
 
+	### input
 	abs_path_folder = os.path.abspath(argv[1])
 	abs_csv_outfile = os.path.abspath(argv[2])
+	
+	### get files
 	list_files = os.listdir(abs_path_folder)
+	
+	## get data
 	all_data = generate_matrix(list_files, abs_path_folder)
+	
+	## discard duplicate UIDs if any
+	all_data_filtered, all_data_duplicated = discard_UID_duplicated(all_data)
 
-	print ('+ Database contains: ', len(all_data), ' entries\n')
-	all_data.to_csv(abs_csv_outfile, quoting=csv.QUOTE_NONNUMERIC)
+	print ('+ Database contains: ', len(all_data_filtered), ' entries\n')
+	all_data_filtered.to_csv(abs_csv_outfile, quoting=csv.QUOTE_NONNUMERIC)
+	all_data_duplicated.to_csv(abs_csv_outfile + '_dup', quoting=csv.QUOTE_NONNUMERIC)
+
 
 ######
 if __name__== "__main__":

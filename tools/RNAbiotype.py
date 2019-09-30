@@ -40,6 +40,18 @@ out_tsv = folder + '/featureCount.out.tsv'
 RNA_biotypes = folder + '/RNAbiotypes.tsv'
 name_figure = folder + '/RNAbiotypes.pdf'
 
+######
+def percentage(percent, whole):
+	if (percent == "0.00%"):
+		return 0
+
+	percent_search = re.search(r"(.*)%", percent)
+	if percent_search:
+		percent_int = float(percent_search.group(1))
+	value = (percent_int * whole) / 100.0
+	return int(value)
+
+#####################
 if not (os.path.isfile(bam_file)):
 	print ('***ERROR: bam file does not exist')
 	exit()
@@ -50,7 +62,10 @@ else:
 		output_file.write("\nParse RNA Biotype results:\n")	
 		
 		## send command for feature count
-		cmd_featureCount = ('%s -M -O -T %s -p -t exon -g transcript_biotype -a %s -o %s %s 2> %s' %(featureCount_exe, threads, gtf_file, out_file, bam_file, logfile))
+		cmd_featureCount = ('%s --largestOverlap -T %s -p -t exon -g transcript_biotype -a %s -o %s %s 2> %s' %(featureCount_exe, threads, gtf_file, out_file, bam_file, logfile))
+		
+		## do not count multi mapping, assign only to one feature and in case of ambiguity assign to longest overlap
+		#Before: cmd_featureCount = ('%s -M -O -T %s -p -t exon -g transcript_biotype -a %s -o %s %s 2> %s' %(featureCount_exe, threads, gtf_file, out_file, bam_file, logfile))
 		
 		print (cmd_featureCount)
 		output_file.write(cmd_featureCount)
@@ -68,21 +83,22 @@ else:
 	## parse count
 	## prepare file for plot
 	if not (os.path.isfile(name_figure)):
+
+		out_tsv_file = open(out_tsv, 'w')
+		RNA_biotypes_file = open(RNA_biotypes, 'w')
+		tRNA_count = 0
+
+		### read count file
 		count_file = open(out_file)
 		count_file_text = count_file.read()
 		count_file_lines = count_file_text.splitlines()	
-		out_tsv_file = open(out_tsv, 'w')
 
-		RNA_biotypes_file = open(RNA_biotypes, 'w')
-		tRNA_count = 0
-	
 		for line in count_file_lines:
 			if line.startswith('#'):
 				continue
 			elif line.startswith('Geneid'):
 				continue
 			else:
-				
 				ID = line.split('\t')[0]
 				count = int(line.split('\t')[-1])
 				string2write_raw = "%s\t%s\n" %(ID, count)
@@ -94,13 +110,74 @@ else:
 				elif (count > 0):
 					RNA_biotypes_file.write(string2write_raw)
 		
+		## count and summary tRNA
 		string2write = "tRNA\t%s\n" %tRNA_count
 		RNA_biotypes_file.write(string2write)
+				
+		### read summary count file
+		summary_count_file = open(out_file + '.summary')
+		summary_count_file_text = summary_count_file.read()
+		summary_count_file_lines = summary_count_file_text.splitlines()	
+
+		for line in summary_count_file_lines:
+			if line.startswith('Status'):
+				continue
+			elif line.startswith('Assigned'):
+				continue
+			else:
+				## adds Unassigned_Ambiguity
+				## adds Unassigned_NoFeatures
+				ID = line.split('\t')[0]
+				count = int(line.split('\t')[-1])
+
+				## skip empty entries
+				if count == 0:
+					continue
+				string2write_raw = "%s\t%s\n" %(ID, count)
+				out_tsv_file.write(string2write_raw)
+		
+		## get mapping statistics
+		mapping_folder = os.path.dirname(bam_file)
+		mapping_stats = mapping_folder + '/Log.final.out'
+		
+		mapping_stats_file = open(mapping_stats)
+		mapping_stats_file_text = mapping_stats_file.read()
+		mapping_stats_file_lines = mapping_stats_file_text.splitlines()	
+
+		count_multi = 0
+		count_unmap = 0
+		total_input_reads = 0
+		for line in mapping_stats_file_lines:
+			multi_search = re.search(r".*Number of reads mapped to", line)
+			unmap_search = re.search(r".*unmapped.*", line)
+			input_search = re.search(r".*input reads.*", line)
+			
+			if input_search:
+				total_input_reads = int(line.split('\t')[-1])
+
+			if multi_search:
+				count_tmp = int(line.split('\t')[-1])
+				count_multi = count_multi + count_tmp
+
+			elif unmap_search:
+				perc_tmp = line.split('\t')[-1]
+				count_reads = percentage(perc_tmp, total_input_reads)
+				count_unmap = count_unmap + count_reads
+
+		string2write_multi = "multimapping\t%s\n" %count_multi
+		out_tsv_file.write(string2write_multi)
+		
+		string2write_unmap = "unmapped\t%s\n" %count_unmap
+		out_tsv_file.write(string2write_unmap)
+		
+		#string2write_total = "total\t%s\n" %total_input_reads
+		#out_tsv_file.write(string2write_total)
+		
+		## close files
 		RNA_biotypes_file.close()
 		out_tsv_file.close()
-
 		output_file.close()
-	
+				
 		# PLOT and SHOW results
 		## parse results	
 		df_genetype = pd.read_csv(RNA_biotypes, sep="\t", header=None)	
@@ -120,7 +197,6 @@ else:
 		## merge and generate Other class
 		df_genetype_filter_smaller_sum = df_genetype_filter_smaller['Read_Count'].sum() ## total filter smaller
 		df_genetype_filter_greater2 = df_genetype_filter_greater.append({'Read_Count':df_genetype_filter_smaller_sum, 'Type':'Other'}, ignore_index=True)
-	
 	
 		## Create Plot
 		ax1 = plt.subplot(121, aspect='equal')
