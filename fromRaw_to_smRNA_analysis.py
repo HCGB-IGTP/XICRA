@@ -434,6 +434,7 @@ def parse_gtf(gtffile, filename, sample):
 			expression = str(line.split('\t')[-1].split(';')[6].split("Expression=")[-1])
 			string2write = 'isomiR\t' + sample + '\t' + ident + '\t' + name + '\t' + variant + '\t' + UID + '\t' + seq + '\t' + expression + '\n'
 			fil.write(string2write)
+	
 	fil.close()      
 ###############
 
@@ -701,7 +702,9 @@ def parse_RNAbiotype(bam, ID, output_file_name, RNABiotype_folder):
 	## get variables
 	gtf_annotation = config['FILES']['gtf_file']
 	featureCount_bin = config['EXECUTABLES']['featureCount_exe']	
-	cmd = ('python3 %s %s %s %s %s %s' %(RNAbiotype_script, bam, RNABiotype_folder_sample, gtf_annotation, featureCount_bin, output_file_name, 1))
+	cmd = 'python3 %s %s %s %s %s %s %s' %(RNAbiotype_script, bam, RNABiotype_folder_sample, gtf_annotation, featureCount_bin, output_file_name, 1)
+	print (cmd)
+
 	## send command	
 	try:
 		print ('\t+ Parsing mapping reads for RNAbiotype results for samples %s' %ID)
@@ -1090,6 +1093,11 @@ if __name__ == "__main__":
 	print ("\n+ Parsing GTF annotation for further analysis: ")
 	# get path for file
 	## save names
+	
+	## check if gtf file is correct:
+	## before: /imppc/labs/lslab/share/data/references/GRCh38.p12/all_annotation/gencode.v29.all_annotation.gtf
+	## now: /imppc/labs/lslab/share/data/references/GCA_000001405.15/Homo_sapiens.GRCh38.dna.primary_assembly.spikes_and_inline.rRNA.gtf
+	
 	GTF_file = config['FILES']['gtf_file']
 	tmp_folder = functions.create_subfolder("tmp", path=folder_path)
 	split_name_GTF = os.path.splitext( os.path.basename(GTF_file) )		
