@@ -92,53 +92,64 @@ def cutadapt (list_R1, list_R2, path, out_path, file_name, num_threads):
 	for file_R1 in list_R1:
 		file_R1_path = path + "/" + file_R1
 	
-		cmd = []
+		cmd = ""
 		cutadapt_exe = config['EXECUTABLES']['cutadapt']  	
 		adapter_3 = config['PARAMETERS']['adapter_3']		
 		for prefix in prefix_list:
+			sample_name = ""
 			o_param=""
 			if paired_end:
 				## paired-end
-				sampleR1_search = re.search(r"(%s)\_(\d{1,2})\_(.*)" % prefix, file_R1)
+				sampleR1_search = re.search(r"(.*)\_(R)*1.*", file_R1)
 				if sampleR1_search:
-					name = sampleR1_search.group(1) + '_' + sampleR1_search.group(2)
-					path_name = out_path + "/" + name
-					common = path_name + '_trimmed_'
-					o_param = common + "R1.fastq"
-					p_param = common + "R2.fastq"
-					trimmed_R1.append(o_param)
-					logfile = common + 'logfile.txt'
+					name_search = re.search(r".*%s.*" % prefix, sampleR1_search.group(1))
+					if name_search:
+						sample_name = sampleR1_search.group(1)
+						path_name = out_path + "/" + sample_name
+						common = path_name + '_trimmed_'
+						o_param = common + "R1.fastq"
+						p_param = common + "R2.fastq"
+						trimmed_R1.append(o_param)
+						logfile = common + 'logfile.txt'
 
-					if list_R2: ## paired-end
-						sampleR2 = path + "/" + sampleR1_search.group(1) + '_' + sampleR1_search.group(2) + '_R2.fastq'
-						try:
-							os.path.isfile(sampleR2)					
-						except:
-							print ("**ERROR: pair for sample ",o_param," doest not exist")
-							print ("Sample will be treated as single end")
-							## set cmd for single eng as no R2 file
-							cmd = '%s -m 15 -a %s -o %s %s' %(cutadapt_exe, adapter_3, o_param, file_R1_path)
-						else:
-							#paired end:
-							adapter_5 = config['PARAMETERS']['adapter_5']
-							file_R2_path = sampleR2
-							cmd = '%s -m 15 -a %s -A %s -o %s -p %s %s %s > %s' %(cutadapt_exe, adapter_3, adapter_5, o_param, p_param, file_R1_path, file_R2_path, logfile)
-							trimmed_R2.append(p_param)
+						if list_R2: ## paired-end
+							sampleR2 = path + "/" + sample_name + '_' + sampleR1_search.group(2) + '2.fastq'
+							try:
+								os.path.isfile(sampleR2)					
+							except:
+								print ("**ERROR: pair for sample ",o_param," doest not exist")
+								print ("Sample will be treated as single end")
+								## set cmd for single eng as no R2 file
+								cmd = '%s -m 15 -a %s -o %s %s' %(cutadapt_exe, adapter_3, o_param, file_R1_path)
+							else:
+								#paired end:
+								adapter_5 = config['PARAMETERS']['adapter_5']
+								file_R2_path = sampleR2
+								cmd = '%s -m 15 -a %s -A %s -o %s -p %s %s %s > %s' %(cutadapt_exe, adapter_3, adapter_5, o_param, p_param, file_R1_path, file_R2_path, logfile)
+								trimmed_R2.append(p_param)
+					else:
+						continue
 			else:
-				## single-end
-				sample_search = re.search(r"(.*)\.f*", file_R1)
-				o_param = out_path + "/" + sample_search.group(1) + '_trimmed.fastq'
-				trimmed_R1.append(o_param)
-				trimmed_R2 = ""
-				logfile = out_path + "/" + sample_search.group(1) + '_logfile.txt'
-				cmd = '%s -m 15 -a %s -o %s %s > %s' %(cutadapt_exe, adapter_3, o_param, file_R1_path, logfile)
+				name_search = re.search(r".*%s.*" % prefix, file_R1)
+				if name_search:
+					## single-end
+					sample_search = re.search(r"(.*)\.f*", file_R1)
+					sample_name = sample_search.group(1)
+					o_param = out_path + "/" + sample_name + '_trimmed.fastq'
+					trimmed_R1.append(o_param)
+					trimmed_R2 = ""
+					logfile = out_path + "/" + sample_name + '_logfile.txt'
+					cmd = '%s -m 15 -a %s -o %s %s > %s' %(cutadapt_exe, adapter_3, o_param, file_R1_path, logfile)
+				else:
+					continue
 	
 			if (os.path.isfile(o_param)):
 				if paired_end:
 					if (os.path.isfile(p_param)):
-						print ('\tSample is already trimmed in paired-end mode')
+						print ('\tSample %s is already trimmed in paired-end mode' %sample_name)
 				else:
-					print ('\tSample is already trimmed in single-end mode')	
+					print ('\tSample %s is already trimmed in single-end mode' %sample_name)	
+			
 			## not trimmed
 			else: 
 				## DUMP in file					
@@ -151,8 +162,8 @@ def cutadapt (list_R1, list_R2, path, out_path, file_name, num_threads):
 	output_file.close()
 	#sent commands on threads			
 	command2sent = set(command2sent) ## BUG: if single-end option, it sends as many as prefixes each command 
-	functions.sender(command2sent, num_threads)
 	
+	functions.sender(command2sent, num_threads)
 	return (trimmed_R1, trimmed_R2)
 	
 ###############
@@ -203,6 +214,10 @@ def fastqjoin (trimmed_R1, trimmed_R2, out_path, file_name, num_threads):
 	## close file
 	output_file.close()				
 	#sent commands on threads
+	
+	print ("number commands")
+	print (len(command2sent))
+	
 	functions.sender(command2sent, num_threads)
 
 	## ToDOs: count and provide statistics for joined reads
@@ -722,6 +737,7 @@ def BAMtoPILFER(bam, ID, piRNA_folder, command_file_name, bed_file, repeatmasker
 	## results conversion	
 	split_name_bam = os.path.splitext( os.path.basename(bam) )
 	pilfer_file = folder_sample + '/' + split_name_bam[0] + '.pilfer.bed'
+		## Result: chr1	86510834	86510885	CTACATCTCGGAATTAGTCATGCTGGGCAAAATCTGCTTCCAGGTATACTC::PI	4	+	
 
 	bedtools_bin = config['EXECUTABLES']['bedtools_exe']	
 	samtools_bin = config['EXECUTABLES']['samtools_exe']
@@ -748,6 +764,7 @@ def BAMtoPILFER(bam, ID, piRNA_folder, command_file_name, bed_file, repeatmasker
 	print ('+ Filter PILFER input file for sample %s' %ID)			
 	ncRNA_bed = bed_file
 	filter_pilfer_file = folder_sample + '/' + split_name_bam[0] + '.pilfer_filtered.bed'
+		## Result: chr1	86510834	86510885	CTACATCTCGGAATTAGTCATGCTGGGCAAAATCTGCTTCCAGGTATACTC::PI	4	+
 	if (os.path.isfile(filter_pilfer_file)):
 		print ('\t+ PILFER file filtered for %s' %ID)
 	else:
@@ -764,6 +781,8 @@ def BAMtoPILFER(bam, ID, piRNA_folder, command_file_name, bed_file, repeatmasker
 	# pilfer
 	print ('+ Generate PILFER clusters for sample %s' %ID)			
 	pilfer_cluster = folder_sample + '/' + split_name_bam[0] + '.pilfer_clustered.bed'
+		## chr1:8124909-8197843    58.0
+	
 	pilfer_python = config['EXECUTABLES']['pilfer']
 	if (os.path.isfile(pilfer_cluster)):
 		print ('\t+ PILFER file clustered for %s' %ID)
@@ -781,12 +800,25 @@ def BAMtoPILFER(bam, ID, piRNA_folder, command_file_name, bed_file, repeatmasker
 	## intersect with repeat annotations
 	# bedtools intersect -a <path/>retro-transposons.bed -b $out_dir_prefix"bed/ncrna_subtract_putative/"$prefix.bed -s -F 1 -wa -wb |
 	# awk 'BEGIN{OFS="\t"}{print $7,$8,$9,$10,$11,$12,$4}' > $out_dir_prefix"bed/TE_origin/"$prefix
-	pilfer_intersect = folder_sample + '/' + split_name_bam[0] + '.pilfer_clustered_intersection.bed'
+	pilfer_intersect = folder_sample + '/' + split_name_bam[0] + '.pilfer_filtered_intersection.bed'
+		## Results: chr1	86510736	86510922	hAT-4b_Ther==DNA/hAT-Tip100	263	+	chr1	86510834	86510885	CTACATCTCGGAATTAGTCATGCTGGGCAAAATCTGCTTCCAGGTATACTC::PI	4	+
 
 	if (os.path.isfile(pilfer_intersect)):
 		print ('\t+ PILFER file intersected for %s' %ID)
 	else:
 		cmd_intersect = '%s intersect -a %s -b %s -s -F 1 -wa -wb > %s' %(bedtools_bin, repeatmasker_bed, filter_pilfer_file, pilfer_intersect)
+																					## 	repeatmasker_bed  pilfer.filtered.bed pilfer_filtered_intersection.bed
+		##############
+		## Options IntersectBed
+		## 		-s	Require same strandedness.  That is, only report hits in B
+		## 			that overlap A on the _same_ strand.
+		## 			By default, overlaps are reported without respect to strand.
+		## 		-F	Minimum overlap required as a fraction of B. Default is 1E-9 (i.e., 1bp). FLOAT (e.g. 0.50)
+		## 		-wa	Write the original entry in A for each overlap.
+		## 		-wb	Write the original entry in B for each overlap.
+		## 			Useful for knowing _what_ A overlaps. Restricted by -f and -r.
+		##############
+		
 		output_file.write(cmd_intersect)
 		output_file.write('\n')
 		## send command	
@@ -795,7 +827,12 @@ def BAMtoPILFER(bam, ID, piRNA_folder, command_file_name, bed_file, repeatmasker
 		except subprocess.CalledProcessError as err:
 			print (err.output)
 			
-	
+	## get regions that were clustered previously by Pilfer
+	## not all regions filtered are putative piRNA regions. 
+	## select among the intersection with repeatmasker, the regions previously identified.
+	## chr1:8124909-8197843    58.0
+	## chr12:94260775-94353531	14645.0
+
 
 	output_file.close()
 	
@@ -1032,7 +1069,7 @@ if __name__ == "__main__":
 	(trimmed_R1_return, trimmed_R2_return) = cutadapt(samplesR1, samplesR2, sample_folder, cutadapt_folder, command_file_name, num_threads)
 	## functions.timestamp
 	start_time_partial = functions.timestamp(start_time_partial)
-		
+	
 	###############################
 	####### Step: fastqjoin ######
 	###############################
@@ -1119,6 +1156,8 @@ if __name__ == "__main__":
 		except subprocess.CalledProcessError as err:
 			print (err.output)
 			exit()
+
+	exit()
 
 	######################################
 	####### Step: Small RNA analysis #####

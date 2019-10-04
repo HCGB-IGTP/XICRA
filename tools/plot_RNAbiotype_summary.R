@@ -1,9 +1,17 @@
 ## read data
 # ---------------------------------------------------------------------------------
+## miRNAseq
 biotypes <- read.csv("/imppc/labs/lslab/share/data/proc_data/20190726_CTural_sRNAseq_ReAnalysis_170210/output_XICRA/counts_RNAbiotypes.csv", sep=",", stringsAsFactors=T, header=T, row.names = 1)
-#biotypes <- read.csv("/imppc/labs/lslab/share/data/proc_data/20190301_MVives_Bioinfo_RNAseq_02/output_results/", sep=",", stringsAsFactors=T, header=T, row.names = 1)
+
+## RNAseq
+biotypes <- read.csv("/imppc/labs/lslab/share/data/proc_data/20190516_MVives_RNASeq_17/rnabiotypes.csv", sep=",", stringsAsFactors=T, header=T, row.names = 1)
+
+## LungCancer biotypes
+biotypes <- read.csv("/imppc/labs/lslab/share/data/proc_data/20190208_LungCancer_Serum_small_RNAseq/2.Analysis_20190208/LungCancer_Serum_PE.biotypes.csv", sep=",", stringsAsFactors=T, header=T, row.names = 1)
 
 head(biotypes)
+View(biotypes)
+
 
 ## remove row
 biotypes.remove <- c("total")
@@ -22,11 +30,13 @@ biotypes$biotype<- ifelse(rownames(biotypes)=="miRNA", "miRNA",
                                                ifelse(rownames(biotypes)=="rRNA", "rRNA", 
                                                   ifelse(rownames(biotypes)=="processed_transcript", "Processed Transcript", 
                                                      ifelse(rownames(biotypes)=="protein_coding", "Protein Coding", 
-                                                          ifelse(rownames(biotypes)=="multimapping", "Align NoUniq", 
-                                                                 ifelse(rownames(biotypes)=="Unassigned_Ambiguity", "No Feature", 
-                                                                        ifelse(rownames(biotypes)=="unmapped", "Not Align", 
-                                                                               ifelse(rownames(biotypes)=="antisense", "Antisense", 
-                                                                                   ifelse(rownames(biotypes)=="misc_RNA", "misc_RNA", "Other"))))))))))))
+                                                          ifelse(rownames(biotypes)=="Unassigned_MultiMapping", "Align NoUniq", 
+                                                                 ifelse(rownames(biotypes)=="multimapping", "Align NoUniq", 
+                                                                      ifelse(rownames(biotypes)=="Unassigned_Ambiguity", "No Feature", 
+                                                                        ifelse(rownames(biotypes)=="Unassigned_NoFeatures", "No Feature", 
+                                                                          ifelse(rownames(biotypes)=="unmapped", "Not Align", 
+                                                                                 ifelse(rownames(biotypes)=="antisense", "Antisense", 
+                                                                                     ifelse(rownames(biotypes)=="misc_RNA", "misc_RNA", "Other"))))))))))))))
 library(ggplot2)
 library(RColorBrewer)
 library(reshape)
@@ -43,8 +53,6 @@ sum.biotypes$Group.1 <- factor(sum.biotypes$Group.1, levels=unique(biotypes$biot
 # ---------------------------------------------------------------------------------
 ## generate percentage
 perc.biotypes<- cbind.data.frame(sum.biotypes$Group.1, 100 * prop.table( as.matrix(sum.biotypes[, 2:ncol(sum.biotypes)]), 2 ) )
-(perc.biotypes)
-
 head(perc.biotypes)
 names(perc.biotypes)[1]<- "Group.1"
 # ---------------------------------------------------------------------------------
@@ -60,9 +68,9 @@ head(melt.biotypes)
 #ggplot(melt.biotypes, aes(x=reorder(variable, ord), y=value, fill=Group.1 )) +
 
 ggplot(melt.biotypes, aes(x=variable, y=value, fill=Group.1 )) +
-  geom_bar(stat="identity") + scale_fill_brewer(palette="Spectral")
-
-
+  geom_bar(stat="identity") + scale_fill_brewer(palette="Spectral") +
+  theme(axis.text.x = element_text(face = "bold", size = 10, angle = 90))
+  
 # ---------------------------------------------------------------------------------
 # Plot PCA by percentage Biotypes -------------------------------------------------
 perc.bio<- perc.biotypes
@@ -74,7 +82,7 @@ perc.bio<- perc.bio[, order(perc.bio["Align NoUniq",])]
 
 #View(perc.bio)
 list_legend <- c(
-  "Align NoUniq",
+  #"Align NoUniq",
   "Not Align",  
   "No Feature", 
   "Other",
@@ -89,14 +97,13 @@ list_legend <- c(
 )
 
 perc.bio<- perc.bio[ list_legend, ]
-barplot(perc.bio, col= rev(brewer.pal(11, "Spectral") ), xaxt="n", ylab = "%", main = "Biotypes distribution sample")
+barplot_biotypes <- barplot(perc.bio, col= rev(brewer.pal(11, "Spectral") ), xaxt="n", ylab = "%", main = "Biotypes distribution sample")
 legend("bottomright",
        leg=list_legend,
        cex=0.6, 
        fill=rev(brewer.pal(11, "Spectral") ), 
        horiz=F, 
        ncol = 1)
-
 
 # ---------------------------------------------------------------------------------
 # Plot percentage Biotypes sorted by Subtype --------------------------------------
@@ -105,9 +112,7 @@ load(file="/imppc/labs/lslab/share/data/proc_data/CTural_sRNAseq_170210/data/sam
 sample.data
 
 rownames(sample.data) <- gsub(".count", "", sample.data$Sample_Code)
-
 #perc.bio<- perc.bio[, rownames(sample.data)]
-
 colors<-ifelse(sample.data$Subtype=="FO NP" 
                | sample.data$Subtype=="FO PROG" 
                | sample.data$Subtype=="F1 NP" 
@@ -134,6 +139,7 @@ table(sample.data$Subtype)
 rownames(sample.data)
 
 #samp.short<- str_sub(colnames(perc.bio), -3,-1)
+## barplot
 perc.bio_here <- perc.bio[, rownames(sample.data)]
 barplot(perc.bio_here, col= rev(brewer.pal(11, "Spectral") ),
         xaxt="n", 
@@ -147,7 +153,58 @@ rect(94.91, -5, 121.34, 0, col="green3", border = NULL)
 rect(121.34, -5, 147.77, 0, col="maroon3", border = NULL)
 rect(147.77, -5, 173, 0, col="mediumpurple1", border = NULL)
 
-legend(x=2, y=55,
+#perc_bio_here_df <- as.data.frame(t(perc.bio_here))
+## ggplot
+melt.bio_here <- melt(perc.bio)
+colnames(melt.bio_here)[1] <- "Biotypes"
+colnames(melt.bio_here)[2] <- "Samples"
+head(melt.bio_here)
+
+melt.bio_here <- melt.bio_here[order(melt.bio_here$Biotypes, -melt.bio_here$value),]
+head(melt.bio_here)
+
+
+ggplot(melt.bio_here, aes(x=Samples, y=value, fill=Biotypes)) + 
+  geom_bar(stat="identity") + 
+  scale_fill_brewer(palette="Spectral", direction = -1) +
+  theme(axis.title.x=element_blank(), axis.text.x=element_blank(),axis.ticks.x=element_blank()) 
+
+
+
+
+
+#View(perc.bio)
+list_legend <- c(
+  "Align NoUniq",
+  "Not Align",  
+  "No Feature", 
+  "Other",
+  "Processed Transcript", 
+  "Protein Coding", 
+  "Antisense",
+  "miRNA",  
+  "rRNA",  
+  "lincRNA",
+  "misc_RNA"
+  ##"piRNA",
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+legend("bottomright",
        title = "Biotype",
        leg=list_legend,
        cex=0.6, 

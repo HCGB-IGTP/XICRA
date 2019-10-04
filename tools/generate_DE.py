@@ -40,13 +40,13 @@ def discard_UID_duplicated(df_data):
 	duplicates_expression = df_data[df_data.index.isin(duplicates_indes_list)]
 	#duplicates_expression['UID'] = duplicates_expression['ID'].str.split('&', expand = True)[2]
 	duplicates_expression = duplicates_expression.drop(['ID'], axis=1)
-	duplicates_expression.index.name = "isomiR_ID"
+	duplicates_expression.index.name = "ID"
 	
 	## get clean data
 	clean_data_expression = df_data[~df_data.index.isin(duplicates_indes_list)]
 	#clean_data_expression['UID'] = clean_data_expression['ID'].str.split('&', expand = True)[2]
 	clean_data_expression =	clean_data_expression.drop(['ID'], axis=1)
-	clean_data_expression.index.name = "isomiR_ID"
+	clean_data_expression.index.name = "ID"
 	## Fix this error
 	## A value is trying to be set on a copy of a slice from a DataFrame.
 	## Try using .loc[row_indexer,col_indexer] = value instead

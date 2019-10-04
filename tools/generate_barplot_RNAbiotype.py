@@ -48,7 +48,9 @@ def main():
 	list_files = os.listdir(abs_path_folder)
 	dict_files = {}
 	for l in list_files:
-		dict_files[l] = abs_path_folder + '/' + l + '/featureCount.out.tsv'
+		featurecount_file = abs_path_folder + '/' + l + '/featureCount.out.tsv'
+		if os.path.isfile(featurecount_file):
+			dict_files[l] = featurecount_file
 	
 	##	
 	all_data = generate_matrix(dict_files, abs_path_folder)

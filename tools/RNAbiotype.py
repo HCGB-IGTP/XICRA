@@ -136,36 +136,62 @@ else:
 				string2write_raw = "%s\t%s\n" %(ID, count)
 				out_tsv_file.write(string2write_raw)
 		
-		## get mapping statistics
+		## get mapping statistics according to mapping software
+		count_multi = 0
+		count_unmap = 0
 		mapping_folder = os.path.dirname(bam_file)
 		mapping_stats = mapping_folder + '/Log.final.out'
 		
-		mapping_stats_file = open(mapping_stats)
-		mapping_stats_file_text = mapping_stats_file.read()
-		mapping_stats_file_lines = mapping_stats_file_text.splitlines()	
-
-		count_multi = 0
-		count_unmap = 0
-		total_input_reads = 0
-		for line in mapping_stats_file_lines:
-			multi_search = re.search(r".*Number of reads mapped to", line)
-			unmap_search = re.search(r".*unmapped.*", line)
-			input_search = re.search(r".*input reads.*", line)
+		### STAR mapping		
+		if os.path.isfile(mapping_stats):
+			mapping_stats_file = open(mapping_stats)
+			mapping_stats_file_text = mapping_stats_file.read()
+			mapping_stats_file_lines = mapping_stats_file_text.splitlines()	
+	
+			for line in mapping_stats_file_lines:
+				multi_search = re.search(r".*Number of reads mapped to", line)
+				unmap_search = re.search(r".*unmapped.*", line)
+				input_search = re.search(r".*input reads.*", line)
 			
-			if input_search:
-				total_input_reads = int(line.split('\t')[-1])
+				if input_search:
+					total_input_reads = int(line.split('\t')[-1])
 
-			if multi_search:
-				count_tmp = int(line.split('\t')[-1])
-				count_multi = count_multi + count_tmp
+				if multi_search:
+					count_tmp = int(line.split('\t')[-1])
+					count_multi = count_multi + count_tmp
 
-			elif unmap_search:
-				perc_tmp = line.split('\t')[-1]
-				count_reads = percentage(perc_tmp, total_input_reads)
-				count_unmap = count_unmap + count_reads
+				elif unmap_search:
+					perc_tmp = line.split('\t')[-1]
+					count_reads = percentage(perc_tmp, total_input_reads)
+					count_unmap = count_unmap + count_reads
+		else:
+			mapping_stats = mapping_folder + '/align_summary.txt' 
+			count_map = 0
+			total_input_reads = 0
+			## tophat
+			if os.path.isfile(mapping_stats):
+				mapping_stats_file = open(mapping_stats)
+				mapping_stats_file_text = mapping_stats_file.read()
+				mapping_stats_file_lines = mapping_stats_file_text.splitlines()	
+	
+				for line in mapping_stats_file_lines:
+					map_search2 = re.search(r"Aligned.*\:\s+(\d+).*", line)
+					input_search2 = re.search(r".*Input.*\:\s+(\d+).*", line)
+					if input_search2:
+						total_input_reads = input_search2.group(1)
+					if map_search2:
+						count_map = map_search2.group(1)
+		
+				####
+				count_unmap = int(total_input_reads) - int(count_map)
 
-		string2write_multi = "multimapping\t%s\n" %count_multi
-		out_tsv_file.write(string2write_multi)
+			else:
+				## other
+				print ("Neither tophat or STAR..., no mapping statistics")
+
+		### print mapping stats
+		#string2write_multi = "multimapping\t%s\n" %count_multi
+		#out_tsv_file.write(string2write_multi)
 		
 		string2write_unmap = "unmapped\t%s\n" %count_unmap
 		out_tsv_file.write(string2write_unmap)

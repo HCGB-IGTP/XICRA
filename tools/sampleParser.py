@@ -70,30 +70,32 @@ def one_file_per_sample(final_sample_list, path_to_samples, directory, read, out
 			samplename = []
 			subsamples = []
 			for prefix in prefix_list:
-				samplename_search = re.search(r"(%s)\_(.*)" % prefix, samplex)
+				samplename_search = re.search(r"(.*)\_(%s)" % read, samplex)
 				if samplename_search:			
 					original_name = samplename_search.group(1)
-					commonname = original_name + "_" + read + ".fastq"
-					bigfilepath = directory + "/" + commonname
-					bigfile_list.append(commonname)	
+					name_search = re.search(r".*%s.*" % prefix, original_name)
+					if name_search:
+						commonname = original_name + "_" + read + ".fastq"
+						bigfilepath = directory + "/" + commonname
+						bigfile_list.append(commonname)	
 					
-					for sampley in final_sample_list:
-						if original_name in sampley:
-							subsamples.append(path_to_samples + "/" + sampley)
-							grouped_subsamples.append(sampley)
-					if not os.path.isfile(bigfilepath) or os.stat(bigfilepath).st_size == 0:
-						partsofsample = ' '.join(sorted(subsamples))
-						cmd = 'cat %s >> %s' %(partsofsample, bigfilepath)						
-						## DUMP in file					
-						output_file.write(cmd)   
-						output_file.write('\n')						
-						## get command				
-						commands2sent.append(cmd)
-					else:
-						print ('\t + Sample %s is already merged' % commonname)
-	
+						for sampley in final_sample_list:
+							if original_name in sampley:
+								subsamples.append(path_to_samples + "/" + sampley)
+								grouped_subsamples.append(sampley)
+						if not os.path.isfile(bigfilepath) or os.stat(bigfilepath).st_size == 0:
+							partsofsample = ' '.join(sorted(subsamples))
+							cmd = 'cat %s >> %s' %(partsofsample, bigfilepath)
+							## DUMP in file					
+							output_file.write(cmd)   
+							output_file.write('\n')						
+							## get command				
+							commands2sent.append(cmd)
+						else:
+							print ('\t + Sample %s is already merged' % commonname)
 	## close file
 	output_file.close()		
+	
 	#sent commands on threads
 	functions.sender(commands2sent, num_threads)	
 	print ('There are' , len(bigfile_list) , 'samples after merging for read' , read, '\n')
