@@ -221,3 +221,9 @@ legend(x="topright",
 # ---------------------------------------------------------------------------------
 
 
+
+
+par(xpd=T) ## plot legend out of axis plot
+#legend(x=180, y=100,leg=c("Align NoUniq", "Not Align",  "miRNA",  "Align Ambig", "Processed Transcript", "Protein Coding", "No Feature", "misc_RNA", "Antisense", "Other"), cex=1, fill=rev(brewer.pal(10, "Spectral") ), horiz=F)
+par(xpd=F)
+
