@@ -54,7 +54,6 @@ def discard_UID_duplicated(df_data):
 	## See the caveats in the documentation: http://pandas.pydata.org/pandas-docs/stable/indexing.html#indexing-view-versus-copy
 	##   clean_data_expression['UID'] = clean_data_expression['ID'].str.split('&', expand = True)[2]
 	
-	
 	return (clean_data_expression, duplicates_expression)
 
 ######
@@ -70,6 +69,7 @@ def generate_matrix(list_files, abs_path_folder):
 	###
 	#########################################################
 	all_data = pd.DataFrame()
+	seq_all_data = pd.DataFrame()
 	for f in list_files:
 		this_file = abs_path_folder + '/' + f
 
@@ -87,12 +87,16 @@ def generate_matrix(list_files, abs_path_folder):
 		new_data = data.filter(['unique_id', 'expression'], axis=1)	
 		new_data = new_data.set_index('unique_id')
 	
+		seq_data = data.filter(['UID', 'seq'], axis=1)	
+		seq_data = seq_data.set_index('UID')
+		seq_all_data = seq_all_data.append(seq_data, sort=True).drop_duplicates('seq')
+
 		sample_name = data['sample_name'].to_list()
 		new_data = new_data.rename(columns={'expression': sample_name[0]})
 		all_data = pd.concat([all_data, new_data], axis=1, sort=True)
 
 	##
-	return (all_data)	
+	return (all_data, seq_all_data)	
 
 ######
 def main():
@@ -110,7 +114,7 @@ def main():
 	list_files = os.listdir(abs_path_folder)
 	
 	## get data
-	all_data = generate_matrix(list_files, abs_path_folder)
+	(all_data, all_seqs) = generate_matrix(list_files, abs_path_folder)
 	
 	## discard duplicate UIDs if any
 	all_data_filtered, all_data_duplicated = discard_UID_duplicated(all_data)
@@ -118,6 +122,7 @@ def main():
 	print ('+ Database contains: ', len(all_data_filtered), ' entries\n')
 	all_data_filtered.to_csv(abs_csv_outfile, quoting=csv.QUOTE_NONNUMERIC)
 	all_data_duplicated.to_csv(abs_csv_outfile + '_dup', quoting=csv.QUOTE_NONNUMERIC)
+	all_seqs.to_csv(abs_csv_outfile + '_seq', quoting=csv.QUOTE_NONNUMERIC)
 
 
 ######
