@@ -6,7 +6,7 @@
 #########################################################################
 
 DESCRIPTION:
--This script is a pipeline generated for the analysis of paired-end or single end reads from small RNA-seq data.
+-This is a pipeline generated for the analysis of paired-end or single end reads from small RNA-seq data.
 - Available analysis are:
 	+ General:
 	+ Trimming using Cutadapt
@@ -17,5 +17,3 @@ DESCRIPTION:
 		+ tRFs using MINTmap and MINTbase.
 		+ piRNA using PILFER
 		
-	
-h
