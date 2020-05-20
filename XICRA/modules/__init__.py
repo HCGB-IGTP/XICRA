@@ -1,5 +1,8 @@
 __all__ = [
-	'sampleParser',
+	'prep',
+	'help_XICRA',
+	'qc',
+	'trimm',
 	'citation'
 ]
 

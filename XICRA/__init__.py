@@ -8,7 +8,8 @@
 
 
 __all__ = [
-	'modules'
+	'modules',
+	'scripts'
 ]
 
 from XICRA import *
