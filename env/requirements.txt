@@ -50,4 +50,4 @@ traitlets==4.3.2
 urllib3==1.25.9
 xopen==0.8.4
 xtract==0.1a3
-zipp==3.1.0
+zipp

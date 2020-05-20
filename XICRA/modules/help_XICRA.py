@@ -6,6 +6,10 @@
 """
 Help messages for different scripts, modules
 """
+from termcolor import colored
+
+from XICRA.scripts import functions
+
 
 ###############
 def help_fastq_format():

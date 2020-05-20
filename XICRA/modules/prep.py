@@ -36,7 +36,7 @@ def run_prep(options):
     
     ## help_format option
     if (options.help_format):
-        help.help_fastq_format()
+        help_XICRA.help_fastq_format()
         exit()
         
     functions.pipeline_header()
