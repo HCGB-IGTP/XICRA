@@ -108,7 +108,7 @@ def get_fields(file_name_list, pair, Debug):
 	return (name_frame)
 
 ###############
-def select_samples (list_samples, samples_prefix, pair=True, exclude=False, Debug=False):
+def select_samples (list_samples, samples_prefix, pair=True, exclude=False, Debug=False, lane=False):
 	"""
 	Select samples
 	
@@ -121,14 +121,16 @@ def select_samples (list_samples, samples_prefix, pair=True, exclude=False, Debu
 	:param pair: True/false for paired-end files
 	:param exclude: True/false for exclude found files from the total
 	:param Debug: True/false for debugging messages
+	:param lane: Include lane tag within name id
 	
 	:type list_samples: list
 	:type samples_prefix: list
 	:type pair: bool
 	:type exclude: bool
 	:type Debug: bool
+	:type lane: bool
 	
-	:returns: something
+	:returns: Dataframe
 	"""
 	#Get all files in the folder "path_to_samples"
 	sample_list = []
@@ -166,6 +168,12 @@ def select_samples (list_samples, samples_prefix, pair=True, exclude=False, Debu
 	name_frame_samples = get_fields(non_duplicate_samples, pair, Debug)	
 	number_files = name_frame_samples.index.size
 	total_samples = set(name_frame_samples['name'].to_list())
+	
+	##
+	if (lane):
+		## include lane tag within name
+		name_frame_samples['name'] = name_frame_samples['name'] + '_' + name_frame_samples['lane']
+		name_frame_samples['new_name'] = name_frame_samples['name'] 
 	
 	## debugging messages
 	if Debug:
@@ -412,15 +420,10 @@ def get_files(options, input_dir, mode, extension):
 		##print (files, '\n')
 
 	## get information
-	if mode in ['fastq', 'trim']:
-		pd_samples_retrieved = select_samples(files, samples_names, options.pair, exclude, options.debug)
+	if mode in ['fastq', 'trim', 'join']:
+		pd_samples_retrieved = select_samples(files, samples_names, options.pair, exclude, options.debug, options.include-lane)
 	else:
 		pd_samples_retrieved = select_other_samples(options.project, files, samples_names, mode, extension, exclude, options.debug)		
 		
 	return(pd_samples_retrieved)
 
-
-
-#usr/bin/env python
-
-## useful imports

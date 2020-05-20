@@ -90,8 +90,8 @@ def run_prep(options):
     
     ## check character limitation
     list_lengths = pd_samples_retrieved.loc[:,'name_len'].to_list()
-    if any(i > 10 for i in list_lengths):
-        print (colored("\t ** Name lengths exceeds the 10 character limitation...", 'yellow'))
+    if any(i > 25 for i in list_lengths):
+        print (colored("\t ** Name lengths exceeds the 25 character limitation...", 'yellow'))
         if not (options.rename):
             print (colored("** ERROR: Rename files or provide --rename option...", 'red'))
             exit()
