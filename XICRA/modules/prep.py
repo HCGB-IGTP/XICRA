@@ -98,6 +98,11 @@ def run_prep(options):
 
     ### rename files 
     if (options.rename):
+        if not functions.is_non_zero_file(options.rename):
+            print ("** ERROR: File provided with rename information is not readable.")
+            print (options.rename)
+            exit()
+            
         names_retrieved = pd.read_csv(options.rename, sep=',', 
                                     index_col=0, squeeze=True, 
                                     header=None).to_dict() ## read csv to dictionary
