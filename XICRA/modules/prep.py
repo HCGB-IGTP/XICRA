@@ -98,8 +98,9 @@ def run_prep(options):
 
     ### rename files 
     if (options.rename):
+        options.rename = os.path.abspath(options.rename)
         if not functions.is_non_zero_file(options.rename):
-            print ("** ERROR: File provided with rename information is not readable.")
+            print (colored("** ERROR: File provided with rename information is not readable.", 'red'))
             print (options.rename)
             exit()
             
