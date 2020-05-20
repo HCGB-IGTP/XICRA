@@ -10,6 +10,7 @@ import sys
 from datetime import datetime
 import concurrent.futures
 from termcolor import colored
+import pandas as pd
 
 ########################################################################
 ######## 					TIME								######## 					
