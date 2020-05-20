@@ -260,7 +260,7 @@ def outdir_project(outdir, project_mode, pd_samples, mode):
 ###############
 def print_all_pandaDF(pd_df):
 	pd.set_option('display.max_colwidth', -1)
-	pd.set_option('display.max_columns', -1)
+	pd.set_option('display.max_columns', None)
 	print (pd_df)
 	
 #################

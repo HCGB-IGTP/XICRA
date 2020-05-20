@@ -59,7 +59,7 @@ def get_fields(file_name_list, pair, Debug):
 				## Lane files: need to merge by file_name: 33i_S5_L004_R1_001.fastq.gz
 				## lane should contain L00x			
 				if (lane_search):
-					name_search = re.search(r"(.*)\_(L\d+)\_(R1|1|R2|2)(.*)\.(f.*q)(\..*){0,1}", file_name)
+					name_search = re.search(r"(.*)\_(L\d+)\_(R1|1|R2|2)\_{0,1}(.*)\.(f.*q)(\..*){0,1}", file_name)
 				else:
 					name_search = re.search(r"(.*)\_(R1|1|R2|2)\.(f.*q)(\..*){0,1}", file_name)
 		else:
