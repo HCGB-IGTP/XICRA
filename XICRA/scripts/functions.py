@@ -256,6 +256,7 @@ def outdir_project(outdir, project_mode, pd_samples, mode):
 
 	return (dict_outdir)
 
+###############
 def print_all_pandaDF(pd_df):
 	pd.set_option('display.max_colwidth', None)
 	pd.set_option('display.max_columns', None)
@@ -293,3 +294,7 @@ def system_call(cmd, returned=False, message=True):
 		
 		return ('FAIL')
 
+def is_non_zero_file(fpath):  
+	# https://stackoverflow.com/a/15924160
+	"""Returns TRUE/FALSE if file exists and non zero"""
+	return os.path.isfile(fpath) and os.path.getsize(fpath) > 0

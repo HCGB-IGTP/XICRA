@@ -75,3 +75,6 @@ def multiqc_help():
 
 def print_help_adapters():
     return()
+
+def help_join_reads():
+    return ()

@@ -158,6 +158,7 @@ def cutadapt (list_R1, list_R2, path, out_path, file_name, num_threads):
 ###############
 
 ###############     
+
 def fastqjoin (trimmed_R1, trimmed_R2, out_path, file_name, num_threads):
 	joined_files = []
 	cmd = []

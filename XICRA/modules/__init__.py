@@ -3,6 +3,9 @@ __all__ = [
 	'help_XICRA',
 	'qc',
 	'trimm',
+	'join',
+	'biotype',
+	'miRNA',
 	'citation'
 ]
 

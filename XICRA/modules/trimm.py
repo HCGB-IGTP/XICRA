@@ -15,7 +15,6 @@ from io import open
 import shutil
 import concurrent.futures
 from termcolor import colored
-import cutadapt
 
 ## import my modules
 from XICRA.scripts import multiQC_report
@@ -108,7 +107,7 @@ def run_trimm(options):
     outdir_dict = functions.outdir_project(outdir, options.project, pd_samples_retrieved, "trimm")
     
     ## optimize threads
-    name_list = set(pd_samples_retrieved["name"].tolist())
+    name_list = set(pd_samples_retrieved["new_name"].tolist())
     threads_job = functions.optimize_threads(options.threads, len(name_list)) ## threads optimization
     max_workers_int = int(options.threads/threads_job)
 
@@ -121,11 +120,10 @@ def run_trimm(options):
     print ("+ Trimming adapters for each sample retrieved...")    
     
     # Group dataframe by sample name
-    sample_frame = pd_samples_retrieved.groupby(["name"])
+    sample_frame = pd_samples_retrieved.groupby(["new_name"])
     
     ## send for each sample
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers_int) as executor:
-        #cutadapt_caller.call_cutadapt(list_R1, list_R2, path, out_path, file_name, num_threads)
         commandsSent = { executor.submit(cutadapt_caller, sorted(cluster["sample"].tolist()), 
                                          outdir_dict[name], name, threads_job, 
                                          Debug, adapters_dict): name for name, cluster in sample_frame }
@@ -198,11 +196,11 @@ def cutadapt_caller(list_reads, sample_folder, name, threads, Debug, adapters):
     filename_stamp = sample_folder + '/.success'
     if os.path.isfile(filename_stamp):
         stamp =    functions.read_time_stamp(filename_stamp)
-        print (colored("\tA previous command generated results on: %s [%s]" %(stamp, name), 'yellow'))
+        print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'cutadapt'), 'yellow'))
     else:
         # Call cutadapt
         cutadapt_exe = set_config.get_exe('cutadapt')
-        code_returned = cutadapt(cutadapt_exe, cutadapt_exelist_reads, sample_folder, name, threads, Debug, adapters)
+        code_returned = cutadapt(cutadapt_exe, list_reads, sample_folder, name, threads, Debug, adapters)
         if code_returned:
             functions.print_time_stamp(filename_stamp)
         else:
@@ -245,8 +243,8 @@ def cutadapt (cutadapt_exe, reads, path, sample_name, num_threads, Debug, adapte
         ## single-end mode:
         cmd = '%s -j %s -m 15 -a %s -o %s %s > %s' %(cutadapt_exe, num_threads, adapter_3, o_param, reads[0], logfile)    
     else:
-        print ('** Wrong number of files provided for sample: %s...' %name)
-        return()
+        print ('** Wrong number of files provided for sample: %s...' %sample_name)
+        return(False)
 
     ##
     return(functions.system_call(cmd))
