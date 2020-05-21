@@ -320,7 +320,10 @@ def check_dependencies(Debug):
 			print ("Version installed:", installed)
 			
 		## check if installed
-		message = check_install_module(installed, soft_name, min_version, 'Software')
+		if (min_version == 'na'):
+			message = check_install_module('ok', soft_name, min_version, 'Software')
+		else:
+			message = check_install_module(installed, soft_name, min_version, 'Software')
 
 		if (message == 'OK'):
 			continue
@@ -553,6 +556,12 @@ def check_install_module(installed, module_name, min_version, tag):
 
 	# check version
 	elif LooseVersion(installed) >= LooseVersion(min_version):
+		message = 'OK'
+		color = 'green'
+		print_module_comparison(module_name, message, color, tag)
+
+	# check version
+	elif (installed == 'ok'):
 		message = 'OK'
 		color = 'green'
 		print_module_comparison(module_name, message, color, tag)
