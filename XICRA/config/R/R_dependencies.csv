@@ -1,0 +1,5 @@
+package,source,extra
+ggplot2,CRAN,
+RColorBrewer,CRAN,
+reshape,CRAN,
+stringr,CRAN,

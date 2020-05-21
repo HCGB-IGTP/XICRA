@@ -25,6 +25,24 @@ help_options = ('--help_format',
 ## space
 #subparser_space = subparsers.add_parser(' ', help='')
 
+#######################
+#### Configuration ####
+#######################
+##------------------------------ config ---------------------- ##
+subparser_config = subparsers.add_parser(
+    'config',
+    help='Configure the pipeline',
+    description='Configure dependencies, executables and additional python modules.',
+)
+subparser_config.add_argument("--debug", action="store_true", help="Show additional message for debugging purposes.")
+subparser_config.set_defaults(func=XICRA.modules.config.run_config)
+##-------------------------------------------------------------##
+
+## add fake module blank to add space
+subparser_space = subparsers.add_parser(' ', help='')
+##-------------------------------------------------------------##
+
+
 #########################
 #### Prepare samples ####
 #########################
@@ -110,8 +128,10 @@ in_out_group_trimm.add_argument("--ex_sample", help="File containing a list of s
 in_out_group_trimm.add_argument("--detached", action="store_true", help="Isolated mode. --input is a folder containing fastq reads. Provide a unique path o several using --batch option")
 
 options_group_trimm = subparser_trimm.add_argument_group("Options")
+options_group_trimm.add_argument("--adapters_a", help="Sequence of an adapter ligated to the 3' end. See --help_trimm_adapters for further information.")
+options_group_trimm.add_argument("--adapters_A", help="Sequence of an adapter ligated to the 3' read in pair. See --help_trimm_adapters for further information.")
+options_group_trimm.add_argument("--extra", help="Provide extra options for cutadapt trimming process. See --help_trimm_adapters for further information.")
 options_group_trimm.add_argument("--skip_report", action="store_true", help="Do not report statistics using MultiQC report module [Default OFF]. See details in --help_multiqc")
-options_group_trimm.add_argument("--adapters", help="Adapter sequences to use for the trimming process. See --help_trimm_adapters for further information.")
 options_group_trimm.add_argument("--threads", type=int, help="Number of CPUs to use [Default: 2].", default=2)
 
 info_group_trimm = subparser_trimm.add_argument_group("Additional information")

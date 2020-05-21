@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 ##########################################################
-## Jose F. Sanchez                                        ##
-## Copyright (C) 2019 Lauro Sumoy Lab, IGTP, Spain        ##
+## Jose F. Sanchez                                      ##
+## Copyright (C) 2019-2020 Lauro Sumoy Lab, IGTP, Spain ##
 ##########################################################
 """
 Trimms sequence adapters within fastq reads.
@@ -78,19 +78,27 @@ def run_trimm(options):
         options.project = True
         outdir = input_dir        
     
+    # Trimming adapters
+
     ## check adapters provided
-    ## options.adapters
-    
-        # Trimming adapters
-    if (options.adapters):
-        # Adapter file provided
-        options.adapters = os.path.abspath(options.adapters)
-        print("\t- Adapters file provided...")
-    else:
-        # Get default adpaters file
-        print ("** ERROR: No adapters provided")
-        exit()
+        ## options.adapters_a
+        ## options.adapters_A
+        ## options.extra
         
+    ## no adapters provided
+    if (not options.adapters_a and not options.adapters_A and not options.extra):
+        print (colored("** ERROR: No adapter trimming options provided...", 'red'))
+        print ("Please provide any option")
+        exit()
+    
+    ## create dictionary with 
+    adapter_dict = {}
+    if (options.adapters_a):
+        adapters_dict['adapter_a'] = options.adapters_a
+    
+    if (options.adapters_a):
+        adapters_dict['adapter_A'] = options.adapters_A
+    
     ## get files
     pd_samples_retrieved = sampleParser.get_files(options, input_dir, "fastq", ("fastq", "fq", "fastq.gz", "fq.gz"))
     
@@ -126,7 +134,7 @@ def run_trimm(options):
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers_int) as executor:
         commandsSent = { executor.submit(cutadapt_caller, sorted(cluster["sample"].tolist()), 
                                          outdir_dict[name], name, threads_job, 
-                                         Debug, adapters_dict): name for name, cluster in sample_frame }
+                                         Debug, adapters_dict, options.extra): name for name, cluster in sample_frame }
 
         for cmd2 in concurrent.futures.as_completed(commandsSent):
             details = commandsSent[cmd2]
@@ -191,7 +199,7 @@ def run_trimm(options):
     
 
 #############################################
-def cutadapt_caller(list_reads, sample_folder, name, threads, Debug, adapters):
+def cutadapt_caller(list_reads, sample_folder, name, threads, Debug, adapters, extra):
     ## check if previously trimmed and succeeded
     filename_stamp = sample_folder + '/.success'
     if os.path.isfile(filename_stamp):
@@ -200,7 +208,7 @@ def cutadapt_caller(list_reads, sample_folder, name, threads, Debug, adapters):
     else:
         # Call cutadapt
         cutadapt_exe = set_config.get_exe('cutadapt')
-        code_returned = cutadapt(cutadapt_exe, list_reads, sample_folder, name, threads, Debug, adapters)
+        code_returned = cutadapt(cutadapt_exe, list_reads, sample_folder, name, threads, Debug, adapters, extra)
         if code_returned:
             functions.print_time_stamp(filename_stamp)
         else:
@@ -208,7 +216,7 @@ def cutadapt_caller(list_reads, sample_folder, name, threads, Debug, adapters):
 
 
 #############################################
-def cutadapt (cutadapt_exe, reads, path, sample_name, num_threads, Debug, adapters):
+def cutadapt (cutadapt_exe, reads, path, sample_name, num_threads, Debug, adapters, extra):
     """
     
     :param cutadapt_exe:
@@ -218,6 +226,7 @@ def cutadapt (cutadapt_exe, reads, path, sample_name, num_threads, Debug, adapte
     :param num_threads: 
     :param Debug:
     :param adapters
+    :param extra:
     
     :type cutadapt_exe:
     :type reads:
@@ -225,7 +234,8 @@ def cutadapt (cutadapt_exe, reads, path, sample_name, num_threads, Debug, adapte
     :type sample_name:
     :type num_threads: 
     :type Debug:
-    :type adapters
+    :type adapters: dictionary
+    :type extra: string
     
     """
     logfile = os.path.join(path, sample_name + '.cutadapt.log')
@@ -233,20 +243,33 @@ def cutadapt (cutadapt_exe, reads, path, sample_name, num_threads, Debug, adapte
     adapter_3 = ""
     
     if (len(reads) == 2):
+        if not adapters['adapter_a'] or adapters_dict['adapter_A']:
+             print ("** ERROR: Missing adapter information")
+             exit()
+        
         p_param = os.path.join(path, sample_name + '_trim_R2.fastq')
         adapter_5 = ""
         ## paired-end mode
-        cmd = '%s -j %s -m 15 -a %s -A %s -o %s -p %s %s %s > %s' %(cutadapt_exe, num_threads, adapter_3, adapter_5, o_param, 
+        cmd = '%s -j %s -m 15 -a %s -A %s -o %s -p %s %s %s > %s' %(cutadapt_exe, num_threads, adapters['adapter_a'], adapters_dict['adapter_A'], o_param, 
                                                               p_param, reads[0], reads[1], logfile)
 
     elif (len(reads) == 1):
+        if not adapters['adapter_a']:
+             print ("** ERROR: Missing adapter information")
+             exit()
         ## single-end mode:
-        cmd = '%s -j %s -m 15 -a %s -o %s %s > %s' %(cutadapt_exe, num_threads, adapter_3, o_param, reads[0], logfile)    
+        cmd = '%s -j %s -m 15 -a %s -o %s %s > %s' %(cutadapt_exe, num_threads, adapters['adapter_a'], o_param, reads[0], logfile)    
     else:
         print ('** Wrong number of files provided for sample: %s...' %sample_name)
         return(False)
 
     ##
     return(functions.system_call(cmd))
+
+
+    ## cutadapt:
+    ## -a adapter_3
+    ## -A 3' adapter to be removed from second read in a pair.
+    ## 
 
     
