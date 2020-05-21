@@ -215,7 +215,10 @@ def my_which(cmd):
 					## return (name) ## previously, it would only return the first item
 					return_paths.append(name) ## modification
 
-	return return_paths
+	if (len(return_paths) >= 1):
+		return return_paths
+	else:
+		return None
 
 ##################
 def get_version(prog, path, Debug=False):
