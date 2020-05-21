@@ -192,7 +192,8 @@ def run_prep(options):
             list_reads.append(row['new_file'])
             
             if options.project:
-                functions.get_symbolic_link_file(row['sample'], os.path.join(outdir_dict[row['new_name']], row['new_file']))
+                functions.get_symbolic_link_file(row['new_file'], 
+                                                 os.path.join(outdir_dict[row['new_name']] + '.' + row['ext'] + row['gz']))
 
     if (options.copy):
         print ("+ Sample files have been copied...")
