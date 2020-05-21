@@ -194,6 +194,15 @@ def get_fullpath_list(dir_given):
 			return_path.append(os.path.join(root,f))
 	return return_path
 
+def get_data(ID_file, SEP, options):	
+	if options == 'index_col=0':
+		data = pd.read_csv(ID_file, sep=SEP, index_col=0)
+		return(data)
+	else:
+		data = pd.read_csv(ID_file, sep=SEP)
+		return(data)
+	## fix for another example if any
+	
 
 ############################################################################
 ######## 					AESTHETICS								######## 					
@@ -299,3 +308,27 @@ def is_non_zero_file(fpath):
 	# https://stackoverflow.com/a/15924160
 	"""Returns TRUE/FALSE if file exists and non zero"""
 	return os.path.isfile(fpath) and os.path.getsize(fpath) > 0
+
+##################
+def decode(x):
+	"""
+	Python decode string method
+
+	It converts bytes to string.
+
+	:param x: String of text to decode
+	:type x: string
+	:returns: Text decoded
+
+	.. attention:: Be aware of Copyright
+
+		The code implemented here was retrieved and modified from ARIBA (https://github.com/sanger-pathogens/ariba)
+
+		Give them credit accordingly.
+	"""
+	try:
+		s = x.decode()
+	except:
+		return x
+
+	return s

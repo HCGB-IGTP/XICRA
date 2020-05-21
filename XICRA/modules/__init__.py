@@ -1,12 +1,13 @@
 __all__ = [
-	'prep',
-	'help_XICRA',
-	'qc',
-	'trimm',
-	'join',
 	'biotype',
+	'config',
+	'citation',
+	'help_XICRA',
+	'join',
 	'miRNA',
-	'citation'
+	'prep',
+	'qc',
+	'trimm'	
 ]
 
 from XICRA.modules import *
