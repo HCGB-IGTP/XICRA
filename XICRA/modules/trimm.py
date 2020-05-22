@@ -242,6 +242,7 @@ def cutadapt (cutadapt_exe, reads, path, sample_name, num_threads, Debug, adapte
     o_param = os.path.join(path, sample_name + '_trim_R1.fastq')
     adapter_3 = ""
     
+    
     if (len(reads) == 2):
         if not adapters['adapter_a'] or adapters_dict['adapter_A']:
              print ("** ERROR: Missing adapter information")
