@@ -154,7 +154,7 @@ def select_samples (list_samples, samples_prefix, pair=True, exclude=False, Debu
 	for names in samples_prefix:
 		for path_fastq in list_samples:	
 			fastq = os.path.basename(path_fastq)
-			samplename_search = re.search(r"(%s)\_.*" % names, fastq)
+			samplename_search = re.search(r"(%s)\_{0,1}(R1|1|R2|2){0,1}\.f.*q.*" % names, fastq)
 			enter = ""
 			if samplename_search:
 				if (exclude): ## exclude==True
