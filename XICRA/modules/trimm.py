@@ -250,15 +250,18 @@ def cutadapt (cutadapt_exe, reads, path, sample_name, num_threads, Debug, adapte
         p_param = os.path.join(path, sample_name + '_trim_R2.fastq')
         adapter_5 = ""
         ## paired-end mode
-        cmd = '%s -j %s -m 15 -a %s -A %s -o %s -p %s %s %s > %s' %(cutadapt_exe, num_threads, adapters['adapter_a'], adapters_dict['adapter_A'], o_param, 
-                                                              p_param, reads[0], reads[1], logfile)
+        cmd = '%s %s -j %s -m 15 -a %s -A %s -o %s -p %s %s %s > %s' %(cutadapt_exe, extra, 
+                                                                       num_threads, adapters['adapter_a'], 
+                                                                       adapters_dict['adapter_A'], o_param, 
+                                                                       p_param, reads[0], reads[1], logfile)
 
     elif (len(reads) == 1):
         if not adapters['adapter_a']:
              print ("** ERROR: Missing adapter information")
              exit()
         ## single-end mode:
-        cmd = '%s -j %s -m 15 -a %s -o %s %s > %s' %(cutadapt_exe, num_threads, adapters['adapter_a'], o_param, reads[0], logfile)    
+        cmd = '%s %s -j %s -m 15 -a %s -o %s %s > %s' %(cutadapt_exe, extra, num_threads, 
+                                                        adapters['adapter_a'], o_param, reads[0], logfile)    
     else:
         print ('** Wrong number of files provided for sample: %s...' %sample_name)
         return(False)
