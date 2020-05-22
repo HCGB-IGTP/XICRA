@@ -284,19 +284,22 @@ def cutadapt (cutadapt_exe, reads, path, sample_name, num_threads, Debug, adapte
         if (len(reads) == 2):
 
             ## paired-end mode
-            extra_cmd = '%s %s -j %s -o %s -p %s %s %s >> %s' %(cutadapt_exe, extra, num_threads, 
+            extra_cmd = '%s %s -j %s -a %s -A %s -o %s -p %s %s %s >> %s' %(cutadapt_exe, extra, num_threads, 
+                                                                adapters['adapter_a'], adapters['adapter_A'],
                                                             o_param2, p_param2, o_param, p_param, logfile)
         
         elif (len(reads) == 1):
             ## single-end mode:
-            extra_cmd = '%s %s -j %s -a %s -o %s %s >> %s' %(cutadapt_exe, num_threads, extra, 
+            extra_cmd = '%s %s -j %s -a %s -o %s %s >> %s' %(cutadapt_exe, extra, num_threads, adapters['adapter_a'], 
                                                    o_param2, o_param, logfile)    
         
         code2 = functions.system_call(extra_cmd)
         
         ## remove: o_param p_param
+        if (len(reads) == 2):        
+            os.remove(p_param)
+       
         os.remove(o_param)
-        os.remove(p_param)
         return (code2)
     
     else:
