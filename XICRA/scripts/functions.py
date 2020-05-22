@@ -241,6 +241,13 @@ def boxymcboxface(message):
 	print ('\n')
     #print('-' * 79)
 
+
+def printList2file(fileGiven, listGiven):
+	"""Prints list given in the output file provided. One item per row."""
+	file_hd = open(fileGiven, 'w')
+	file_hd.write("\n".join(listGiven))
+	file_hd.close()  
+	
 ###############
 def outdir_project(outdir, project_mode, pd_samples, mode):
 	"""

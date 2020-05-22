@@ -239,19 +239,24 @@ def cutadapt (cutadapt_exe, reads, path, sample_name, num_threads, Debug, adapte
     
     """
     logfile = os.path.join(path, sample_name + '.cutadapt.log')
-    o_param = os.path.join(path, sample_name + '_trim_R1.fastq')
-    adapter_3 = ""
     
+    if extra:
+        o_param = os.path.join(path, sample_name + '_temp1_trim_R1.fastq')
+    else:
+        o_param = os.path.join(path, sample_name + '_trim_R1.fastq')
     
     if (len(reads) == 2):
         if not adapters['adapter_a'] or adapters_dict['adapter_A']:
              print ("** ERROR: Missing adapter information")
              exit()
         
-        p_param = os.path.join(path, sample_name + '_trim_R2.fastq')
-        adapter_5 = ""
+        if extra:
+            p_param = os.path.join(path, sample_name + '_temp1_trim_R2.fastq')
+        else:
+            p_param = os.path.join(path, sample_name + '_trim_R2.fastq')
+        
         ## paired-end mode
-        cmd = '%s %s -j %s -m 15 -a %s -A %s -o %s -p %s %s %s > %s' %(cutadapt_exe, extra, 
+        cmd = '%s -j %s -a %s -A %s -o %s -p %s %s %s > %s' %(cutadapt_exe,  
                                                                        num_threads, adapters['adapter_a'], 
                                                                        adapters_dict['adapter_A'], o_param, 
                                                                        p_param, reads[0], reads[1], logfile)
@@ -261,19 +266,38 @@ def cutadapt (cutadapt_exe, reads, path, sample_name, num_threads, Debug, adapte
              print ("** ERROR: Missing adapter information")
              exit()
         ## single-end mode:
-        cmd = '%s %s -j %s -m 15 -a %s -o %s %s > %s' %(cutadapt_exe, extra, num_threads, 
+        cmd = '%s -j %s -a %s -o %s %s > %s' %(cutadapt_exe, num_threads, 
                                                         adapters['adapter_a'], o_param, reads[0], logfile)    
     else:
         print ('** Wrong number of files provided for sample: %s...' %sample_name)
         return(False)
 
     ##
-    return(functions.system_call(cmd))
+    code = functions.system_call(cmd)
 
+    ## if additional options, run a second cutadapt command
+    ## to ensure this options take effect.
+    if (extra):
+        o_param2 = os.path.join(path, sample_name + '_trim_R1.fastq')
+        p_param2 = os.path.join(path, sample_name + '_trim_R2.fastq')
+        
+        if (len(reads) == 2):
 
-    ## cutadapt:
-    ## -a adapter_3
-    ## -A 3' adapter to be removed from second read in a pair.
-    ## 
-
+            ## paired-end mode
+            extra_cmd = '%s %s -j %s -o %s -p %s %s %s >> %s' %(cutadapt_exe, extra, num_threads, 
+                                                            o_param2, p_param2, o_param, p_param, logfile)
+        
+        elif (len(reads) == 1):
+            ## single-end mode:
+            extra_cmd = '%s %s -j %s -a %s -o %s %s >> %s' %(cutadapt_exe, num_threads, extra, 
+                                                   o_param2, o_param, logfile)    
+        
+        code2 = functions.system_call(extra_cmd)
+        
+        ## remove: o_param p_param
+        os.remove(o_param)
+        os.remove(p_param)
+        return (code2)
     
+    else:
+        return (code)
