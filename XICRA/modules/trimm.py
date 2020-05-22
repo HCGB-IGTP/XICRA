@@ -92,7 +92,7 @@ def run_trimm(options):
         exit()
     
     ## create dictionary with 
-    adapter_dict = {}
+    adapters_dict = {}
     if (options.adapters_a):
         adapters_dict['adapter_a'] = options.adapters_a
     

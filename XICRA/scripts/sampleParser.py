@@ -149,12 +149,12 @@ def select_samples (list_samples, samples_prefix, pair=True, exclude=False, Debu
 	:returns: Dataframe
 	"""
 	#Get all files in the folder "path_to_samples"
-	sample_list = pandas.DataFrame(columns=('sample', 'file'))
+	sample_list = pd.DataFrame(columns=('sample', 'file'))
 	
 	for names in samples_prefix:
 		for path_fastq in list_samples:	
 			fastq = os.path.basename(path_fastq)
-			samplename_search = re.search(r"(%s).*" % names, fastq)
+			samplename_search = re.search(r"(%s)\_.*" % names, fastq)
 			enter = ""
 			if samplename_search:
 				if (exclude): ## exclude==True
@@ -177,7 +177,8 @@ def select_samples (list_samples, samples_prefix, pair=True, exclude=False, Debu
 						print (colored("** ERROR: %s is a file that is neither in fastq.gz or .fastq format, so it is not included" %path_fastq, 'yellow'))
 							
 	## discard duplicates if any
-	non_duplicate_names = sample_list['sample'].to_list().unique() #list(set(sample_list))
+	non_duplicate_names = sample_list['sample'].to_list() #
+	non_duplicate_names = list(set(non_duplicate_names))
 	
 	## it might be a bug in exclude list.
 	## if sample X1 is provided to be excluded, we might be also excluding
@@ -198,7 +199,9 @@ def select_samples (list_samples, samples_prefix, pair=True, exclude=False, Debu
 		non_duplicate_names = set(samples_prefix).intersection(non_duplicate_names)
 
 	## get fields
-	non_duplicate_samples = sample_list['file'].to_list()
+	
+	tmp = sample_list[ sample_list['sample'].isin(non_duplicate_names) ]
+	non_duplicate_samples = tmp['file'].to_list()
 	
 	## debugging messages
 	if Debug:
@@ -207,6 +210,10 @@ def select_samples (list_samples, samples_prefix, pair=True, exclude=False, Debu
 		print (non_duplicate_names)
 		print ("samples_prefix")
 		print (samples_prefix)
+		print ("non_duplicate_samples")
+		print (non_duplicate_samples)
+		print ("tmp dataframe")
+		functions.print_all_pandaDF(tmp)
 				
 	## get info
 	name_frame_samples = get_fields(non_duplicate_samples, pair, Debug, include_all)	
