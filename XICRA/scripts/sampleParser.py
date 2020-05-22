@@ -180,6 +180,18 @@ def select_samples (list_samples, samples_prefix, pair=True, exclude=False, Debu
 	## discard duplicates if any
 	non_duplicate_samples = list(set(sample_list))
 	
+	## it might be a bug in exclude list.
+	## if sample X1 is provided to be excluded, we might be also excluding
+	## sample X12, sample X13, etc.
+	## TODO: check this
+	
+	## check they match with given input
+	if (exclude): ## exclude==True
+		if bool(set(samples).intersection(non_duplicate_samples)):
+			print(colored("** ERROR: Some non desired samples are included", 'red'))
+	else: ## exclude==True
+		non_duplicate_samples = set(samples).intersection(non_duplicate_samples)
+				
 	## get fields
 	name_frame_samples = get_fields(non_duplicate_samples, pair, Debug, include_all)	
 	number_files = name_frame_samples.index.size
