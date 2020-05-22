@@ -149,7 +149,8 @@ def select_samples (list_samples, samples_prefix, pair=True, exclude=False, Debu
 	:returns: Dataframe
 	"""
 	#Get all files in the folder "path_to_samples"
-	sample_list = []
+	sample_list = pandas.DataFrame(columns=('sample', 'file'))
+	
 	for names in samples_prefix:
 		for path_fastq in list_samples:	
 			fastq = os.path.basename(path_fastq)
@@ -167,10 +168,8 @@ def select_samples (list_samples, samples_prefix, pair=True, exclude=False, Debu
 					enter = False
 					
 			if enter:
-				if fastq.endswith('.gz'):
-					sample_list.append(path_fastq)
-				elif fastq.endswith('fastq'):
-					sample_list.append(path_fastq)
+				if fastq.endswith('.gz') or fastq.endswith('fastq') or fastq.endswith('fq'):
+					sample_list.loc[len(sample_list)] = (names, path_fastq) 
 				else:
 					## debug message
 					if (Debug):
@@ -178,7 +177,7 @@ def select_samples (list_samples, samples_prefix, pair=True, exclude=False, Debu
 						print (colored("** ERROR: %s is a file that is neither in fastq.gz or .fastq format, so it is not included" %path_fastq, 'yellow'))
 							
 	## discard duplicates if any
-	non_duplicate_samples = list(set(sample_list))
+	non_duplicate_names = sample_list['sample'].to_list().unique() #list(set(sample_list))
 	
 	## it might be a bug in exclude list.
 	## if sample X1 is provided to be excluded, we might be also excluding
@@ -187,12 +186,13 @@ def select_samples (list_samples, samples_prefix, pair=True, exclude=False, Debu
 	
 	## check they match with given input
 	if (exclude): ## exclude==True
-		if bool(set(samples_prefix).intersection(non_duplicate_samples)):
+		if bool(set(samples_prefix).intersection(non_duplicate_names)):
 			print(colored("** ERROR: Some non desired samples are included", 'red'))
 	else: ## exclude==True
-		non_duplicate_samples = set(samples_prefix).intersection(non_duplicate_samples)
+		non_duplicate_names = set(samples_prefix).intersection(non_duplicate_names)
 				
 	## get fields
+	non_duplicate_samples = sample_list['file'].to_list()
 	name_frame_samples = get_fields(non_duplicate_samples, pair, Debug, include_all)	
 	number_files = name_frame_samples.index.size
 	total_samples = set(name_frame_samples['name'].to_list())
