@@ -306,7 +306,6 @@ def check_dependencies(Debug):
 	dependencies_pd = extern_progs.read_dependencies()
 
 	for soft, row in dependencies_pd.iterrows():
-		(soft_path, installed) = get_exe(soft, Debug=Debug, Return_Version=True)
 		soft_name = row['soft_name']
 		min_version = row['min_version']
 		
@@ -315,7 +314,12 @@ def check_dependencies(Debug):
 			print ("Software:", soft)
 			print ("Soft name:", soft_name)
 			print ("Min_Version:", min_version)
-			
+		
+		## get executable
+		(soft_path, installed) = get_exe(soft, Debug=Debug, Return_Version=True)
+		
+		## debug messages
+		if (Debug):
 			print ("Soft Path: ", soft_path)
 			print ("Version installed:", installed)
 			
