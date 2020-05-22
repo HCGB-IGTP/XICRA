@@ -52,7 +52,11 @@ def get_fields(file_name_list, pair, Debug, include_all):
 		lane_search = re.search(r".*\_L\d+\_.*", file_name)
 		## get name
 		if (include_all):
-			name_search = re.search(r"(.*){0,1}\_{0,1}(R1|1|R2|2){0,1}\_{0,1}(.*)\.(f.*q)(\..*){0,1}", file_name)
+			if (pair):
+				name_search = re.search(r"(.*)\_(R1|1|R2|2)\_{0,1}(.*)\.(f.*q)(\..*){0,1}", file_name)
+			else:
+                                name_search = re.search(r"(.*)\.(f.*q)(\..*){0,1}", file_name)
+
 		else:	
 			if (pair):
 				## pair could be: R1|R2 or 1|2
@@ -188,7 +192,7 @@ def select_samples (list_samples, samples_prefix, pair=True, exclude=False, Debu
 		name_frame_samples['new_name'] = name_frame_samples['name']
 	elif (include_all):
 		## include lane tag within name
-		name_frame_samples['name'] = name_frame_samples['name'] + '_' + name_frame_samples['lane']
+		#name_frame_samples['name'] = name_frame_samples['name'] + '_' + name_frame_samples['lane']
 		name_frame_samples['new_name'] = name_frame_samples['name']
 		
 	## debugging messages
