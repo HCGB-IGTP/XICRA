@@ -40,7 +40,7 @@ def get_fields(file_name_list, pair, Debug, include_all):
 	"""
 	## init dataframe
 	name_columns = ("sample", "dirname", "name", "new_name", "name_len", 
-				"lane", "read_pair","lane_file","ext","gz", "tag")
+				"lane", "read_pair","lane_file","ext","gz", "tag", "file")
 	name_frame = pd.DataFrame(columns=name_columns)
 	
 	## loop through list
@@ -110,7 +110,7 @@ def get_fields(file_name_list, pair, Debug, include_all):
 	
 			## populate dataframe
 			name_frame.loc [len(name_frame)] = (path_files, dirN, name, name, name_len, 
-											lane_id, read_pair, lane_file, ext, gz, "reads")
+											lane_id, read_pair, lane_file, ext, gz, "reads", os.path.basename(path_files))
 	
 		else:
 			## debug message
@@ -190,11 +190,7 @@ def select_samples (list_samples, samples_prefix, pair=True, exclude=False, Debu
 		## include lane tag within name
 		name_frame_samples['name'] = name_frame_samples['name'] + '_' + name_frame_samples['lane']
 		name_frame_samples['new_name'] = name_frame_samples['name']
-	elif (include_all):
-		## include lane tag within name
-		#name_frame_samples['name'] = name_frame_samples['name'] + '_' + name_frame_samples['lane']
-		name_frame_samples['new_name'] = name_frame_samples['name']
-		
+			
 	## debugging messages
 	if Debug:
 		print (colored("** DEBUG: select_samples",'yellow'))

@@ -146,8 +146,8 @@ def run_prep(options):
         ##elif (options.single_end): It should work for both
         print ("+ Sample files have been renamed...")
     else:
-        pd_samples_retrieved['new_file'] = pd_samples_retrieved['sample']
-
+        pd_samples_retrieved['new_file'] = pd_samples_retrieved['file']
+ 
     ## create outdir for each sample
     outdir_dict = functions.outdir_project(outdir, options.project, pd_samples_retrieved, "raw")    
         
@@ -191,16 +191,16 @@ def run_prep(options):
     list_reads = []
     for index, row in pd_samples_retrieved.iterrows():
         if (options.copy):
-            ## TODO: Set threads to copy faster
-            shutil.copy(row['sample'], outdir_dict[row['new_file']])            
-            string = row['sample'] + '\t' + outdir_dict[row['new_file']] + '\n'
+            ## TODO: debug & set threads to copy faster
+            shutil.copy(row['sample'], os.path.join(outdir_dict[row['new_name']], row['new_file'] ))            
+            string = row['sample'] + '\t' + os.path.join(outdir_dict[row['new_name']], row['new_file']) + '\n'
             copy_details_hd.write(string)            
         else:
             list_reads.append(row['new_file'])
             
             if options.project:
                 functions.get_symbolic_link_file(row['new_file'], 
-                                                 os.path.join(outdir_dict[row['new_name']], row['new_name'] + '.' + row['ext'] + row['gz']))
+                                                 os.path.join(outdir_dict[row['new_name']], row['new_file']))
 
     if (options.copy):
         print ("+ Sample files have been copied...")
