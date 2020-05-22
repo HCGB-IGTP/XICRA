@@ -176,8 +176,11 @@ def retrieve_matching_files(folder, string):
 ############### 
 def get_symbolic_link_file (file2link, newfile):
 	"""Creates symbolic link for a file into a new name file"""
-	cmd = 'ln -s %s %s' %(file2link, newfile)
-	system_call(cmd, returned=False)
+	if is_non_zero_file(newfile):
+		cmd = 'ln -s %s %s' %(file2link, newfile)
+		system_call(cmd, returned=False)
+	else:
+		print ("+ Link file already exists...")
 
 #################
 def get_fullpath_list(dir_given):
@@ -247,7 +250,6 @@ def outdir_project(outdir, project_mode, pd_samples, mode):
 
 	dict_outdir = {}	
 	for name, cluster in sample_frame:
-		print (name)
 		if (project_mode):
 			#print ("Create subdir for every sample: ", mode)
 			sample_dir = create_subfolder('data', outdir)		

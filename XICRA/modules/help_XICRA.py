@@ -82,11 +82,21 @@ def help_fastq_format():
     print ("Result:")
     print ("sample1_L001_R1.fastq.gz\tsample1_L001_R2.fastq.gz")
     print ("sample1_L002_R1.fastq.gz\tsample1_L002_R2.fastq.gz")
-    print (colored("** Remember to use option --include-lane within each module", 'yellow'))
-
+    print (colored("** Remember to use option --include_lane within each module", 'yellow'))
+    print ("\n")
+    
+    functions.print_sepLine("*",55,"red")
+    print ("[5] Include all information:")
+    functions.print_sepLine("*",55,"red")
+    print ("In some cases, files might contain other information and it is necessay to " +
+           "include it all as a tag nane. See as an example:")
+    print ("sample1_L001_XYZ_R1_001.fastq.gz\tsample1_L001_XYZ_R2_001.fastq.gz")
+    print (colored("** Remember to use option --include_all within each module", 'yellow'))
+    print (colored("** It might be appropiate to change samples names using --rename option under prep module", 'yellow'))
+    
     print ("\n")
     functions.print_sepLine("*",15,"red")
-    print ("[5] Extensions:")
+    print ("[6] Extensions:")
     functions.print_sepLine("*",15,"red")
     print ("name_L00x_R2.fastq\tname_L00x_R2.fq\nname_L00x_R2.fastq.gz\tname_L00x_R2.fq.gz")
     print ("\n")
