@@ -134,6 +134,8 @@ options_group_trimm.add_argument("--adapters_A", help="Sequence of an adapter li
 options_group_trimm.add_argument("--extra", help="Provide extra options for cutadapt trimming process. See --help_trimm_adapters for further information.")
 options_group_trimm.add_argument("--skip_report", action="store_true", help="Do not report statistics using MultiQC report module [Default OFF]. See details in --help_multiqc")
 options_group_trimm.add_argument("--threads", type=int, help="Number of CPUs to use [Default: 2].", default=2)
+options_group_trimm.add_argument("--include_lane", action="store_true", help="Include the lane tag (*L00X*) in the sample name. See --help_format for additional details [Default OFF]")
+options_group_trimm.add_argument("--include_all", action="store_true", help="Include all characters as tag name before read pair, if any. See --help_format for additional details [Default OFF]")
 
 info_group_trimm = subparser_trimm.add_argument_group("Additional information")
 info_group_trimm.add_argument("--help_format", action="store_true", help="Show additional help on name format for files.")

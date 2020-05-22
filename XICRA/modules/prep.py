@@ -128,9 +128,9 @@ def run_prep(options):
         ## rename files         
         for index, row in pd_samples_retrieved.iterrows():
             if (row['gz']):
-                extension_sting = row['ext'] + row['gz']
+                extension_string = row['ext'] + row['gz']
             else:
-                extension_sting = row['ext']
+                extension_string = row['ext']
             renamed = names_retrieved[row['name']] + '_' + row['read_pair'] + '.' + extension_string
             ## modify frame
             pd_samples_retrieved.loc[index, 'new_file'] = renamed
