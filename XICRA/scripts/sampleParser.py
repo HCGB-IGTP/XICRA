@@ -187,10 +187,10 @@ def select_samples (list_samples, samples_prefix, pair=True, exclude=False, Debu
 	
 	## check they match with given input
 	if (exclude): ## exclude==True
-		if bool(set(samples).intersection(non_duplicate_samples)):
+		if bool(set(samples_prefix).intersection(non_duplicate_samples)):
 			print(colored("** ERROR: Some non desired samples are included", 'red'))
 	else: ## exclude==True
-		non_duplicate_samples = set(samples).intersection(non_duplicate_samples)
+		non_duplicate_samples = set(samples_prefix).intersection(non_duplicate_samples)
 				
 	## get fields
 	name_frame_samples = get_fields(non_duplicate_samples, pair, Debug, include_all)	
