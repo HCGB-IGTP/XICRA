@@ -259,7 +259,11 @@ def one_file_per_sample(dataFrame, outdir_dict, threads, outdir, Debug=False):
 	### get extension for files
 	ext_list = dataFrame.ext.unique()
 	gz_list = dataFrame.gz.unique()
-	ext = ext_list[0] + gz_list[0] ## might generate a bug if several extension or some zip/unzip files provided
+	## might generate a bug if several extension or some zip/unzip files provided
+	if gz_list:
+		ext = ext_list[0] + gz_list[0]
+	else:
+		ext = ext_list[0]
 
 	# We can use a with statement to ensure threads are cleaned up promptly
 	with concurrent.futures.ThreadPoolExecutor(max_workers=threads) as executor: ## need to do 1 by one as there is a problem with the working directory
