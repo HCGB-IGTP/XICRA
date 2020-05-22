@@ -20,7 +20,7 @@ import concurrent.futures
 from XICRA.scripts import functions
 
 ###############
-def get_fields(file_name_list, pair, Debug):
+def get_fields(file_name_list, pair, Debug, include_all):
 	"""
 	Get information from files
 	
@@ -55,6 +55,9 @@ def get_fields(file_name_list, pair, Debug):
 			## pair could be: R1|R2 or 1|2
 			if (trim_search):
 				name_search = re.search(r"(.*)\_trim\_(R1|1|R2|2)\.(f.*q)(\..*){0,1}", file_name)
+			elif (include_all):
+				name_search = re.search(r"(.*)\_(R1|1|R2|2)\_{0,1}(.*)\.(f.*q)(\..*){0,1}", file_name)
+				
 			else:
 				## Lane files: need to merge by file_name: 33i_S5_L004_R1_001.fastq.gz
 				## lane should contain L00x			
@@ -77,8 +80,15 @@ def get_fields(file_name_list, pair, Debug):
 			name = name_search.group(1)
 			name_len = len(name)
 			if (pair):
+				if (include_all):
+					lane_id = ""
+					read_pair = name_search.group(2)
+					lane_file = name_search.group(3)
+					ext = name_search.group(4)
+					gz = name_search.group(5)
+								
 				## Lane files: need to merge by file_name: 33i_S5_L004_R1_001.fastq.gz
-				if (lane_search):
+				elif (lane_search):
 					lane_id = name_search.group(2)
 					read_pair = name_search.group(3)
 					lane_file = name_search.group(4)
@@ -93,6 +103,7 @@ def get_fields(file_name_list, pair, Debug):
 				ext = name_search.group(2)
 				gz = name_search.group(3)
 	
+			## populate dataframe
 			name_frame.loc [len(name_frame)] = (path_files, dirN, name, name, name_len, 
 											lane_id, read_pair, lane_file, ext, gz, "reads")
 	
@@ -108,7 +119,7 @@ def get_fields(file_name_list, pair, Debug):
 	return (name_frame)
 
 ###############
-def select_samples (list_samples, samples_prefix, pair=True, exclude=False, Debug=False, lane=False):
+def select_samples (list_samples, samples_prefix, pair=True, exclude=False, Debug=False, lane=False, include_all=False):
 	"""
 	Select samples
 	
@@ -165,7 +176,7 @@ def select_samples (list_samples, samples_prefix, pair=True, exclude=False, Debu
 	non_duplicate_samples = list(set(sample_list))
 	
 	## get fields
-	name_frame_samples = get_fields(non_duplicate_samples, pair, Debug)	
+	name_frame_samples = get_fields(non_duplicate_samples, pair, Debug, include_all)	
 	number_files = name_frame_samples.index.size
 	total_samples = set(name_frame_samples['name'].to_list())
 	
@@ -173,8 +184,12 @@ def select_samples (list_samples, samples_prefix, pair=True, exclude=False, Debu
 	if (lane):
 		## include lane tag within name
 		name_frame_samples['name'] = name_frame_samples['name'] + '_' + name_frame_samples['lane']
-		name_frame_samples['new_name'] = name_frame_samples['name'] 
-	
+		name_frame_samples['new_name'] = name_frame_samples['name']
+	elif (include_all):
+		## include lane tag within name
+		name_frame_samples['name'] = name_frame_samples['name'] + '_' + name_frame_samples['lane']
+		name_frame_samples['new_name'] = name_frame_samples['name']
+		
 	## debugging messages
 	if Debug:
 		print (colored("** DEBUG: select_samples",'yellow'))
@@ -421,7 +436,7 @@ def get_files(options, input_dir, mode, extension):
 
 	## get information
 	if mode in ['fastq', 'trim', 'join']:
-		pd_samples_retrieved = select_samples(files, samples_names, options.pair, exclude, options.debug, options.include_lane)
+		pd_samples_retrieved = select_samples(files, samples_names, options.pair, exclude, options.debug, options.include_lane, options.include_all)
 	else:
 		pd_samples_retrieved = select_other_samples(options.project, files, samples_names, mode, extension, exclude, options.debug)		
 		

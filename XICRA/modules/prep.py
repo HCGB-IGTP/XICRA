@@ -66,6 +66,13 @@ def run_prep(options):
         options.project = False
     else:
         options.project = True
+    
+    ## default options
+    if not options.include_lane:
+        options.include_lane = False
+    
+    if not options.include_all:
+        options.include_all = False
 
     ### info
     final_dir = ""

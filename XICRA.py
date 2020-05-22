@@ -70,6 +70,7 @@ options_group_prep.add_argument("--merge", action="store_true", help="Merges FAS
 options_group_prep.add_argument("--merge-by-lane", action="store_true", help="Merges FASTQ files for the same sample by lane (Technical replicates) [Default OFF].")
 options_group_prep.add_argument("--rename", help="File containing original name and final name for each sample separated by comma. No need to provide a name for each pair if paired-end files. If provided with option '--merge', the merge files would be renamed accordingly.")
 options_group_prep.add_argument("--include_lane", action="store_true", help="Include the lane tag (*L00X*) in the sample name. See --help_format for additional details [Default OFF]")
+options_group_prep.add_argument("--include_all", action="store_true", help="Include all characters as tag name before read pair, if any. See --help_format for additional details [Default OFF]")
 
 info_group_prep = subparser_prep.add_argument_group("Additional information")
 info_group_prep.add_argument("--help_format", action="store_true", help="Show additional help on name format for files.")
