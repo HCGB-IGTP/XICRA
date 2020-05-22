@@ -175,6 +175,7 @@ def run_trimm(options):
     if (options.skip_report):
         print ("+ No report generation...")
     else:
+        
         print ("\n+ Generating a report using MultiQC module.")
         outdir_report = functions.create_subfolder("report", outdir)
     
