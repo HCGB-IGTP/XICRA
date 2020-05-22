@@ -176,11 +176,11 @@ def retrieve_matching_files(folder, string):
 ############### 
 def get_symbolic_link_file (file2link, newfile):
 	"""Creates symbolic link for a file into a new name file"""
-	if is_non_zero_file(newfile):
+	if not is_non_zero_file(newfile):
 		cmd = 'ln -s %s %s' %(file2link, newfile)
 		system_call(cmd, returned=False)
 	else:
-		print ("+ Link file already exists...")
+		print (colored("\t+ Link file for sample already exists...", 'green'))
 
 #################
 def get_fullpath_list(dir_given):
