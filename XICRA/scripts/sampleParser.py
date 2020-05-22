@@ -51,23 +51,24 @@ def get_fields(file_name_list, pair, Debug, include_all):
 		trim_search = re.search(r".*trim.*", file_name)
 		lane_search = re.search(r".*\_L\d+\_.*", file_name)
 		## get name
-		if (pair):
-			## pair could be: R1|R2 or 1|2
-			if (trim_search):
-				name_search = re.search(r"(.*)\_trim\_(R1|1|R2|2)\.(f.*q)(\..*){0,1}", file_name)
-			elif (include_all):
-				name_search = re.search(r"(.*)\_(R1|1|R2|2)\_{0,1}(.*)\.(f.*q)(\..*){0,1}", file_name)
-				
-			else:
-				## Lane files: need to merge by file_name: 33i_S5_L004_R1_001.fastq.gz
-				## lane should contain L00x			
-				if (lane_search):
-					name_search = re.search(r"(.*)\_(L\d+)\_(R1|1|R2|2)\_{0,1}(.*)\.(f.*q)(\..*){0,1}", file_name)
+		if (include_all):
+			name_search = re.search(r"(.*){0,1}\_{0,1}(R1|1|R2|2){0,1}\_{0,1}(.*)\.(f.*q)(\..*){0,1}", file_name)
+		else:	
+			if (pair):
+				## pair could be: R1|R2 or 1|2
+				if (trim_search):
+					name_search = re.search(r"(.*)\_trim\_(R1|1|R2|2)\.(f.*q)(\..*){0,1}", file_name)
+					
 				else:
-					name_search = re.search(r"(.*)\_(R1|1|R2|2)\.(f.*q)(\..*){0,1}", file_name)
-		else:
-			name_search = re.search(r"(.*)\.(f.*q)(\..*){0,1}", file_name)
-	
+					## Lane files: need to merge by file_name: 33i_S5_L004_R1_001.fastq.gz
+					## lane should contain L00x			
+					if (lane_search):
+						name_search = re.search(r"(.*)\_(L\d+)\_(R1|1|R2|2)\_{0,1}(.*)\.(f.*q)(\..*){0,1}", file_name)
+					else:
+						name_search = re.search(r"(.*)\_(R1|1|R2|2)\.(f.*q)(\..*){0,1}", file_name)
+			else:
+				name_search = re.search(r"(.*)\.(f.*q)(\..*){0,1}", file_name)
+		
 		### declare
 		name= ""
 		lane_id= ""
