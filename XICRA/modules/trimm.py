@@ -240,20 +240,17 @@ def cutadapt (cutadapt_exe, reads, path, sample_name, num_threads, Debug, adapte
     """
     logfile = os.path.join(path, sample_name + '.cutadapt.log')
     
-    if extra:
-        o_param = os.path.join(path, sample_name + '_temp1_trim_R1.fastq')
-    else:
-        o_param = os.path.join(path, sample_name + '_trim_R1.fastq')
-    
     if (len(reads) == 2):
         if not adapters['adapter_a'] or adapters_dict['adapter_A']:
              print ("** ERROR: Missing adapter information")
              exit()
         
         if extra:
+            o_param = os.path.join(path, sample_name + '_temp1_trim_R1.fastq')
             p_param = os.path.join(path, sample_name + '_temp1_trim_R2.fastq')
         else:
             p_param = os.path.join(path, sample_name + '_trim_R2.fastq')
+            o_param = os.path.join(path, sample_name + '_trim_R1.fastq')
         
         ## paired-end mode
         cmd = '%s -j %s -a %s -A %s -o %s -p %s %s %s > %s' %(cutadapt_exe,  
@@ -265,6 +262,12 @@ def cutadapt (cutadapt_exe, reads, path, sample_name, num_threads, Debug, adapte
         if not adapters['adapter_a']:
              print ("** ERROR: Missing adapter information")
              exit()
+
+        if extra:
+            o_param = os.path.join(path, sample_name + '_temp1_trim.fastq')
+        else:
+            o_param = os.path.join(path, sample_name + '_trim.fastq')
+        
         ## single-end mode:
         cmd = '%s -j %s -a %s -o %s %s > %s' %(cutadapt_exe, num_threads, 
                                                         adapters['adapter_a'], o_param, reads[0], logfile)    
