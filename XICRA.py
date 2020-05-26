@@ -62,6 +62,8 @@ in_out_group_prep.add_argument("--batch", action="store_true", help="Provide thi
 in_out_group_prep.add_argument("--in_sample", help="File containing a list of samples to include (one per line) from input folder(s) [Default OFF].")
 in_out_group_prep.add_argument("--ex_sample", help="File containing a list of samples to exclude (one per line) from input folder(s) [Default OFF].")
 in_out_group_prep.add_argument("--detached", help="Isolated mode. No project folder initiated for further steps [Default OFF].")
+in_out_group_prep.add_argument("--include_lane", action="store_true", help="Include the lane tag (*L00X*) in the sample name. See --help_format for additional details [Default OFF]")
+in_out_group_prep.add_argument("--include_all", action="store_true", help="Include all characters as tag name before read pair, if any. See --help_format for additional details [Default OFF]")
 
 options_group_prep = subparser_prep.add_argument_group("Options")
 options_group_prep.add_argument("--threads", type=int, help="Number of CPUs to use [Default: 2].", default=2)
@@ -69,8 +71,6 @@ options_group_prep.add_argument("--copy", action="store_true", help="Instead of 
 options_group_prep.add_argument("--merge", action="store_true", help="Merges FASTQ files for the same sample [Default OFF].")
 options_group_prep.add_argument("--merge-by-lane", action="store_true", help="Merges FASTQ files for the same sample by lane (Technical replicates) [Default OFF].")
 options_group_prep.add_argument("--rename", help="File containing original name and final name for each sample separated by comma. No need to provide a name for each pair if paired-end files. If provided with option '--merge', the merge files would be renamed accordingly.")
-options_group_prep.add_argument("--include_lane", action="store_true", help="Include the lane tag (*L00X*) in the sample name. See --help_format for additional details [Default OFF]")
-options_group_prep.add_argument("--include_all", action="store_true", help="Include all characters as tag name before read pair, if any. See --help_format for additional details [Default OFF]")
 
 info_group_prep = subparser_prep.add_argument_group("Additional information")
 info_group_prep.add_argument("--help_format", action="store_true", help="Show additional help on name format for files.")
@@ -94,6 +94,8 @@ in_out_group_qc.add_argument("--batch", action="store_true", help="Provide this 
 in_out_group_qc.add_argument("--in_sample", help="File containing a list of samples to include (one per line) from input folder(s) [Default OFF].")
 in_out_group_qc.add_argument("--ex_sample", help="File containing a list of samples to exclude (one per line) from input folder(s) [Default OFF].")
 in_out_group_qc.add_argument("--detached", action="store_true", help="Isolated mode. --input is a folder containing samples, contigs or protein sequences. Provide a unique path o several using --batch option")
+in_out_group_qc.add_argument("--include_lane", action="store_true", help="Include the lane tag (*L00X*) in the sample name. See --help_format for additional details [Default OFF]")
+in_out_group_qc.add_argument("--include_all", action="store_true", help="Include all characters as tag name before read pair, if any. See --help_format for additional details [Default OFF]")
 
 exclusive_group_qc_name = subparser_qc.add_argument_group("Options")
 exclusive_group_qc = exclusive_group_qc_name.add_mutually_exclusive_group(required= not any(elem in help_options for elem in sys.argv))
@@ -127,6 +129,8 @@ in_out_group_trimm.add_argument("--batch", action="store_true", help="Provide th
 in_out_group_trimm.add_argument("--in_sample", help="File containing a list of samples to include (one per line) from input folder(s) [Default OFF].")
 in_out_group_trimm.add_argument("--ex_sample", help="File containing a list of samples to exclude (one per line) from input folder(s) [Default OFF].")
 in_out_group_trimm.add_argument("--detached", action="store_true", help="Isolated mode. --input is a folder containing fastq reads. Provide a unique path o several using --batch option")
+in_out_group_trimm.add_argument("--include_lane", action="store_true", help="Include the lane tag (*L00X*) in the sample name. See --help_format for additional details [Default OFF]")
+in_out_group_trimm.add_argument("--include_all", action="store_true", help="Include all characters as tag name before read pair, if any. See --help_format for additional details [Default OFF]")
 
 options_group_trimm = subparser_trimm.add_argument_group("Options")
 options_group_trimm.add_argument("--adapters_a", help="Sequence of an adapter ligated to the 3' end. See --help_trimm_adapters for further information.")
@@ -161,6 +165,8 @@ in_out_group_join.add_argument("--batch", action="store_true", help="Provide thi
 in_out_group_join.add_argument("--in_sample", help="File containing a list of samples to include (one per line) from input folder(s) [Default OFF].")
 in_out_group_join.add_argument("--ex_sample", help="File containing a list of samples to exclude (one per line) from input folder(s) [Default OFF].")
 in_out_group_join.add_argument("--detached", action="store_true", help="Isolated mode. --input is a folder containing fastq reads. Provide a unique path o several using --batch option")
+in_out_group_join.add_argument("--include_lane", action="store_true", help="Include the lane tag (*L00X*) in the sample name. See --help_format for additional details [Default OFF]")
+in_out_group_join.add_argument("--include_all", action="store_true", help="Include all characters as tag name before read pair, if any. See --help_format for additional details [Default OFF]")
 
 options_group_join = subparser_join.add_argument_group("Options")
 options_group_join.add_argument("--threads", type=int, help="Number of CPUs to use [Default: 2].", default=2)
@@ -193,10 +199,12 @@ in_out_group_RNAbiotype.add_argument("--batch", action="store_true", help="Provi
 in_out_group_RNAbiotype.add_argument("--in_sample", help="File containing a list of samples to include (one per line) from input folder(s) [Default OFF].")
 in_out_group_RNAbiotype.add_argument("--ex_sample", help="File containing a list of samples to exclude (one per line) from input folder(s) [Default OFF].")
 in_out_group_RNAbiotype.add_argument("--detached", action="store_true", help="Isolated mode. --input is a folder containing fastq reads. Provide a unique path o several using --batch option")
+in_out_group_RNAbiotype.add_argument("--include_lane", action="store_true", help="Include the lane tag (*L00X*) in the sample name. See --help_format for additional details [Default OFF]")
+in_out_group_RNAbiotype.add_argument("--include_all", action="store_true", help="Include all characters as tag name before read pair, if any. See --help_format for additional details [Default OFF]")
 
 options_group_RNAbiotype = subparser_RNAbiotype.add_argument_group("Options")
 options_group_RNAbiotype.add_argument("--threads", type=int, help="Number of CPUs to use [Default: 2].", default=2)
-options_group_RNAbiotype.add_argument("--perc_diff", type=int, help="Percentage difference for fastqRNAbiotype [Default: 8].")
+options_group_RNAbiotype.add_argument("--reference", type=int, help="Reference genome to map reads.", default=2)
 
 info_group_RNAbiotype = subparser_RNAbiotype.add_argument_group("Additional information")
 info_group_RNAbiotype.add_argument("--help_format", action="store_true", help="Show additional help on name format for files.")
@@ -224,6 +232,8 @@ in_out_group_miRNA.add_argument("--batch", action="store_true", help="Provide th
 in_out_group_miRNA.add_argument("--in_sample", help="File containing a list of samples to include (one per line) from input folder(s) [Default OFF].")
 in_out_group_miRNA.add_argument("--ex_sample", help="File containing a list of samples to exclude (one per line) from input folder(s) [Default OFF].")
 in_out_group_miRNA.add_argument("--detached", action="store_true", help="Isolated mode. --input is a folder containing fastq reads. Provide a unique path o several using --batch option")
+in_out_group_miRNA.add_argument("--include_lane", action="store_true", help="Include the lane tag (*L00X*) in the sample name. See --help_format for additional details [Default OFF]")
+in_out_group_miRNA.add_argument("--include_all", action="store_true", help="Include all characters as tag name before read pair, if any. See --help_format for additional details [Default OFF]")
 
 options_group_miRNA = subparser_miRNA.add_argument_group("Options")
 options_group_miRNA.add_argument("--threads", type=int, help="Number of CPUs to use [Default: 2].", default=2)

@@ -3,7 +3,6 @@
 ## Jose F. Sanchez                                        ##
 ## Copyright (C) 2019 Lauro Sumoy Lab, IGTP, Spain        ##
 ##########################################################
-from _ctypes_test import func
 """
 Create miRNA analysis using sRNAbenchtoolbox and miRTop.
 """
@@ -74,10 +73,6 @@ def run_miRNA(options):
     else:
         options.project = True
         outdir = input_dir        
-    
-    ## Percentage difference for joining sequences
-    if not options.perc_diff:
-        options.perc_diff = 8
     
     ## get files
     if options.pair:
