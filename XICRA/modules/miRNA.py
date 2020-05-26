@@ -40,9 +40,9 @@ def run_miRNA(options):
         ## information for project
         help_XICRA.project_help()
         exit()
-    elif (options.help_join_reads):
+    elif (options.help_miRNA):
         ## information for join reads
-        help_XICRA.help_join_reads()
+        help_XICRA.help_miRNA()
         exit()
         
     ## debugging messages

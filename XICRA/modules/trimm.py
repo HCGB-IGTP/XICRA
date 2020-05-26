@@ -189,7 +189,7 @@ def run_trimm(options):
             print ("\n")
 
         trimm_report = functions.create_subfolder("trimm", outdir_report)
-        multiQC_report.multiQC_module_call(my_outdir_list, "Trimmomatic", trimm_report,"")
+        multiQC_report.multiQC_module_call(my_outdir_list, "Cutadapt", trimm_report,"")
         print ('\n+ A summary HTML report of each sample is generated in folder: %s' %trimm_report)
         
     print ("\n*************** Finish *******************")

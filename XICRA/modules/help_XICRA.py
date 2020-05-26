@@ -113,3 +113,6 @@ def print_help_adapters():
 
 def help_join_reads():
     return ()
+
+def help_miRNA():
+    return ()

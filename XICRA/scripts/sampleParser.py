@@ -154,7 +154,7 @@ def select_samples (list_samples, samples_prefix, pair=True, exclude=False, Debu
 	for names in samples_prefix:
 		for path_fastq in list_samples:	
 			fastq = os.path.basename(path_fastq)
-			samplename_search = re.search(r"(%s)\_{0,1}(R1|1|R2|2){0,1}\.f.*q.*" % names, fastq)
+			samplename_search = re.search(r"(%s)\_{0,1}(R1|1|R2|2){0,1}(.*){0,1}\.f.*q.*" % names, fastq)
 			enter = ""
 			if samplename_search:
 				if (exclude): ## exclude==True
@@ -385,15 +385,31 @@ def get_files(options, input_dir, mode, extension):
 			files = set(files)
 			
 		else:
-			## input folder does not exist...
-			if (options.debug):
-				print (colored("\n**DEBUG: sampleParser.get_files input folder does not exists **", 'yellow'))
-				print (input_dir)
-				print ("\n")
-			
-			print (colored('***ERROR: input folder does not exist or it is not readable', 'red'))
-			exit()
-						
+			## input folder is not a dir, is it a batch input file?
+			if (options.batch):
+				if os.path.isfile(input_dir):
+					if (options.debug):
+						print (colored("\n**DEBUG: sampleParser.get_files input folder is a batch file, get full path **", 'yellow'))
+					dir_list = [line.rstrip('\n') for line in open(input_dir)]
+					for d in dir_list:
+						if os.path.exists(d):
+							print ('+ Folder (%s) exists' %d)
+							files.extend(functions.get_fullpath_list(d))
+						else:
+							## input folder does not exist...
+							if (options.debug):
+								print (colored("\n**DEBUG: sampleParser.get_files batch option; input folder does not exists **", 'yellow'))
+								print (d)
+								print ("\n")
+			else:
+				## input folder does not exist...
+				if (options.debug):
+					print (colored("\n**DEBUG: sampleParser.get_files input folder does not exists **", 'yellow'))
+					print (input_dir)
+					print ("\n")
+	
+				print (colored('***ERROR: input folder does not exist or it is not readable', 'red'))
+				exit()						
 	else:
 		### provide a single folder or a file with multiple paths (option batch)
 		if (options.batch):
@@ -402,7 +418,7 @@ def get_files(options, input_dir, mode, extension):
 				for d in dir_list:
 					if os.path.exists(d):
 						print ('+ Folder (%s) exists' %d)
-						files = files + functions.get_fullpath_list(d)
+						files = files.extend(functions.get_fullpath_list(d))
 					else:
 						## input folder does not exist...
 						if (options.debug):
@@ -459,6 +475,9 @@ def get_files(options, input_dir, mode, extension):
 	else:
 		samples_names = ['.*']
 
+	## discard empty sample_names
+	samples_names = list(filter(None, samples_names)) ## empty space
+
 	## discard some files obtain
 	files = [s for s in files if 'single_copy_busco_sequences' not in s]
 	files = [s for s in files if 'orphan' not in s]
@@ -467,6 +486,7 @@ def get_files(options, input_dir, mode, extension):
 	files = [s for s in files if 'configs' not in s]
 	files = [s for s in files if '00.0_0.cor.fastq.gz' not in s]
 	files = [s for s in files if 'report_summary' not in s]
+	files = list(filter(None, files)) ## empty space
 		
 	## files list...
 	if (options.debug):

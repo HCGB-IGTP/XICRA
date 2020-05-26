@@ -131,7 +131,12 @@ def run_prep(options):
                 extension_string = row['ext'] + row['gz']
             else:
                 extension_string = row['ext']
-            renamed = names_retrieved[row['name']] + '_' + row['read_pair'] + '.' + extension_string
+            
+            if options.single_end:
+                renamed = names_retrieved[row['name']] + '.' + extension_string
+            else:
+                renamed = names_retrieved[row['name']] + '_' + row['read_pair'] + '.' + extension_string
+            
             ## modify frame
             pd_samples_retrieved.loc[index, 'new_file'] = renamed
             pd_samples_retrieved.loc[index, 'new_name'] = names_retrieved[row['name']]
