@@ -165,7 +165,7 @@ def sRNAbench_caller(reads, sample_folder, name, threads, Debug):
         print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'sRNAbench'), 'yellow'))
     else:
         # Call sRNAbench
-        code_returned = sRNAbench(list_reads, sample_folder, name, threads, Debug)
+        code_returned = sRNAbench(reads, sample_folder, name, threads, Debug)
         if code_returned:
             functions.print_time_stamp(filename_stamp)
         else:

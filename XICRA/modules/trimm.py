@@ -281,17 +281,17 @@ def cutadapt (cutadapt_exe, reads, path, sample_name, num_threads, Debug, adapte
     ## if additional options, run a second cutadapt command
     ## to ensure this options take effect.
     if (extra):
-        o_param2 = os.path.join(path, sample_name + '_trim_R1.fastq')
-        p_param2 = os.path.join(path, sample_name + '_trim_R2.fastq')
-        
         if (len(reads) == 2):
-
+            o_param2 = os.path.join(path, sample_name + '_trim_R1.fastq')
+            p_param2 = os.path.join(path, sample_name + '_trim_R2.fastq')
+        
             ## paired-end mode
             extra_cmd = '%s %s -j %s -a %s -A %s -o %s -p %s %s %s >> %s' %(cutadapt_exe, extra, num_threads, 
                                                                 adapters['adapter_a'], adapters['adapter_A'],
                                                             o_param2, p_param2, o_param, p_param, logfile)
         
         elif (len(reads) == 1):
+            o_param2 = os.path.join(path, sample_name + '_trim.fastq')
             ## single-end mode:
             extra_cmd = '%s %s -j %s -a %s -o %s %s >> %s' %(cutadapt_exe, extra, num_threads, adapters['adapter_a'], 
                                                    o_param2, o_param, logfile)    
