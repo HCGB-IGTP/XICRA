@@ -88,7 +88,7 @@ def run_miRNA(options):
     ## Additional sRNAbench or miRTop options
     
     ## miRNA_gff: can be set as automatic to download from miRBase
-    if not options.miRNA_gff():
+    if not options.miRNA_gff:
         print (colored("** ERROR: No miRNA gff file provided", 'red'))
         exit()
     else:
@@ -178,7 +178,7 @@ def sRNAbench_caller(reads, sample_folder, name, threads, Debug):
             print ('** Sample %s failed...' %name)
             return(False)
         
-        return(True)
+    return(True)
 
 ###############       
 def sRNAbench (reads, outpath, file_name, num_threads, Debug):
@@ -223,8 +223,8 @@ def miRTop_caller(sRNAbench_folder, sample_folder, name, threads, miRNA_gff, Deb
 def miRTop(sRNAbench_folder, sample_folder, name, threads, miRNA_gff, Debug):
 
     miRTop_exe = set_config.get_exe('miRTop', Debug=Debug)
-    sRNAbench_hairpin =  "" ## sRNAtoolboxDB  'libs/hairpin.fa'
-    sRNAbench_db = os.path.abspath(os.path.join(os.path.dirname(sRNAbench_exe), '..', 'libs', 'hairpin.fa')) ## sRNAtoolboxDB
+    sRNAbench_exe = set_config.get_exe("sRNAbench", Debug=Debug)
+    sRNAbench_hairpin = os.path.abspath(os.path.join(os.path.dirname(sRNAbench_exe), '..', 'libs', 'hairpin.fa')) ## sRNAtoolboxDB
     miRNA_gff = "" # config['FILES']['miRNA_gff']    
     species = 'hsa' #homo sapiens ## set as option if desired
     
