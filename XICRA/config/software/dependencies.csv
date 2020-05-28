@@ -9,5 +9,5 @@ perl,--version,v([0-9]\.[0-9]+\.[0-9]),5.18.1,perl
 make,--version,GNU Make ([0-9]\.[0-9].*),4.0,make
 git,--version,git version ([0-9]\.[0-9]+\.[0-9]),2.1.0,git
 fastqjoin,,,na,fastq-join
-sRNAbench,-h,.*version.*([0-9\.]+) -.*,1.6,sRNAbench.jar
+sRNAbench,-h,([0-9\.]+),1.6,sRNAbench.jar
 mirtop,--version,([0-9\.]+).*,0.4.23,mirtop

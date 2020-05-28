@@ -178,7 +178,7 @@ def sRNAbench_caller(reads, sample_folder, name, threads, Debug):
 def sRNAbench (reads, outpath, file_name, num_threads, Debug):
     
     sRNAbench_exe = set_config.get_exe("sRNAbench", Debug=Debug)
-    sRNAbench_db = os.path.join(os.path.dirname(sRNAbench_exe), '..', '..') ## sRNAtoolboxDB
+    sRNAbench_db = os.path.abspath(os.path.join(os.path.dirname(sRNAbench_exe), '..')) ## sRNAtoolboxDB
     logfile = os.path.join(outpath, 'sRNAbench.log')
     
     if (len(reads) > 1):
@@ -186,7 +186,8 @@ def sRNAbench (reads, outpath, file_name, num_threads, Debug):
         exit()
     
     ## create command    
-    cmd = '%s -jar %s dbPath=%s input=%s output=%s' %(java_exe, sRNAbench_exe, sRNAbench_db, reads, outpath)  
+    java_exe = set_config.get_exe('java', Debug=Debug)
+    cmd = '%s -jar %s dbPath=%s input=%s output=%s' %(java_exe, sRNAbench_exe, sRNAbench_db, reads[0], outpath)  
     cmd = cmd + ' microRNA=hsa isoMiR=true plotLibs=true graphics=true' 
     cmd = cmd + ' plotMiR=true bedGraphMode=true writeGenomeDist=true '
     cmd = cmd + ' chromosomeLevel=true chrMappingByLength=true > ' + logfile 
