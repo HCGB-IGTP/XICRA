@@ -86,7 +86,13 @@ def run_miRNA(options):
         print (pd_samples_retrieved)
 
     ## Additional sRNAbench or miRTop options
-    ##
+    
+    ## miRNA_gff: can be set as automatic to download from miRBase
+    if not options.miRNA_gff():
+        print (colored("** ERROR: No miRNA gff file provided", 'red'))
+        exit()
+    else:
+        options.miRNA_gff = os.path.abspath(options.miRNA_gff)
 
     ## generate output folder, if necessary
     if not options.project:
@@ -115,7 +121,7 @@ def run_miRNA(options):
     ## send for each sample
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers_int) as executor:
         commandsSent = { executor.submit(miRNA_analysis, sorted(cluster["sample"].tolist()), 
-                                         outdir_dict[name], name, threads_job, 
+                                         outdir_dict[name], name, threads_job, options.miRNA_gff,
                                          Debug): name for name, cluster in sample_frame }
 
         for cmd2 in concurrent.futures.as_completed(commandsSent):
@@ -138,7 +144,7 @@ def run_miRNA(options):
 
 
 ###############
-def miRNA_analysis(reads, folder, name, threads, Debug):
+def miRNA_analysis(reads, folder, name, threads, miRNA_gff, Debug):
     
     ## create sRNAbench
     sRNAbench_folder = functions.create_subfolder('sRNAbench', folder)
@@ -150,7 +156,7 @@ def miRNA_analysis(reads, folder, name, threads, Debug):
     
     ## create miRTop
     functions.create_subfolder('miRTop', folder)
-    sample_gff = miRTop_caller(sRNAbench_folder, folder, name, threads, Debug)
+    sample_gff = miRTop_caller(sRNAbench_folder, folder, name, threads, miRNA_gff, Debug)
     
     ## parse gtf to accommodate all data
     filename = os.path.join(folder, name + '_XICRA_miRNA.gtf')
@@ -195,7 +201,7 @@ def sRNAbench (reads, outpath, file_name, num_threads, Debug):
     return(functions.system_call(cmd))
 
 ###############       
-def miRTop_caller(sRNAbench_folder, sample_folder, name, threads, Debug):
+def miRTop_caller(sRNAbench_folder, sample_folder, name, threads, miRNA_gff, Debug):
     
     # check if previously generated and succeeded
     filename_stamp = sample_folder + '/.success'
@@ -204,7 +210,7 @@ def miRTop_caller(sRNAbench_folder, sample_folder, name, threads, Debug):
         print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'miRTop'), 'yellow'))
     else:
         # Call miRTop
-        code_returned = miRTop(sRNAbench_folder, sample_folder, name, threads, Debug)
+        code_returned = miRTop(sRNAbench_folder, sample_folder, name, threads, miRNA_gff, Debug)
         if code_returned:
             functions.print_time_stamp(filename_stamp)
         else:
@@ -214,10 +220,11 @@ def miRTop_caller(sRNAbench_folder, sample_folder, name, threads, Debug):
         return(True)
 
 ###############
-def miRTop(sRNAbench_folder, sample_folder, name, threads, Debug):
+def miRTop(sRNAbench_folder, sample_folder, name, threads, miRNA_gff, Debug):
 
     miRTop_exe = set_config.get_exe('miRTop', Debug=Debug)
     sRNAbench_hairpin =  "" ## sRNAtoolboxDB  'libs/hairpin.fa'
+    sRNAbench_db = os.path.abspath(os.path.join(os.path.dirname(sRNAbench_exe), '..', 'libs', 'hairpin.fa')) ## sRNAtoolboxDB
     miRNA_gff = "" # config['FILES']['miRNA_gff']    
     species = 'hsa' #homo sapiens ## set as option if desired
     

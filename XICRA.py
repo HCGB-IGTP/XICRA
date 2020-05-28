@@ -235,6 +235,7 @@ in_out_group_miRNA.add_argument("--include_all", action="store_true", help="Incl
 
 options_group_miRNA = subparser_miRNA.add_argument_group("Options")
 options_group_miRNA.add_argument("--threads", type=int, help="Number of CPUs to use [Default: 2].", default=2)
+options_group_miRNA.add_argument("--miRNA_gff", help="miRBase hsa GFF file containing miRNA information.")
 #options_group_miRNA.add_argument("--species", type=int, help="Species tag ID [Default: hsa (Homo sapiens)].", default=2)
 ##options_group_miRNA.add_argument("--sRNAbench_options", type=int, help="Additional sRNAbench options.")
 ##options_group_miRNA.add_argument("--miRTop_options", type=int, help="Additional miRTop options.")
