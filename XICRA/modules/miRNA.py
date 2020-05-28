@@ -175,9 +175,9 @@ def sRNAbench_caller(reads, sample_folder, name, threads, Debug):
         return(True)
 
 ###############       
-def sRNAbench (sRNAbench_exe, reads, outpath, file_name, num_threads, Debug):
+def sRNAbench (reads, outpath, file_name, num_threads, Debug):
     
-    sRNAbench_exe = set_config.get_exe("sRNAbench", debug=Debug)
+    sRNAbench_exe = set_config.get_exe("sRNAbench", Debug=Debug)
     sRNAbench_db = os.path.join(os.path.dirname(sRNAbench_exe), '..', '..') ## sRNAtoolboxDB
     logfile = os.path.join(outpath, 'sRNAbench.log')
     
@@ -215,7 +215,7 @@ def miRTop_caller(sRNAbench_folder, sample_folder, name, threads, Debug):
 ###############
 def miRTop(sRNAbench_folder, sample_folder, name, threads, Debug):
 
-    miRTop_exe = set_config.get_exe('miRTop', debug=Debug)
+    miRTop_exe = set_config.get_exe('miRTop', Debug=Debug)
     sRNAbench_hairpin =  "" ## sRNAtoolboxDB  'libs/hairpin.fa'
     miRNA_gff = "" # config['FILES']['miRNA_gff']    
     species = 'hsa' #homo sapiens ## set as option if desired
