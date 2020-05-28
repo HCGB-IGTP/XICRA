@@ -177,7 +177,7 @@ def sRNAbench_caller(reads, sample_folder, name, threads, Debug):
 ###############       
 def sRNAbench (reads, outpath, file_name, num_threads, Debug):
     
-    sRNAbench_exe = set_config.get_exe("srnabench")
+    sRNAbench_exe = set_config.get_exe("sRNAbench")
     sRNAbench_db = os.path.join(os.path.dirname(sRNAbench_exe), '..', '..') ## sRNAtoolboxDB
     logfile = os.path.join(outpath, 'sRNAbench.log')
     
