@@ -23,9 +23,10 @@ def generate_DE(dict_files, Debug, outfolder):
 	all_data_filtered, all_data_duplicated = discard_UID_duplicated(all_data)
 	
 	## dump data in folder provided
-	all_data_filtered.to_csv(abs_csv_outfile, quoting=csv.QUOTE_NONNUMERIC)
-	all_data_duplicated.to_csv(abs_csv_outfile + '_dup', quoting=csv.QUOTE_NONNUMERIC)
-	all_seqs.to_csv(abs_csv_outfile + '_seq', quoting=csv.QUOTE_NONNUMERIC)
+	csv_outfile = os.path.join(outfolder, 'miRNA_expression')
+	all_data_filtered.to_csv(csv_outfile, quoting=csv.QUOTE_NONNUMERIC)
+	all_data_duplicated.to_csv(csv_outfile + '_dup', quoting=csv.QUOTE_NONNUMERIC)
+	all_seqs.to_csv(csv_outfile + '_seq', quoting=csv.QUOTE_NONNUMERIC)
 
 ####################
 def discard_UID_duplicated(df_data):
