@@ -195,7 +195,7 @@ def sRNAbench (reads, outpath, file_name, num_threads, Debug):
     java_exe = set_config.get_exe('java', Debug=Debug)
     cmd = '%s -jar %s dbPath=%s input=%s output=%s' %(java_exe, sRNAbench_exe, sRNAbench_db, reads[0], outpath)  
     cmd = cmd + ' microRNA=hsa isoMiR=true plotLibs=true graphics=true' 
-    cmd = cmd + ' plotMiR=true bedGraphMode=true writeGenomeDist=true '
+    cmd = cmd + ' plotMiR=true bedGraphMode=true writeGenomeDist=true'
     cmd = cmd + ' chromosomeLevel=true chrMappingByLength=true > ' + logfile 
     
     return(functions.system_call(cmd))
@@ -240,7 +240,7 @@ def miRTop(sRNAbench_folder, sample_folder, name, threads, miRNA_gff, Debug):
     
     ## miRTop analysis
     print ('Creating isomiRs gtf file for sample %s' %name)
-    cmd = miRTop_exe + ' gff --sps %s --hairpin %s --gtf %s --format srnabench -o %s %s 2> %s' %(species, sRNAbench_hairpin, miRNA_gff, sample_folder, sRNAbench_folder, logfile)
+    cmd = miRTop_exe + ' gff --sps %s --hairpin %s --gtf %s --format srnabench -o %s %s 2> %s' %(species, sRNAbench_hairpin, miRNA_gff, outdir_name, sRNAbench_folder, logfile)
     
     ## execute
     code_miRTop = functions.system_call(cmd)
