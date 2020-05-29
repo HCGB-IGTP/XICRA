@@ -286,7 +286,7 @@ def miRTop(sRNAbench_folder, sample_folder, name, threads, miRNA_gff, Debug):
     else:
         print ('Creating isomiRs counts for sample %s' %name)
         ## if both succeeded
-        cmd_stats = miRTop_exe + ' counts -o %s %s 2>> %s' %(mirtop_folder_counts, mirtop_folder_gff_file, logfile)
+        cmd_stats = miRTop_exe + ' counts -o %s --gff %s --hairpin %s --gtf %s --sps %s 2>> %s' %(mirtop_folder_counts, mirtop_folder_gff_file, sRNAbench_hairpin, miRNA_gff, species, logfile)
         code_miRTop_counts = functions.system_call(cmd_stats)
         
         if code_miRTop_counts:
