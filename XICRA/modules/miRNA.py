@@ -148,6 +148,7 @@ def run_miRNA(options):
         print (results_dict)
     
     ## merge all parse gtf files created
+    print ("+ Summarize miRNA analysis for all samples...")
     generate_DE.generate_DE(results_dict, options.debug, expression_folder)
 
     print ("\n*************** Finish *******************")

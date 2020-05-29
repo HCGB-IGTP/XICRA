@@ -111,7 +111,7 @@ def generate_matrix(dict_files, Debug):
 	
 		seq_data = data.filter(['UID', 'Read'], axis=1)	
 		seq_data = seq_data.set_index('UID')
-		seq_all_data = seq_all_data.append(seq_data, sort=True).drop_duplicates('seq')
+		seq_all_data = seq_all_data.append(seq_data, sort=True).drop_duplicates('Read')
 
 		new_data = new_data.rename(columns={'sRNAbench': sample})
 		
