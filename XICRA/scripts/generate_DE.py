@@ -1,4 +1,4 @@
-#usr/bin/env python
+#!/usr/bin/env python3
 import time
 import io
 import os
@@ -9,9 +9,28 @@ from sys import argv
 import pandas as pd
 import csv
 
-######
-def discard_UID_duplicated(df_data):
+from XICRA.scripts import functions
+from XICRA.scripts.functions import is_non_zero_file
+
+####################
+def generate_DE(dict_files, Debug, outfolder):
+	"""
+	"""
+	## get data
+	(all_data, all_seqs) = generate_matrix(dict_files, Debug)
 	
+	## discard duplicate UIDs if any
+	all_data_filtered, all_data_duplicated = discard_UID_duplicated(all_data)
+	
+	## dump data in folder provided
+	all_data_filtered.to_csv(abs_csv_outfile, quoting=csv.QUOTE_NONNUMERIC)
+	all_data_duplicated.to_csv(abs_csv_outfile + '_dup', quoting=csv.QUOTE_NONNUMERIC)
+	all_seqs.to_csv(abs_csv_outfile + '_seq', quoting=csv.QUOTE_NONNUMERIC)
+
+####################
+def discard_UID_duplicated(df_data):
+	"""
+	"""
 	## get data index
 	df_data['ID'] = df_data.index
 	new_data = df_data.filter(['ID'], axis=1)	
@@ -56,8 +75,10 @@ def discard_UID_duplicated(df_data):
 	
 	return (clean_data_expression, duplicates_expression)
 
-######
-def generate_matrix(list_files, abs_path_folder):
+####################
+def generate_matrix(dict_files, Debug):
+	"""
+	"""
 	######################################################
 	### For a list of files, generates a count matrix with a unique index id by merging:
 	### information provided within each file: name, variant and UID by '&'
@@ -70,61 +91,47 @@ def generate_matrix(list_files, abs_path_folder):
 	#########################################################
 	all_data = pd.DataFrame()
 	seq_all_data = pd.DataFrame()
-	for f in list_files:
-		this_file = abs_path_folder + '/' + f
-
-		print ('+ Reading information from file: ', this_file)	
-		data = pd.read_csv(this_file, sep='\t')
-	
-		## skip if file is empty
-		if data.empty:
-			continue
-
+	for sample, this_file in dict_files.items():
+		print ('+ Reading information from sample: ', sample)	
+		
+		if is_non_zero_file(this_file):
+			data = pd.read_csv(this_file, sep='\t')
+		else:
+			print ('\t - Information not available for sample: ', sample)	
+			
 		## get info, generate unique name and merge for samples
-		data['variant'].fillna('NA', inplace=True)
-		data['unique_id'] = data.apply(lambda data: data['name'] + '&' + data['variant'] + '&' + data['UID'], axis=1)
+		## header of tsv files: 
+		## UID	Read	miRNA	Variant	iso_5p	iso_3p	iso_add3p	iso_snp	sRNAbench
 
-		new_data = data.filter(['unique_id', 'expression'], axis=1)	
+		data['Variant'].fillna('NA', inplace=True)
+		data['unique_id'] = data.apply(lambda data: data['miRNA'] + '&' + data['Variant'] + '&' + data['UID'], axis=1)
+
+		new_data = data.filter(['unique_id', 'sRNAbench'], axis=1)	## change if different from sRNAbench
 		new_data = new_data.set_index('unique_id')
 	
-		seq_data = data.filter(['UID', 'seq'], axis=1)	
+		seq_data = data.filter(['UID', 'Read'], axis=1)	
 		seq_data = seq_data.set_index('UID')
 		seq_all_data = seq_all_data.append(seq_data, sort=True).drop_duplicates('seq')
 
-		sample_name = data['sample_name'].to_list()
-		new_data = new_data.rename(columns={'expression': sample_name[0]})
+		new_data = new_data.rename(columns={'sRNAbench': sample})
+		
+		## debugging messages
+		if Debug:
+			print ("*** DEBUG: data for sample ***")
+			print (new_data)
+		
 		all_data = pd.concat([all_data, new_data], axis=1, sort=True)
 
 	##
+	## debugging messages
+	if Debug:
+		print ("*** DEBUG: data for all samples ***")
+		print (all_data)
+		print ("*** DEBUG: data for sequences all samples ***")
+		print (seq_all_data)
+		
+		
 	return (all_data, seq_all_data)	
 
 ######
-def main():
-	## ARGV
-	if len (sys.argv) < 3:
-		print ("\nUsage:")
-		print ("python3 %s folder out_csv\n" %os.path.realpath(__file__))
-		exit()
 
-	### input
-	abs_path_folder = os.path.abspath(argv[1])
-	abs_csv_outfile = os.path.abspath(argv[2])
-	
-	### get files
-	list_files = os.listdir(abs_path_folder)
-	
-	## get data
-	(all_data, all_seqs) = generate_matrix(list_files, abs_path_folder)
-	
-	## discard duplicate UIDs if any
-	all_data_filtered, all_data_duplicated = discard_UID_duplicated(all_data)
-
-	print ('+ Database contains: ', len(all_data_filtered), ' entries\n')
-	all_data_filtered.to_csv(abs_csv_outfile, quoting=csv.QUOTE_NONNUMERIC)
-	all_data_duplicated.to_csv(abs_csv_outfile + '_dup', quoting=csv.QUOTE_NONNUMERIC)
-	all_seqs.to_csv(abs_csv_outfile + '_seq', quoting=csv.QUOTE_NONNUMERIC)
-
-
-######
-if __name__== "__main__":
-	main()

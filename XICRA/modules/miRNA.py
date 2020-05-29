@@ -20,8 +20,8 @@ from termcolor import colored
 from XICRA.scripts import sampleParser
 from XICRA.scripts import functions
 from XICRA.config import set_config
-from XICRA.scripts import parse_gtf
 from XICRA.modules import help_XICRA
+from XICRA.scripts import generate_DE
 
 ##############################################
 def run_miRNA(options):
@@ -139,8 +139,16 @@ def run_miRNA(options):
 
     print ("\n\n+ miRNA analysis is finished...")
     
+    ## outdir
+    outdir_report = functions.create_subfolder("report", outdir)
+    expression_folder = functions.create_subfolder("miRNA", outdir_report)
+
+    ## debugging messages
+    if options.debug:
+        print (results_dict)
+    
     ## merge all parse gtf files created
-    print (results_dict)
+    generate_DE.generate_DE(results_dict, options.debug, expression_folder)
 
     print ("\n*************** Finish *******************")
     start_time_partial = functions.timestamp(start_time_total)
