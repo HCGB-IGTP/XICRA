@@ -155,11 +155,11 @@ def miRNA_analysis(reads, folder, name, threads, miRNA_gff, Debug):
         return ()
     
     ## create miRTop
-    sample_gff = miRTop_caller(sRNAbench_folder, folder, name, threads, miRNA_gff, Debug)
+    sample_tsv = miRTop_caller(sRNAbench_folder, folder, name, threads, miRNA_gff, Debug)
     
     ## parse gtf to accommodate all data
-    filename = os.path.join(folder, name + '_XICRA_miRNA.gtf')
-    parse_gtf.parse_gtf(sample_gff, filename, name, 'miRNA')
+    #filename = os.path.join(folder, name + '_XICRA_miRNA.gtf')
+    #parse_gtf.parse_gtf(sample_gff, filename, name, 'miRNA')
 
 ###############       
 def sRNAbench_caller(reads, sample_folder, name, threads, Debug):
@@ -235,9 +235,9 @@ def miRTop(sRNAbench_folder, sample_folder, name, threads, miRNA_gff, Debug):
     logfile = os.path.join(sample_folder, name + '.log')
     
     ## folders
-    mirtop_folder_gff = os.path.join(mirtop_folder, 'gff')
-    mirtop_folder_stats = os.path.join(mirtop_folder, 'stats')
-    mirtop_folder_counts = os.path.join(mirtop_folder, 'counts')
+    mirtop_folder_gff = os.path.join(sample_folder, 'gff')
+    mirtop_folder_stats = os.path.join(sample_folder, 'stats')
+    mirtop_folder_counts = os.path.join(sample_folder, 'counts')
     
     ## get sRNAbench info
     reads_annot = os.path.join(sRNAbench_folder, "reads.annotation")
