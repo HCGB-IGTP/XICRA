@@ -203,7 +203,7 @@ def sRNAbench (reads, outpath, file_name, num_threads, Debug):
 def miRTop_caller(sRNAbench_folder, sample_folder, name, threads, miRNA_gff, Debug):
     
     # check if previously generated and succeeded
-    mirtop_folder = functions.create_subfolder('miRTop', folder)
+    mirtop_folder = functions.create_subfolder('miRTop', sample_folder)
 
     filename_stamp = mirtop_folder + '/.success'
     if os.path.isfile(filename_stamp):
