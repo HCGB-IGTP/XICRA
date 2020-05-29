@@ -115,6 +115,10 @@ def run_miRNA(options):
     print ("+ Create a miRNA analysis for each sample retrieved...")    
     
     ## call miRNA_analysis: sRNAbench & miRTop
+    ## dictionary results
+    global results_dict
+    results_dict = {}
+    
     # Group dataframe by sample name
     sample_frame = pd_samples_retrieved.groupby(["new_name"])
     
@@ -136,6 +140,7 @@ def run_miRNA(options):
     print ("\n\n+ miRNA analysis is finished...")
     
     ## merge all parse gtf files created
+    print (results_dict)
 
     print ("\n*************** Finish *******************")
     start_time_partial = functions.timestamp(start_time_total)
@@ -155,10 +160,11 @@ def miRNA_analysis(reads, folder, name, threads, miRNA_gff, Debug):
         return ()
     
     ## create miRTop
-    sample_tsv = miRTop_caller(sRNAbench_folder, folder, name, threads, miRNA_gff, Debug)
+    miRTop_caller(sRNAbench_folder, folder, name, threads, miRNA_gff, Debug)
     
     ## parse gtf to accommodate all data
-    #filename = os.path.join(folder, name + '_XICRA_miRNA.gtf')
+    filename = os.path.join(folder, 'counts', 'mirtop.tsv')
+    results_dict[name] = filename
     #parse_gtf.parse_gtf(sample_gff, filename, name, 'miRNA')
 
 ###############       
