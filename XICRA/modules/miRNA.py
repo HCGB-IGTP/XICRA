@@ -163,7 +163,7 @@ def miRNA_analysis(reads, folder, name, threads, miRNA_gff, Debug):
     miRTop_caller(sRNAbench_folder, folder, name, threads, miRNA_gff, Debug)
     
     ## parse gtf to accommodate all data
-    filename = os.path.join(folder, 'counts', 'mirtop.tsv')
+    filename = os.path.join(folder, 'miRTop', 'counts', 'mirtop.tsv')
     results_dict[name] = filename
     #parse_gtf.parse_gtf(sample_gff, filename, name, 'miRNA')
 
@@ -270,13 +270,14 @@ def miRTop(sRNAbench_folder, sample_folder, name, threads, miRNA_gff, Debug):
             return(False)
         
     ## miRTop stats
+    mirtop_folder_gff_file = os.path.join(mirtop_folder_gff, 'mirtop.gff')
+
     filename_stamp_stats = mirtop_folder_stats + '/.success'
     if os.path.isfile(filename_stamp_stats):
         stamp = functions.read_time_stamp(filename_stamp_stats)
         print (colored("\tA previous command generated results on: %s [%s -- %s - stats]" %(stamp, name, 'miRTop'), 'yellow'))
     else:
         print ('Creating isomiRs stats for sample %s' %name)
-        mirtop_folder_gff_file = os.path.join(mirtop_folder_gff, 'mirtop.gff')
         cmd_stats = miRTop_exe + ' stats -o %s %s 2>> %s' %(mirtop_folder_stats, mirtop_folder_gff_file, logfile)
         code_miRTop_stats = functions.system_call(cmd_stats)
         if code_miRTop_stats:

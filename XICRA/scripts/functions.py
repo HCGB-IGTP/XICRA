@@ -302,7 +302,7 @@ def system_call(cmd, returned=False, message=True):
 		out = subprocess.check_output(cmd, shell = True)
 		if (returned):
 			return (out)
-		return ('OK')
+		return (True)
 	except subprocess.CalledProcessError as err:
 		if (returned):
 			return (err.output)
@@ -311,7 +311,7 @@ def system_call(cmd, returned=False, message=True):
 			print (colored(err.output, 'red'))
 			print (colored("** ERROR **", 'red'))
 		
-		return ('FAIL')
+		return (False)
 
 def is_non_zero_file(fpath):  
 	# https://stackoverflow.com/a/15924160
