@@ -155,7 +155,6 @@ def miRNA_analysis(reads, folder, name, threads, miRNA_gff, Debug):
         return ()
     
     ## create miRTop
-    functions.create_subfolder('miRTop', folder)
     sample_gff = miRTop_caller(sRNAbench_folder, folder, name, threads, miRNA_gff, Debug)
     
     ## parse gtf to accommodate all data
@@ -204,13 +203,15 @@ def sRNAbench (reads, outpath, file_name, num_threads, Debug):
 def miRTop_caller(sRNAbench_folder, sample_folder, name, threads, miRNA_gff, Debug):
     
     # check if previously generated and succeeded
-    filename_stamp = sample_folder + '/.success'
+    mirtop_folder = functions.create_subfolder('miRTop', folder)
+
+    filename_stamp = mirtop_folder + '/.success'
     if os.path.isfile(filename_stamp):
         stamp = functions.read_time_stamp(filename_stamp)
         print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'miRTop'), 'yellow'))
     else:
         # Call miRTop
-        code_returned = miRTop(sRNAbench_folder, sample_folder, name, threads, miRNA_gff, Debug)
+        code_returned = miRTop(sRNAbench_folder, mirtop_folder, name, threads, miRNA_gff, Debug)
         if code_returned:
             functions.print_time_stamp(filename_stamp)
         else:
@@ -227,7 +228,6 @@ def miRTop(sRNAbench_folder, sample_folder, name, threads, miRNA_gff, Debug):
     sRNAbench_hairpin = os.path.abspath(os.path.join(os.path.dirname(sRNAbench_exe), '..', 'libs', 'hairpin.fa')) ## sRNAtoolboxDB
     species = 'hsa' #homo sapiens ## set as option if desired
     
-    outdir_name = os.path.join(sample_folder, name)
     logfile = os.path.join(sample_folder, name + '.log')
     
     ## get sRNAbench info
@@ -240,7 +240,7 @@ def miRTop(sRNAbench_folder, sample_folder, name, threads, miRNA_gff, Debug):
     
     ## miRTop analysis
     print ('Creating isomiRs gtf file for sample %s' %name)
-    cmd = miRTop_exe + ' gff --sps %s --hairpin %s --gtf %s --format srnabench -o %s %s 2> %s' %(species, sRNAbench_hairpin, miRNA_gff, outdir_name, sRNAbench_folder, logfile)
+    cmd = miRTop_exe + ' gff --sps %s --hairpin %s --gtf %s --format srnabench -o %s %s 2> %s' %(species, sRNAbench_hairpin, miRNA_gff, sample_folder, sRNAbench_folder, logfile)
     
     ## execute
     code_miRTop = functions.system_call(cmd)
@@ -249,7 +249,7 @@ def miRTop(sRNAbench_folder, sample_folder, name, threads, miRNA_gff, Debug):
     
         ## miRTop stats
         print ('Creating isomiRs stats for sample %s' %name)
-        cmd_stats = miRTop_exe + ' stats -o %s %s 2>> %s' %(outdir_stats, outdir_gtf, logfile)
+        cmd_stats = miRTop_exe + ' stats -o %s %s 2>> %s' %(outdir_stats, sample_folder, logfile)
         code_miRTop_stats = functions.system_call(cmd_stats)
     
         ## if both succeeded
