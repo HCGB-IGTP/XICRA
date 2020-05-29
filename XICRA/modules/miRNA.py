@@ -205,7 +205,11 @@ def miRTop_caller(sRNAbench_folder, sample_folder, name, threads, miRNA_gff, Deb
     # check if previously generated and succeeded
     mirtop_folder = functions.create_subfolder('miRTop', sample_folder)
 
-    filename_stamp = mirtop_folder + '/.success'
+    mirtop_folder_gff = functions.create_subfolder('gff', mirtop_folder)
+    mirtop_folder_stats = functions.create_subfolder('stats', mirtop_folder)
+    mirtop_folder_counts = functions.create_subfolder('counts', mirtop_folder)
+
+    filename_stamp = mirtop_folder_counts + '/.success'
     if os.path.isfile(filename_stamp):
         stamp = functions.read_time_stamp(filename_stamp)
         print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'miRTop'), 'yellow'))
@@ -230,6 +234,11 @@ def miRTop(sRNAbench_folder, sample_folder, name, threads, miRNA_gff, Debug):
     
     logfile = os.path.join(sample_folder, name + '.log')
     
+    ## folders
+    mirtop_folder_gff = os.path.join(mirtop_folder, 'gff')
+    mirtop_folder_stats = os.path.join(mirtop_folder, 'stats')
+    mirtop_folder_counts = os.path.join(mirtop_folder, 'counts')
+    
     ## get sRNAbench info
     reads_annot = os.path.join(sRNAbench_folder, "reads.annotation")
     
@@ -238,25 +247,57 @@ def miRTop(sRNAbench_folder, sample_folder, name, threads, miRNA_gff, Debug):
         print (colored("\tNo isomiRs detected for sample [%s -- %s]" %(name, 'sRNAbench'), 'yellow'))
         return (False)
     
-    ## miRTop analysis
-    print ('Creating isomiRs gtf file for sample %s' %name)
-    cmd = miRTop_exe + ' gff --sps %s --hairpin %s --gtf %s --format srnabench -o %s %s 2> %s' %(species, sRNAbench_hairpin, miRNA_gff, sample_folder, sRNAbench_folder, logfile)
-    
-    ## execute
-    code_miRTop = functions.system_call(cmd)
-    if code_miRTop:
-        outdir_stats = functions.create_subfolder('stats', sample_folder)
-    
-        ## miRTop stats
+    ## miRTop analysis gff
+    filename_stamp_gff = mirtop_folder_gff + '/.success'
+    if os.path.isfile(filename_stamp_gff):
+        stamp = functions.read_time_stamp(filename_stamp_gff)
+        print (colored("\tA previous command generated results on: %s [%s -- %s - gff]" %(stamp, name, 'miRTop'), 'yellow'))
+    else:
+        print ('Creating isomiRs gtf file for sample %s' %name)
+        cmd = miRTop_exe + ' gff --sps %s --hairpin %s --gtf %s --format srnabench -o %s %s 2> %s' %(species, sRNAbench_hairpin, miRNA_gff, mirtop_folder_gff, sRNAbench_folder, logfile)
+        
+        ## execute
+        code_miRTop = functions.system_call(cmd)
+        if code_miRTop:
+            functions.print_time_stamp(filename_stamp_gff)
+        else:
+            return(False)
+        
+    ## miRTop stats
+    filename_stamp_stats = mirtop_folder_stats + '/.success'
+    if os.path.isfile(filename_stamp_stats):
+        stamp = functions.read_time_stamp(filename_stamp_stats)
+        print (colored("\tA previous command generated results on: %s [%s -- %s - stats]" %(stamp, name, 'miRTop'), 'yellow'))
+    else:
         print ('Creating isomiRs stats for sample %s' %name)
-        cmd_stats = miRTop_exe + ' stats -o %s %s 2>> %s' %(outdir_stats, sample_folder, logfile)
+        mirtop_folder_gff_file = os.path.join(mirtop_folder_gff, 'mirtop.gff')
+        cmd_stats = miRTop_exe + ' stats -o %s %s 2>> %s' %(mirtop_folder_stats, mirtop_folder_gff_file, logfile)
         code_miRTop_stats = functions.system_call(cmd_stats)
-    
-        ## if both succeeded
         if code_miRTop_stats:
-            outdir_gtf = os.path.join(sample_folder, name + '.gff')
-            return (outdir_gtf)
+            functions.print_time_stamp(filename_stamp_stats)
+        else:
+            return(False)
+            
+    ## miRTop counts
+    filename_stamp_counts = mirtop_folder_counts + '/.success'
+    if os.path.isfile(filename_stamp_counts):
+        stamp = functions.read_time_stamp(filename_stamp_counts)
+        print (colored("\tA previous command generated results on: %s [%s -- %s - counts]" %(stamp, name, 'miRTop'), 'yellow'))
+    else:
+        print ('Creating isomiRs counts for sample %s' %name)
+        ## if both succeeded
+        cmd_stats = miRTop_exe + ' counts -o %s %s 2>> %s' %(mirtop_folder_counts, mirtop_folder_gff_file, logfile)
+        code_miRTop_counts = functions.system_call(cmd_stats)
+        
+        if code_miRTop_counts:
+            functions.print_time_stamp(filename_stamp_counts)
+        else:
+            return(False)
+    
+    ## return all success
+    outdir_tsv = os.path.join(mirtop_folder_counts, 'mirtop.tsv')
+    return (outdir_tsv)
     
     ## if any command failed
-    return(False)
+    #return(False)
     
