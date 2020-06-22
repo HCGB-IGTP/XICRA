@@ -8,14 +8,15 @@ sh devel/create_distro.sh
 
 $ nano .pypirc
 
- [distutils] 
- index-servers=pypi
- [pypi] 
- repository = https://upload.pypi.org/legacy/ 
- username =jfsanchezherrero
+[distutils] 
+index-servers=pypi
+[pypi] 
+repository = https://upload.pypi.org/legacy/ 
+username =jfsanchezherrero
 
 ## Upload using twine
 sh devel/upload_pypi.sh
+
 
 
 ## references
