@@ -1,5 +1,18 @@
+
 *__pycache__/
+
+*pyc
+
+## eclipse
 .project
 .pydevproject
+
+## environment
 env/XICRA_env/
+
+## pypi developer
+/*.egg-info
+/dist
+/build
+
 
