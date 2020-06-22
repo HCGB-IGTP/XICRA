@@ -1,0 +1,22 @@
+mkdir mirBase
+cd mirBase
+
+## download latest
+wget -nd ftp://mirbase.org/pub/mirbase/CURRENT/mature.fa.gz
+wget -nd ftp://mirbase.org/pub/mirbase/CURRENT/hairpin.fa.gz
+
+# extract gunzip files
+gunzip *
+
+## get hsapiens mature and hairpin
+grep 'sapiens' mature.fa | awk '{print $1}' | sed 's/>//' > mature_hsapiens.ids.txt
+grep 'sapiens' hairpin.fa | awk '{print $1}' | sed 's/>//' > hairpin_hsapiens.ids.txt
+
+## get hsapiens fasta files
+perl XICRA/simulation/get-seq_ids.pl mature_hsapiens.ids.txt mature.fa mature_hsapiens.fa
+perl XICRA/simulation/get-seq_ids.pl hairpin_hsapiens.ids.txt hairpin.fa hairpin_hsapiens.fa
+
+## Simulate
+perl /home/jfsanchez/git_repos/isomiR-Benchmark/create_isomiRs.pl mirBase/mature_hsapiens.fa mirBase/hairpin_hsapiens.fa
+
+##
