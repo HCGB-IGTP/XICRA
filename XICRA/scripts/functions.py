@@ -341,3 +341,14 @@ def decode(x):
 		return x
 
 	return s
+
+def file2dictionary(file2read, split_char):
+	"""Read file and generate a dictionary"""
+	d = {}
+	with open(file2read) as f:
+		for line in f:
+			line = line.rstrip('\n')
+			(key, val) = line.split(split_char)
+			d[key] = val
+
+	return(d)

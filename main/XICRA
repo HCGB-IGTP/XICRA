@@ -1,14 +1,12 @@
- #!/usr/bin/env python3
+#!/usr/bin/env python3
 
 import argparse ## https://docs.python.org/3/library/argparse.html#module-argparse
 import os
 import sys
-import XICRA
+import XICRA.modules
 
 ## initiate parser
-parser = argparse.ArgumentParser(
-    prog='XICRA',
-    description='Small RNA (sRNA) pipeline for...'
+parser = argparse.ArgumentParser(prog='XICRA', description='Small RNA (sRNA) pipeline for...'
   	##,epilog="(c) 2019. Jose F. Sanchez and Lauro Sumoy."
 )
 subparsers = parser.add_subparsers(title='Available modules', help='', metavar='')

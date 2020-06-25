@@ -1,0 +1,3 @@
+include XICRA/config/python/*
+include XICRA/config/R/*
+include XICRA/config/software/*
