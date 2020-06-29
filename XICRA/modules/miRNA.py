@@ -76,7 +76,8 @@ def run_miRNA(options):
     
     ## get files
     if options.pair:
-        pd_samples_retrieved = sampleParser.get_files(options, input_dir, "join", ['_trim_joined'])
+        options.pair = False
+        pd_samples_retrieved = sampleParser.get_files(options, input_dir, "join", ['_trim_joined.fastq'])
     else:
         pd_samples_retrieved = sampleParser.get_files(options, input_dir, "trim", ['_trim'])
     

@@ -107,6 +107,9 @@ def run_trimm(options):
         print (colored("**DEBUG: pd_samples_retrieve **", 'yellow'))
         print (pd_samples_retrieved)
 
+        print (colored("**DEBUG: adapters_dict **",'yellow'))
+        print (adapters_dict)
+
     ## generate output folder, if necessary
     print ("\n+ Create output folder(s):")
     if not options.project:
@@ -241,7 +244,7 @@ def cutadapt (cutadapt_exe, reads, path, sample_name, num_threads, Debug, adapte
     logfile = os.path.join(path, sample_name + '.cutadapt.log')
     
     if (len(reads) == 2):
-        if not adapters['adapter_a'] or adapters['adapter_A']:
+        if not adapters['adapter_a'] or not adapters['adapter_A']:
              print ("** ERROR: Missing adapter information")
              exit()
         
