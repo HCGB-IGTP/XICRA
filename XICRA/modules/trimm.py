@@ -241,7 +241,7 @@ def cutadapt (cutadapt_exe, reads, path, sample_name, num_threads, Debug, adapte
     logfile = os.path.join(path, sample_name + '.cutadapt.log')
     
     if (len(reads) == 2):
-        if not adapters['adapter_a'] or adapters_dict['adapter_A']:
+        if not adapters['adapter_a'] or adapters['adapter_A']:
              print ("** ERROR: Missing adapter information")
              exit()
         
@@ -255,7 +255,7 @@ def cutadapt (cutadapt_exe, reads, path, sample_name, num_threads, Debug, adapte
         ## paired-end mode
         cmd = '%s -j %s -a %s -A %s -o %s -p %s %s %s > %s' %(cutadapt_exe,  
                                                                        num_threads, adapters['adapter_a'], 
-                                                                       adapters_dict['adapter_A'], o_param, 
+                                                                       adapters['adapter_A'], o_param, 
                                                                        p_param, reads[0], reads[1], logfile)
 
     elif (len(reads) == 1):
