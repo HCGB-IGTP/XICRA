@@ -171,11 +171,8 @@ def run_miRNA(options):
 ###############
 def miRNA_analysis(reads, folder, name, threads, miRNA_gff, soft_list, matureFasta, hairpinFasta, Debug):
     
-    
+
     for soft in soft_list:
-        print(soft)
-        continue
-        
         if (soft == "sRNAbench"):
             ## create sRNAbench
             sRNAbench_folder = functions.create_subfolder('sRNAbench', folder)
@@ -308,7 +305,7 @@ def miRTop_caller(results_folder, mirtop_folder, name, threads, miRNA_gff, hairp
         print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'miRTop'), 'yellow'))
     else:
         # Call miRTop
-        code_returned = miRTop(results_folder, mirtop_folder, name, threads, format, miRNA_gff, hairpinFasta, Debug)
+        code_returned = miRTop(results_folder, mirtop_folder, name, threads, format.lower(), miRNA_gff, hairpinFasta, Debug)
         if code_returned:
             functions.print_time_stamp(filename_stamp)
         else:
@@ -318,7 +315,7 @@ def miRTop_caller(results_folder, mirtop_folder, name, threads, miRNA_gff, hairp
         return(True)
 
 ###############
-def miRTop(results_folder, sample_folder, name, threads, miRNA_gff, hairpinFasta, Debug):
+def miRTop(results_folder, sample_folder, name, threads, format, miRNA_gff, hairpinFasta, Debug):
 
     miRTop_exe = set_config.get_exe('miRTop', Debug=Debug)
     species = 'hsa' #homo sapiens ## set as option if desired
@@ -394,7 +391,7 @@ def miRTop(results_folder, sample_folder, name, threads, miRNA_gff, hairpinFasta
     else:
         print ('Creating isomiRs counts for sample %s' %name)
         ## if both succeeded
-        cmd_stats = miRTop_exe + ' counts -o %s --gff %s --hairpin %s --gtf %s --sps %s 2>> %s' %(mirtop_folder_counts, mirtop_folder_gff_file, sRNAbench_hairpin, miRNA_gff, species, logfile)
+        cmd_stats = miRTop_exe + ' counts -o %s --gff %s --hairpin %s --gtf %s --sps %s 2>> %s' %(mirtop_folder_counts, mirtop_folder_gff_file, hairpinFasta, miRNA_gff, species, logfile)
         code_miRTop_counts = functions.system_call(cmd_stats)
         
         if code_miRTop_counts:
@@ -410,7 +407,7 @@ def miRTop(results_folder, sample_folder, name, threads, miRNA_gff, hairpinFasta
     else:
         print ('Creating isomiRs export information for sample %s' %name)
         ## if both succeeded
-        cmd_export = miRTop_exe + ' export -o %s --hairpin %s --gtf %s 2>> %s' %(mirtop_folder_export, sRNAbench_hairpin, miRNA_gff, logfile)
+        cmd_export = miRTop_exe + ' export -o %s --hairpin %s --gtf %s --sps %s --format isomir %s 2> %s' %(mirtop_folder_export, hairpinFasta, miRNA_gff, species, mirtop_folder_gff_file, logfile)
         code_miRTop_export = functions.system_call(cmd_export)
         
         if code_miRTop_export:

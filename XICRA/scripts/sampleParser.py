@@ -381,10 +381,10 @@ def get_files(options, input_dir, mode, extension):
 					files = [s for s in files_tmp if ext in s]
 				else:
 					files_tmp = functions.retrieve_matching_files(input_dir, ext)				
-					files = files.append(files_tmp)
-			
+					files = files + files_tmp
+
 			files = set(files)
-			
+
 		else:
 			## input folder is not a dir, is it a batch input file?
 			if (options.batch):
