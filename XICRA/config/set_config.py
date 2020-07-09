@@ -76,7 +76,7 @@ def get_exe(prog, Debug=False, Return_Version=False):
 				return (exe_path_tmp[0]) ## return first item
 	
 	## not installed in path
-	if (len(exe_path_tmp) == 0):
+	if exe_path_tmp is None or len(exe_path_tmp) == 0:
 		if (Return_Version):
 			print(colored("\n**ERROR: Software %s could not be found." % prog,'red'))
 			return('ERROR', 'n.a.')
@@ -350,14 +350,12 @@ def get_python_packages(Debug):
 	## get import names for packages:
 	## some modules do not have the same name when install from pip and called from import
 	file_module_dependecies = extern_progs.file_list("python_requirements")
-	print (file_module_dependecies)
 	module_dependencies = functions.file2dictionary(file_module_dependecies, ',')
 
 	my_packages_installed = {}
-
 	for each in module_dependencies:
 		module_name = module_dependencies[each]
-		installed = check_package_version(module_name, Debug) ## check version installed in system
+		installed = check_package_version(each, Debug) ## check version installed in system
 		my_packages_installed[each] = installed
 
 	return (my_packages_installed)
@@ -394,10 +392,6 @@ def check_python_packages(Debug):
 		print ("my_packages_requirements")
 		print (my_packages_requirements)
 
-	## my module name conversion
-	file_module_dependecies = extern_progs.file_list("module_dependencies")
-	module_dependencies = functions.file2dictionary(file_module_dependecies, ',')
-
 	## check each package
 	for each in my_packages_requirements:
 		## get min version
@@ -406,24 +400,20 @@ def check_python_packages(Debug):
 		## get version installed in system
 		installed = my_packages_installed[each] 
 
-		## module name conversion
-		module_name = module_dependencies[each]
-
 		## debug messages
 		if (Debug):
 			print ("Module:", each)
-			print ("Module name:", module_name)
 			print ("Min_Version:", min_version)
 			print ("Version installed:", installed)
 			
 		## check if installed
-		message = check_install_module(installed, module_name, min_version, 'Module')
+		message = check_install_module(installed, each, min_version, 'Module')
 
 		if (message == 'OK'):
 			continue
 		else:
-			print ("+ Please install manually package: ", module_name, " to continue with XICRA\n\n")
-			print ("pip install %s" %module_name)
+			print ("+ Please install manually package: ", each, " to continue with XICRA\n\n")
+			#print ("pip install %s" %each)
 
 ################
 def check_package_version(package, Debug):

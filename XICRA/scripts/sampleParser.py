@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/ python3
 ##########################################################
 ## Jose F. Sanchez										##
 ## Copyright (C) 2019 Lauro Sumoy Lab, IGTP, Spain		##
@@ -72,7 +72,7 @@ def get_fields(file_name_list, pair, Debug, include_all):
 						name_search = re.search(r"(.*)\_(R1|1|R2|2)\.(f.*q)(\..*){0,1}", file_name)
 			else:
 				if (trim_search):
-					name_search = re.search(r"(.*)\_trim(.*)\.(f.*q)(\..*){0,1}", file_name)
+					name_search = re.search(r"(.*)\_trim(.*)\.(f.*q)(\..*){0,1}", file_name) ## trim.fastq or trim_joined.fastq
 				else:
 					name_search = re.search(r"(.*)\.(f.*q)(\..*){0,1}", file_name)
 		
@@ -366,7 +366,6 @@ def get_files(options, input_dir, mode, extension):
 	"""
 	## get list of input files
 	files = []
-	
 	print ()
 	functions.print_sepLine("-",50, False)
 	print ('+ Getting files from input folder... ')
@@ -376,14 +375,13 @@ def get_files(options, input_dir, mode, extension):
 		if os.path.exists(input_dir):
 			print ('+ Input folder exists')
 			## get files in folder
-			files = []
 			for ext in extension:
 				if mode == 'trim':
 					files_tmp = functions.get_fullpath_list(input_dir)
 					files = [s for s in files_tmp if ext in s]
 				else:
 					files_tmp = functions.retrieve_matching_files(input_dir, ext)				
-					files.extend(files_tmp)
+					files = files.append(files_tmp)
 			
 			files = set(files)
 			
@@ -397,7 +395,7 @@ def get_files(options, input_dir, mode, extension):
 					for d in dir_list:
 						if os.path.exists(d):
 							print ('+ Folder (%s) exists' %d)
-							files.extend(functions.get_fullpath_list(d))
+							files = files.append(functions.get_fullpath_list(d))
 						else:
 							## input folder does not exist...
 							if (options.debug):
@@ -421,7 +419,9 @@ def get_files(options, input_dir, mode, extension):
 				for d in dir_list:
 					if os.path.exists(d):
 						print ('+ Folder (%s) exists' %d)
-						files = files.extend(functions.get_fullpath_list(d))
+						files_tmp = functions.get_fullpath_list(d)
+						files = files + files_tmp
+			
 					else:
 						## input folder does not exist...
 						if (options.debug):
