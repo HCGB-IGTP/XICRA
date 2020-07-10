@@ -1,8 +1,8 @@
 #######################################################################
-  NAME: fromRaw_to_isomiR
-  VERSION: 0.5
+  NAME: XICRA
+  VERSION: 0.3
   AUTHORS: Antonio Luna de Haro (v0.1 & Jose F Sanchez-Herrero (v1.
-           Copyright (C 2018-2019 Lauro Sumoy Lab, IGTP, Spain
+           Copyright (C 2018-2020 Lauro Sumoy Lab, IGTP, Spain
 #########################################################################
 
 DESCRIPTION:

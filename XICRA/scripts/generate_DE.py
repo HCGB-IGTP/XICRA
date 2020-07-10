@@ -17,18 +17,34 @@ def generate_DE(dataframe_results, Debug, outfolder):
 	"""
 	"""
 	## get results dictionary for each software employed 
-	
-	## get data
-	(all_data, all_seqs) = generate_matrix(dict_files, Debug)
-	
-	## discard duplicate UIDs if any
-	all_data_filtered, all_data_duplicated = discard_UID_duplicated(all_data)
-	
-	## dump data in folder provided
-	csv_outfile = os.path.join(outfolder, 'miRNA_expression') ## add software name
-	all_data_filtered.to_csv(csv_outfile, quoting=csv.QUOTE_NONNUMERIC)
-	all_data_duplicated.to_csv(csv_outfile + '_dup', quoting=csv.QUOTE_NONNUMERIC)
-	all_seqs.to_csv(csv_outfile + '_seq', quoting=csv.QUOTE_NONNUMERIC)
+	soft_name = dataframe_results.soft.unique()
+	## debugging messages
+	if Debug:
+		print ("## Debug:")
+		print ("soft_name")
+		print (soft_name)
+
+	## generate results
+	for soft_name in soft_list:
+		# retrieve files in dictionary
+		dict_files = dataframe_results[ dataframe_results['soft'] == soft_name]['filename'].set_index('name').to_dict()
+		
+		if Debug:
+			print ("## Debug:")
+			print ("dict_files")
+			print (dict_files)
+		
+		## get data
+		(all_data, all_seqs) = generate_matrix(dict_files, Debug)
+		
+		## discard duplicate UIDs if any
+		all_data_filtered, all_data_duplicated = discard_UID_duplicated(all_data)
+		
+		## dump data in folder provided
+		csv_outfile = os.path.join(outfolder, 'miRNA_expression-' + soft_name)
+		all_data_filtered.to_csv(csv_outfile, quoting=csv.QUOTE_NONNUMERIC)
+		all_data_duplicated.to_csv(csv_outfile + '_dup', quoting=csv.QUOTE_NONNUMERIC)
+		all_seqs.to_csv(csv_outfile + '_seq', quoting=csv.QUOTE_NONNUMERIC)
 
 ####################
 def discard_UID_duplicated(df_data):
