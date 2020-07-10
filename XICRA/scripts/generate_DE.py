@@ -17,25 +17,31 @@ def generate_DE(dataframe_results, Debug, outfolder):
 	"""
 	"""
 	## get results dictionary for each software employed 
-	soft_name = dataframe_results.soft.unique()
+	soft_list = dataframe_results.soft.unique()
 	## debugging messages
 	if Debug:
 		print ("## Debug:")
-		print ("soft_name")
-		print (soft_name)
+		print ("soft_list")
+		print (soft_list)
 
 	## generate results
 	for soft_name in soft_list:
 		# retrieve files in dictionary
-		dict_files = dataframe_results[ dataframe_results['soft'] == soft_name]['filename'].set_index('name').to_dict()
-		
+		tmp_df = dataframe_results[ dataframe_results['soft'] == soft_name].set_index('name')
 		if Debug:
 			print ("## Debug:")
+			print ("tmp_df")
+			print (tmp_df)
+
+		##
+		dict_files = tmp_df['filename'].to_dict()
+
+		if Debug:
 			print ("dict_files")
 			print (dict_files)
-		
+
 		## get data
-		(all_data, all_seqs) = generate_matrix(dict_files, Debug)
+		(all_data, all_seqs) = generate_matrix(dict_files, soft_name, Debug)
 		
 		## discard duplicate UIDs if any
 		all_data_filtered, all_data_duplicated = discard_UID_duplicated(all_data)
@@ -95,7 +101,7 @@ def discard_UID_duplicated(df_data):
 	return (clean_data_expression, duplicates_expression)
 
 ####################
-def generate_matrix(dict_files, Debug):
+def generate_matrix(dict_files, soft_name, Debug):
 	"""
 	"""
 	######################################################
@@ -113,11 +119,17 @@ def generate_matrix(dict_files, Debug):
 	for sample, this_file in dict_files.items():
 		print ('+ Reading information from sample: ', sample)	
 		
+		## 
 		if is_non_zero_file(this_file):
 			data = pd.read_csv(this_file, sep='\t')
 		else:
 			print ('\t - Information not available for sample: ', sample)	
-			
+			continue
+		##
+		if (data.size == 0):
+			print ('\t - Information not available for sample: ', sample)  
+			continue
+
 		## get info, generate unique name and merge for samples
 		## header of tsv files: 
 		## UID	Read	miRNA	Variant	iso_5p	iso_3p	iso_add3p	iso_snp	sRNAbench
@@ -125,15 +137,26 @@ def generate_matrix(dict_files, Debug):
 		data['Variant'].fillna('NA', inplace=True)
 		data['unique_id'] = data.apply(lambda data: data['miRNA'] + '&' + data['Variant'] + '&' + data['UID'], axis=1)
 
-		new_data = data.filter(['unique_id', 'sRNAbench'], axis=1)	## change if different from sRNAbench
-		new_data = new_data.set_index('unique_id')
-	
+		## parse according to software
+		if (soft_name == 'srnabench'):
+			## sRNAbench mirtop creates a column id with sRNAbench instead of sample name
+			new_data = data.filter(['unique_id', 'sRNAbench'], axis=1)
+			new_data = new_data.set_index('unique_id')
+			new_data = new_data.rename(columns={'sRNAbench': sample})
+
+		if (soft_name == 'optimir'):
+			## OptimiR mirtop creates a column containing sample name and other tags (trim, joined, fastq...)
+			regex=re.compile(sample + '.*')
+			search_list = list(filter(regex.match, data.columns.values.tolist()))
+			new_data = data.filter(['unique_id', search_list[0]], axis=1)
+			new_data = new_data.set_index('unique_id')
+			new_data = new_data.rename(columns={search_list[0]: sample})
+
+		## sequence information
 		seq_data = data.filter(['UID', 'Read'], axis=1)	
 		seq_data = seq_data.set_index('UID')
 		seq_all_data = seq_all_data.append(seq_data, sort=True).drop_duplicates('Read')
 
-		new_data = new_data.rename(columns={'sRNAbench': sample})
-		
 		## debugging messages
 		if Debug:
 			print ("*** DEBUG: data for sample ***")

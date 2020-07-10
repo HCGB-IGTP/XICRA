@@ -200,6 +200,7 @@ def miRNA_analysis(reads, folder, name, threads, miRNA_gff, soft_list, matureFas
         if (soft == "optimir"):
             ## create OptimiR analysis
             optimir_folder = functions.create_subfolder('OptimiR', folder)
+            vcf_genotypes = ""
             code_success = optimir_caller(reads, optimir_folder, name, threads, matureFasta, hairpinFasta, vcf_genotypes, Debug) ## Any additional sRNAbench parameter?
             
             ## create folder for Optimir results
@@ -285,9 +286,10 @@ def optimir (reads, outpath, file_name, num_threads, matureFasta, hairpinFasta, 
         print (colored("** ERROR: Only 1 fastq file is allowed please joined reads before...", 'red'))
         exit()
     
-    ## create command    
-    cmd = "%s process --fq %s --vcf %s --gff_out -o %s --maturesFasta %s --hairpinsFasta %s 2> %s" %(
-        optimir_exe, reads, vcf_genotypes, outpath, matureFasta, hairpinFasta, logfile)
+    ## create command  
+    #vcf_genotypes ommitted  
+    cmd = "%s process --fq %s --gff_out -o %s --maturesFasta %s --hairpinsFasta %s 2> %s" %(
+        optimir_exe, reads[0], outpath, matureFasta, hairpinFasta, logfile)
     return(functions.system_call(cmd))
 
 ###############       
@@ -340,12 +342,11 @@ def miRTop(results_folder, sample_folder, name, threads, format, miRNA_gff, hair
             
     elif format == "optimir":
         ## get optimir info
-        gff3_file = name + ".gff3"
-        gff3_file_path = os.path.join(results_folder, "OptimiR_Results", gff3_file)
-        results_folder = gff3_file_path
+        gff3_file = functions.retrieve_matching_files(os.path.join(results_folder, "OptimiR_Results"), "gff3")[0]
+        results_folder = gff3_file
         
         ## check non zero
-        if not functions.is_non_zero_file(gff3_file_path):
+        if not functions.is_non_zero_file(gff3_file):
             print (colored("\tNo isomiRs detected for sample [%s -- %s]" %(name, 'optimir'), 'yellow'))
             return (False)
         
@@ -370,18 +371,18 @@ def miRTop(results_folder, sample_folder, name, threads, format, miRNA_gff, hair
     ## miRTop stats
     mirtop_folder_gff_file = os.path.join(mirtop_folder_gff, 'mirtop.gff')
 
-    filename_stamp_stats = mirtop_folder_stats + '/.success'
-    if os.path.isfile(filename_stamp_stats):
-        stamp = functions.read_time_stamp(filename_stamp_stats)
-        print (colored("\tA previous command generated results on: %s [%s -- %s - stats]" %(stamp, name, 'miRTop'), 'yellow'))
-    else:
-        print ('Creating isomiRs stats for sample %s' %name)
-        cmd_stats = miRTop_exe + ' stats -o %s %s 2>> %s' %(mirtop_folder_stats, mirtop_folder_gff_file, logfile)
-        code_miRTop_stats = functions.system_call(cmd_stats)
-        if code_miRTop_stats:
-            functions.print_time_stamp(filename_stamp_stats)
-        else:
-            return(False)
+    #filename_stamp_stats = mirtop_folder_stats + '/.success'
+    #if os.path.isfile(filename_stamp_stats):
+    #    stamp = functions.read_time_stamp(filename_stamp_stats)
+    #    print (colored("\tA previous command generated results on: %s [%s -- %s - stats]" %(stamp, name, 'miRTop'), 'yellow'))
+    #else:
+    #    print ('Creating isomiRs stats for sample %s' %name)
+    #    cmd_stats = miRTop_exe + ' stats -o %s %s 2>> %s' %(mirtop_folder_stats, mirtop_folder_gff_file, logfile)
+    #    code_miRTop_stats = functions.system_call(cmd_stats)
+    #    if code_miRTop_stats:
+    #        functions.print_time_stamp(filename_stamp_stats)
+    #    else:
+    #        return(False)
             
     ## miRTop counts
     filename_stamp_counts = mirtop_folder_counts + '/.success'
