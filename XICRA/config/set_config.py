@@ -256,7 +256,7 @@ def get_version(prog, path, Debug=False):
 		print(colored("** Debug: regex: %s" %regex,'yellow'))
 		print(colored("** Debug: args: %s" %args, 'yellow'))
 
-	if prog == 'sRNAbench':
+	if prog == 'sRNAbench' or prog == "miraligner":
 		java_bin = get_exe('java', Debug=Debug)
 		java_jar = java_bin + ' -jar ' + path + ' ' + args
 		cmd_output = subprocess.Popen(java_jar, shell=True, stdout=subprocess.PIPE,stderr=subprocess.PIPE).communicate()

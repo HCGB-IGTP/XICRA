@@ -12,3 +12,4 @@ fastqjoin,,,na,fastq-join
 sRNAbench,-h,([0-9\.]+),1.6,sRNAbench.jar
 miRTop,--version,([0-9\.]+).*,0.4.23,mirtop
 optimir,,,na,optimir
+miraligner,,,na,miraligner.jar

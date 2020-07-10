@@ -48,9 +48,9 @@ def generate_DE(dataframe_results, Debug, outfolder):
 		
 		## dump data in folder provided
 		csv_outfile = os.path.join(outfolder, 'miRNA_expression-' + soft_name)
-		all_data_filtered.to_csv(csv_outfile, quoting=csv.QUOTE_NONNUMERIC)
-		all_data_duplicated.to_csv(csv_outfile + '_dup', quoting=csv.QUOTE_NONNUMERIC)
-		all_seqs.to_csv(csv_outfile + '_seq', quoting=csv.QUOTE_NONNUMERIC)
+		all_data_filtered.to_csv(csv_outfile + ".csv", quoting=csv.QUOTE_NONNUMERIC)
+		all_data_duplicated.to_csv(csv_outfile + '_dup.csv', quoting=csv.QUOTE_NONNUMERIC)
+		all_seqs.to_csv(csv_outfile + '_seq.csv', quoting=csv.QUOTE_NONNUMERIC)
 
 ####################
 def discard_UID_duplicated(df_data):

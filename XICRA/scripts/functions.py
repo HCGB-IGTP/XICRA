@@ -11,6 +11,7 @@ from datetime import datetime
 import concurrent.futures
 from termcolor import colored
 import pandas as pd
+import urllib.request
 
 ########################################################################
 ######## 					TIME								######## 					
@@ -352,3 +353,37 @@ def file2dictionary(file2read, split_char):
 			d[key] = val
 
 	return(d)
+
+## timestamp name
+def urllib_request(folder, url_string, file_name):
+	
+	## timestamp
+	filename_stamp = folder + '/.success'
+	file_path_name = os.path.join(folder, file_name)
+	
+	## check if previously exists
+	if os.path.exists(file_path_name):
+		## debug message
+		if debug:
+			print ("## Debug: File %s exists in folder" %file_name)
+	
+		## check if previously timestamp generated
+		if os.path.isfile(filename_stamp):
+			stamp = read_time_stamp(filename_stamp)
+			print ("\tFile (%s) Previously downloaded in: %s" %(file_name, stamp))
+			return(file_path_name)
+	else:
+		## debug message
+		if debug:
+			print ("## Debug: Download file: ", file_name, ":: ", url_string)
+		
+		# downloads
+		urllib.request.urlretrieve(url_string, file_path_name )
+		
+		## check if correctly download
+		if os.path.exists(file_path_name):
+			print_time_stamp(filename_stamp)
+			return(file_path_name)
+		else:
+			sys.exit('Could not download file %s (%s)' %(file_name, url_string))
+		
