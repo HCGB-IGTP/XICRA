@@ -356,7 +356,7 @@ def file2dictionary(file2read, split_char):
 	return(d)
 
 ## timestamp name
-def urllib_request(folder, url_string, file_name):
+def urllib_request(folder, url_string, file_name, debug):
 	
 	## timestamp
 	filename_stamp = folder + '/.success'
