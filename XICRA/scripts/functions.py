@@ -12,6 +12,7 @@ import concurrent.futures
 from termcolor import colored
 import pandas as pd
 import urllib.request
+import patoolib ## to extract
 
 ########################################################################
 ######## 					TIME								######## 					
@@ -386,4 +387,33 @@ def urllib_request(folder, url_string, file_name):
 			return(file_path_name)
 		else:
 			sys.exit('Could not download file %s (%s)' %(file_name, url_string))
-		
+			
+###############
+def extract(fileGiven, out, remove=True):
+	"""
+	Extracts archived file
+	
+	This function extracts the file given in the ``out`` path provided.
+	It uses the ``patoolib`` that is able to identify the type of file 
+	and compression algorithm to use in each case.
+	
+	It also removes the compressed file using ``os`` module.
+	
+	:param fileGiven: Archived file to extract.
+	:param out: Output name and absolute path for the extracted archived.
+	:param remove: True/False for removing compressed file extracted
+	
+	:type fileGiven: string
+	:type out: string
+	:type remove: boolean
+	
+	"""
+	## extract using patoolib
+	patoolib.extract_archive(fileGiven, outdir=out, verbosity=0)
+	
+	if (remove):
+		## remove compress file
+		print ("Remove compress file...")
+		os.remove(fileGiven)
+		print ("\n")
+
