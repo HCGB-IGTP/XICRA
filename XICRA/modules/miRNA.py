@@ -109,12 +109,12 @@ def run_miRNA(options):
     
     ## miRNA_gff: can be set as automatic to download from miRBase
     if not options.miRNA_gff:
-        print (colored("** ATTENTION: No miRNA gff file provided", 'orange'))
-        
-        print (colored("** Download it form miRBase", 'green'))
+        print ("+ File miRNA gff3 annotation")
+        print (colored("\t** ATTENTION: No miRNA gff file provided", 'yellow'))     
+        print (colored("\t** Download it form miRBase", 'green'))
         file_name = options.species + ".gff3"
         ftp_site = "ftp://mirbase.org/pub/mirbase/CURRENT/genomes/" + file_name 
-        options.miRNA_gff = functions.urllib_request(options.database, ftp_site, file_name)
+        options.miRNA_gff = functions.urllib_request(options.database, ftp_site, file_name, Debug)
         
     else:
         print ("+ miRNA gff file provided")
@@ -122,10 +122,11 @@ def run_miRNA(options):
 
     ## hairpin: can be set as automatic to download from miRBase
     if not options.hairpinFasta:
-        print (colored("** ATTENTION: No hairpin fasta file provided", 'orange'))        
-        print (colored("** Download it form miRBase", 'green'))
+        print ("+ File hairpin fasta")
+        print (colored("\t** ATTENTION: No hairpin fasta file provided", 'yellow'))        
+        print (colored("\t** Download it form miRBase", 'green'))
         ftp_site = "ftp://mirbase.org/pub/mirbase/CURRENT/hairpin.fa.gz"
-        options.miRNA_gff = functions.urllib_request(options.database, ftp_site, "hairpin")
+        options.miRNA_gff = functions.urllib_request(options.database, ftp_site, "hairpin", Debug)
         
     else:
         print ("+ hairpin fasta file provided")
@@ -133,10 +134,11 @@ def run_miRNA(options):
    
     ## mature: can be set as automatic to download from miRBase
     if not options.matureFasta:
-        print (colored("** ATTENTION: No mature miRNA fasta file provided", 'orange'))        
-        print (colored("** Download it form miRBase", 'green'))
+        print ("+ File mature fasta")
+        print (colored("\t** ATTENTION: No mature miRNA fasta file provided", 'yellow'))        
+        print (colored("\t** Download it form miRBase", 'green'))
         ftp_site = "ftp://mirbase.org/pub/mirbase/CURRENT/mature.fa.gz"
-        options.miRNA_gff = functions.urllib_request(options.database, ftp_site, "mature")
+        options.miRNA_gff = functions.urllib_request(options.database, ftp_site, "mature", Debug)
 
     else:
         print ("+ mature fasta file provided")
@@ -144,11 +146,11 @@ def run_miRNA(options):
     
     ## miRBase str: can be set as automatic to download from miRBase
     if not options.miRBase_str:
-        print (colored("** ATTENTION: No miRBase_str file provided", 'orange'))        
-        print (colored("** Download it form miRBase", 'green'))
+        print ("+ File miRBase str annotation")
+        print (colored("\t** ATTENTION: No miRBase_str file provided", 'yellow'))        
+        print (colored("\t** Download it form miRBase", 'green'))
         ftp_site = "ftp://mirbase.org/pub/mirbase/CURRENT/miRNA.str.gz"
-        options.miRNA_gff = functions.urllib_request(options.database, ftp_site, "miRNA.str")
-       
+        options.miRNA_gff = functions.urllib_request(options.database, ftp_site, "miRNA.str", Debug)
     else:
         print ("+ miRBase_str file provided")
         options.miRBase_str = os.path.abspath(options.miRBase_str)
@@ -248,7 +250,7 @@ def miRNA_analysis(reads, folder, name, threads, miRNA_gff, soft_list,
         if (soft == "optimir"):
             ## create OptimiR analysis
             optimir_folder = functions.create_subfolder('OptimiR', folder)
-            code_success = optimir_caller(reads, optimir_folder, name, threads, matureFasta, hairpinFasta, species, Debug) ## Any additional sRNAbench parameter?
+            code_success = optimir_caller(reads, optimir_folder, name, threads, matureFasta, hairpinFasta, miRNA_gff, species, Debug) ## Any additional sRNAbench parameter?
             
             ## create folder for Optimir results
             miRTop_folder = functions.create_subfolder("OptimiR_miRTop", folder)
@@ -262,7 +264,7 @@ def miRNA_analysis(reads, folder, name, threads, miRNA_gff, soft_list,
         if (soft == "miraligner"):
             ## create OptimiR analysis
             miraligner_folder = functions.create_subfolder('miraligner', folder)
-            code_success = miraligner_caller(reads, miraligner_folder, name, threads, database, Debug) 
+            code_success = miraligner_caller(reads, miraligner_folder, name, threads, database, species, Debug) 
             
             ## create folder for Optimir results
             miRTop_folder = functions.create_subfolder("miraligner_miRTop", folder)
@@ -311,7 +313,7 @@ def sRNAbench (reads, outpath, file_name, num_threads, species, Debug):
     return(functions.system_call(cmd))
 
 ###############       
-def optimir_caller(reads, sample_folder, name, threads, matureFasta, hairpinFasta, species, Debug):
+def optimir_caller(reads, sample_folder, name, threads, matureFasta, hairpinFasta, miRNA_gff, species, Debug):
     # check if previously generated and succeeded
     filename_stamp = sample_folder + '/.success'
     if os.path.isfile(filename_stamp):
@@ -319,7 +321,8 @@ def optimir_caller(reads, sample_folder, name, threads, matureFasta, hairpinFast
         print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'OptimiR'), 'yellow'))
     else:
         # Call sRNAbench
-        code_returned = optimir(reads, sample_folder, name, threads, matureFasta, hairpinFasta, species, Debug)
+	## no species option for OptimiR
+        code_returned = optimir(reads, sample_folder, name, threads, matureFasta, hairpinFasta, miRNA_gff,  Debug)
         if code_returned:
             functions.print_time_stamp(filename_stamp)
         else:
@@ -329,7 +332,7 @@ def optimir_caller(reads, sample_folder, name, threads, matureFasta, hairpinFast
     return(True)
 
 ###############       
-def optimir (reads, outpath, file_name, num_threads, matureFasta, hairpinFasta, species, Debug):
+def optimir (reads, outpath, file_name, num_threads, matureFasta, hairpinFasta, miRNA_gff, Debug):
     
     optimir_exe = set_config.get_exe("optimir", Debug=Debug)
     sRNAbench_db = os.path.abspath(os.path.join(os.path.dirname(optimir_exe), '..')) ## optimir
@@ -338,12 +341,10 @@ def optimir (reads, outpath, file_name, num_threads, matureFasta, hairpinFasta, 
     if (len(reads) > 1):
         print (colored("** ERROR: Only 1 fastq file is allowed please joined reads before...", 'red'))
         exit()
-    
-    ## species ??
-    
+ 
     ## create command  
-    cmd = "%s process --fq %s --gff_out -o %s --maturesFasta %s --hairpinsFasta %s 2> %s" %(
-        optimir_exe, reads[0], outpath, matureFasta, hairpinFasta, logfile)
+    cmd = "%s process --fq %s --gff_out -o %s --maturesFasta %s --hairpinsFasta %s --gff3 %s 2> %s" %(
+        optimir_exe, reads[0], outpath, matureFasta, hairpinFasta, miRNA_gff, logfile)
     return(functions.system_call(cmd))
 
 ###############       
@@ -376,9 +377,8 @@ def miraligner (reads, outpath, file_name, database, species, Debug):
     
     ## create command    
     java_exe = set_config.get_exe('java', Debug=Debug)
-    cmd = '%s -jar %s -db %s -sub 1 -add 3 -trim 3 -sp %s -i %s -o %s 2> %s' %(
-        java_exe, miraligner, database, species, reads[0], outpath)  
-    logfile 
+    cmd = '%s -jar %s -db %s -sub 1 -add 3 -trim 3 -s %s -i %s -o %s 2> %s' %(
+        java_exe, miraligner_exe, database, species, reads[0], outpath, logfile)
     
     return(functions.system_call(cmd))
 
