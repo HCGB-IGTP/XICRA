@@ -362,8 +362,8 @@ def file2dictionary(file2read, split_char):
 ## timestamp name
 def urllib_request(folder, url_string, file_name, debug):
 	
-	file_name_unzipped=""
-	zipped=""
+	file_name_unzipped="n.a."
+	zipped=False
 	
 	## add more compression types if necessary
 	if file_name.endswith('gz'):
