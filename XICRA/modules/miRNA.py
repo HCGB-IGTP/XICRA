@@ -101,16 +101,19 @@ def run_miRNA(options):
     ## miRNA information: hairpin, mature, str, gff3
     ############################################################
     if not (options.database):
-        options.database =  os.path.dirname(os.path.realpath(__file__))
+        install_path =  os.path.dirname(os.path.realpath(__file__))
+        options.database = os.path.join(install_path, "db_files") 
     else:
         options.database = os.path.abspath(options.database)
-        print ("+ Create folder to store results: ", options.database)
-        functions.create_folder(options.database)
+    
+    print ("+ Create folder to store results: ", options.database)
+    functions.create_folder(options.database)
     
     ## miRNA_gff: can be set as automatic to download from miRBase
     if not options.miRNA_gff:
         print ("+ File miRNA gff3 annotation")
-        print (colored("\t** ATTENTION: No miRNA gff file provided", 'yellow'))     
+        if Debug:
+            print (colored("\t** ATTENTION: No miRNA gff file provided", 'yellow'))     
         print (colored("\t** Download it form miRBase", 'green'))
         file_name = options.species + ".gff3"
         ftp_site = "ftp://mirbase.org/pub/mirbase/CURRENT/genomes/" + file_name 
@@ -123,10 +126,11 @@ def run_miRNA(options):
     ## hairpin: can be set as automatic to download from miRBase
     if not options.hairpinFasta:
         print ("+ File hairpin fasta")
-        print (colored("\t** ATTENTION: No hairpin fasta file provided", 'yellow'))        
+        if Debug:
+            print (colored("\t** ATTENTION: No hairpin fasta file provided", 'yellow'))        
         print (colored("\t** Download it form miRBase", 'green'))
         ftp_site = "ftp://mirbase.org/pub/mirbase/CURRENT/hairpin.fa.gz"
-        options.miRNA_gff = functions.urllib_request(options.database, ftp_site, "hairpin", Debug)
+        options.hairpinFasta = functions.urllib_request(options.database, ftp_site, "hairpin.fa.gz", Debug)
         
     else:
         print ("+ hairpin fasta file provided")
@@ -135,10 +139,11 @@ def run_miRNA(options):
     ## mature: can be set as automatic to download from miRBase
     if not options.matureFasta:
         print ("+ File mature fasta")
-        print (colored("\t** ATTENTION: No mature miRNA fasta file provided", 'yellow'))        
+        if Debug:
+            print (colored("\t** ATTENTION: No mature miRNA fasta file provided", 'yellow'))        
         print (colored("\t** Download it form miRBase", 'green'))
         ftp_site = "ftp://mirbase.org/pub/mirbase/CURRENT/mature.fa.gz"
-        options.miRNA_gff = functions.urllib_request(options.database, ftp_site, "mature", Debug)
+        options.matureFasta = functions.urllib_request(options.database, ftp_site, "mature.fa.gz", Debug)
 
     else:
         print ("+ mature fasta file provided")
@@ -147,10 +152,13 @@ def run_miRNA(options):
     ## miRBase str: can be set as automatic to download from miRBase
     if not options.miRBase_str:
         print ("+ File miRBase str annotation")
-        print (colored("\t** ATTENTION: No miRBase_str file provided", 'yellow'))        
+        if Debug:
+            print (colored("\t** ATTENTION: No miRBase_str file provided", 'yellow'))        
         print (colored("\t** Download it form miRBase", 'green'))
         ftp_site = "ftp://mirbase.org/pub/mirbase/CURRENT/miRNA.str.gz"
-        options.miRNA_gff = functions.urllib_request(options.database, ftp_site, "miRNA.str", Debug)
+        options.miRBase_str = functions.urllib_request(options.database, ftp_site, "miRNA.str.gz", Debug)
+        ## extract
+        
     else:
         print ("+ miRBase_str file provided")
         options.miRBase_str = os.path.abspath(options.miRBase_str)

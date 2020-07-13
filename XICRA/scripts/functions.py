@@ -358,12 +358,25 @@ def file2dictionary(file2read, split_char):
 ## timestamp name
 def urllib_request(folder, url_string, file_name, debug):
 	
+	file_name_unzipped=""
+	zipped=""
+	
+	## add more compression types if necessary
+	if file_name.endswith('gz'):
+		zipped=True
+		file_name_unzipped = file_name.split('gz')[0]
+	
+	if debug:
+		print ("Zip: ", zipped)
+		print ("file_name_unzipped:", file_name_unzipped)
+	
 	## timestamp
 	filename_stamp = folder + '/.success'
 	file_path_name = os.path.join(folder, file_name)
+	file_path_name_unzipped = os.path.join(folder, file_name_unzipped)
 	
 	## check if previously exists
-	if os.path.exists(file_path_name):
+	if os.path.exists(file_path_name) or os.path.exists(file_path_name_unzipped):
 		## debug message
 		if debug:
 			print ("## Debug: File %s exists in folder" %file_name)
@@ -384,9 +397,18 @@ def urllib_request(folder, url_string, file_name, debug):
 		## check if correctly download
 		if os.path.exists(file_path_name):
 			print_time_stamp(filename_stamp)
-			return(file_path_name)
 		else:
 			sys.exit('Could not download file %s (%s)' %(file_name, url_string))
+
+		## extract if zipped
+		if (zipped):
+			extract(file_path_name, out=folder)
+			return (file_path_name_unzipped)
+			
+		else:
+			return(file_path_name)
+
+
 			
 ###############
 def extract(fileGiven, out, remove=True):
