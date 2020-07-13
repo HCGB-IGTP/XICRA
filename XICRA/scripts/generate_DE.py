@@ -156,6 +156,11 @@ def generate_matrix(dict_files, soft_name, Debug):
 			new_data = new_data.set_index('unique_id')
 			new_data = new_data.rename(columns={search_list[0]: sample})
 
+		if (soft_name == 'miraligner'):
+			## miraligner mirtop creates a column containing sample name and other tags (trim, joined, fastq...)
+			new_data = data.filter(['unique_id', sample], axis=1)
+			new_data = new_data.set_index('unique_id')
+
 		## sequence information
 		seq_data = data.filter(['UID', 'Read'], axis=1)	
 		seq_data = seq_data.set_index('UID')
