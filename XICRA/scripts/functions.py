@@ -368,7 +368,7 @@ def urllib_request(folder, url_string, file_name, debug):
 	## add more compression types if necessary
 	if file_name.endswith('gz'):
 		zipped=True
-		file_name_unzipped = file_name.split('gz')[0]
+		file_name_unzipped = file_name.split('.gz')[0]
 	
 	if debug:
 		print ("Zip: ", zipped)
