@@ -370,9 +370,14 @@ def urllib_request(folder, url_string, file_name, debug):
 		zipped=True
 		file_name_unzipped = file_name.split('.gz')[0]
 	
+	### debugging messages
 	if debug:
+		print ("folder: ", folder)
+		print ("url_string: ",url_string)
+		print ("file_name:", file_name)
 		print ("Zip: ", zipped)
-		print ("file_name_unzipped:", file_name_unzipped)
+		print ("file_name_unzipped: ", file_name_unzipped)
+		
 	
 	## timestamp
 	filename_stamp = folder + '/.success'
@@ -389,7 +394,7 @@ def urllib_request(folder, url_string, file_name, debug):
 		if os.path.isfile(filename_stamp):
 			stamp = read_time_stamp(filename_stamp)
 			print ("\tFile (%s) Previously downloaded in: %s" %(file_name, stamp))
-			return(file_path_name)
+			return(file_path_name_unzipped)
 	else:
 		## debug message
 		if debug:
