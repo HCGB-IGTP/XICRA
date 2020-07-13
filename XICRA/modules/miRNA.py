@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-##########################################################
+############################################################
 ## Jose F. Sanchez                                        ##
-## Copyright (C) 2019 Lauro Sumoy Lab, IGTP, Spain        ##
-##########################################################
-from networkx.classes import function
+## Copyright (C) 2019-2020 Lauro Sumoy Lab, IGTP, Spain   ##
+############################################################
 """
 Create miRNA analysis using sRNAbenchtoolbox and miRTop.
 """
@@ -276,7 +275,7 @@ def miRNA_analysis(reads, folder, name, threads, miRNA_gff, soft_list,
             
             ## create folder for Optimir results
             miRTop_folder = functions.create_subfolder("miraligner_miRTop", folder)
-            miRTop_caller(miraligner_folder, miRTop_folder, name, threads, miRNA_gff, hairpinFasta, 'miraligner', species, Debug)
+            miRTop_caller(miraligner_folder, miRTop_folder, name, threads, miRNA_gff, hairpinFasta, 'seqbuster', species, Debug)
             
             ## save results in dataframe
             filename = os.path.join(miRTop_folder, 'counts', 'mirtop.tsv')
@@ -446,6 +445,17 @@ def miRTop(results_folder, sample_folder, name, threads, format, miRNA_gff, hair
         if not functions.is_non_zero_file(gff3_file):
             print (colored("\tNo isomiRs detected for sample [%s -- %s]" %(name, 'optimir'), 'yellow'))
             return (False)
+    
+    elif format == "seqbuster":
+        ## get miraligner info
+        mirna_file = functions.retrieve_matching_files(results_folder, ".mirna")[0]
+        results_folder = mirna_file
+        
+        ## check non zero
+        if not functions.is_non_zero_file(mirna_file):
+            print (colored("\tNo isomiRs detected for sample [%s -- %s]" %(name, 'miraligner'), 'yellow'))
+            return (False)
+    
         
     ## miRTop analysis gff
     filename_stamp_gff = mirtop_folder_gff + '/.success'

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 ##########################################################
-## this modules is an idea from ARIBA			##
-## (https://github.com/sanger-pathogens/ariba)		##
-## give credit to them appropiately			##
-##							##
-## Jose F. Sanchez					##
+## this modules is an idea from ARIBA					##
+## (https://github.com/sanger-pathogens/ariba)			##
+## give credit to them appropiately						##
+##														##
+## Jose F. Sanchez										##
 ## Copyright (C) 2019-2020 Lauro Sumoy Lab, IGTP, Spain	##
 ##########################################################
 """
