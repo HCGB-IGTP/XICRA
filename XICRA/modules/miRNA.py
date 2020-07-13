@@ -378,6 +378,9 @@ def miraligner (reads, outpath, file_name, database, species, Debug):
     miraligner_exe = set_config.get_exe("miraligner", Debug=Debug)
     logfile = os.path.join(outpath, 'miraligner.log')
     
+    ## output
+    outpath_file = os.path.join(outpath, file_name)
+    
     if (len(reads) > 1):
         print (colored("** ERROR: Only 1 fastq file is allowed please joined reads before...", 'red'))
         exit()
@@ -385,7 +388,7 @@ def miraligner (reads, outpath, file_name, database, species, Debug):
     ## create command    
     java_exe = set_config.get_exe('java', Debug=Debug)
     cmd = '%s -jar %s -db %s -sub 1 -add 3 -trim 3 -s %s -i %s -o %s 2> %s' %(
-        java_exe, miraligner_exe, database, species, reads[0], outpath, logfile)
+        java_exe, miraligner_exe, database, species, reads[0], outpath_file, logfile)
     
     return(functions.system_call(cmd))
 
