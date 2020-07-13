@@ -387,8 +387,8 @@ def miraligner (reads, outpath, file_name, database, species, Debug):
         exit()
     
     ## create tabular information of reads
-    tabular_info = os.path.join(outpath_file, (file_name + '.tab.freq.txt'))
-    reads2tabular(reads[0], tabular_info)
+    tabular_info = os.path.join(outpath, file_name + '-tab.freq.txt')
+    reads2tabular.reads2tabular(reads[0], tabular_info)
     
     ## create command 
     java_exe = set_config.get_exe('java', Debug=Debug)

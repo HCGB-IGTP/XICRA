@@ -369,7 +369,8 @@ def urllib_request(folder, url_string, file_name, debug):
 	if file_name.endswith('gz'):
 		zipped=True
 		file_name_unzipped = file_name.split('.gz')[0]
-	
+	else:
+		file_name_unzipped = file_name	
 	### debugging messages
 	if debug:
 		print ("folder: ", folder)

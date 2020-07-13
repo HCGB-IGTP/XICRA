@@ -31,7 +31,7 @@ def reads2tabular(fastq_file, out):
             lines.append(line.rstrip())
             if len(lines) == n:
                 record = process(lines)
-                sys.stderr.write("Record: %s\n" % (str(record)))
+                #sys.stderr.write("Record: %s\n" % (str(record)))
                 lines = []
                 
                 ## add sequences & count
