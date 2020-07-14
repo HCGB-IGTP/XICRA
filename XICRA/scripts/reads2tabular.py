@@ -13,7 +13,12 @@ from collections import defaultdict
 ## source: https://www.biostars.org/p/317524/
 
 ### 
-def process(lines):
+def process_fasta(lines):
+    ks = ['name', 'sequence']
+    return {k: v for k, v in zip(ks, lines)}
+
+### 
+def process_fastq(lines):
     ks = ['name', 'sequence', 'optional', 'quality']
     return {k: v for k, v in zip(ks, lines)}
 
@@ -30,7 +35,7 @@ def reads2tabular(fastq_file, out):
         for line in fh:
             lines.append(line.rstrip())
             if len(lines) == n:
-                record = process(lines)
+                record = process_fastq(lines)
                 #sys.stderr.write("Record: %s\n" % (str(record)))
                 lines = []
                 
@@ -58,7 +63,6 @@ def main():
     else:
         help_options()
         exit()        
-
     
     reads2tabular(argv[1], argv[2])
         

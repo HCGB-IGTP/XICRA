@@ -13,23 +13,35 @@ grep 'sapiens' mature.fa | awk '{print $1}' | sed 's/>//' > mature_hsapiens.ids.
 grep 'sapiens' hairpin.fa | awk '{print $1}' | sed 's/>//' > hairpin_hsapiens.ids.txt
 
 ## get hsapiens fasta files
-perl XICRA/simulation/get-seq_ids.pl mature_hsapiens.ids.txt mature.fa mature_hsapiens.fa
-perl XICRA/simulation/get-seq_ids.pl hairpin_hsapiens.ids.txt hairpin.fa hairpin_hsapiens.fa
+seqtk subseq hairpin.fa hairpin_hsapiens.ids.txt > hairpin_hsapiens.fa
+seqtk subseq mature.fa mature_hsapiens.ids.txt > mature_hsapiens.fa
 
 ## Simulate isomiRs and reads
-cd ..
-mkdir simulations
-cd simulations
+cd ../
 mkdir isomiR_simulations
 cd isomiR_simulations
 
 ## simulate isomiR
-perl /home/jfsanchez/git_repos/isomiR-Benchmark/create_isomiRs.pl mirBase/mature_hsapiens.fa mirBase/hairpin_hsapiens.fa
-cd ..
+perl ~/isomiR-Benchmark/create_isomiRs.pl ../mirBase/mature_hsapiens.fa ../mirBase/hairpin_hsapiens.fa
 
-## rename sequences
+----------------------------------
+## Simulated isomiR categories: ##
+----------------------------------
+# Five add: FA
+# Five del: FS
+# Non-template: NT
+# SNP Rest: SR
+# SNP Seed: SS
+# Three add: TA
+# Three del: TS
+
+## Concat all sequences & change character
+cd ..
 cat isomiR_simulation/*fa | sed 's/|/::/' > all_seqs.fa
-perl ../rename_fasta_seqs.pl ../mirBase/mature_hsapiens.fa | sed 's/miR/hsa-mir/' >> all_seqs.fa
+
+# add canonical & conver U->T & rename/add character
+python rename_canonical.py mature_hsapiens.fa mature_hsapiens_renamed.fa
+cat mature_hsapiens_renamed.fa >> all_seqs.fa
 
 ## check this
 >hsa-mir-513a-3p|>hsa-mir-513c-3p|TS-5833
