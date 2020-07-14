@@ -90,7 +90,8 @@ def run_prep(options):
     
     if options.debug:
         print (colored("** DEBUG: pd_samples_retrieved", 'yellow'))
-        functions.print_all_pandaDF(pd_samples_retrieved)
+        print (pd_samples_retrieved)
+        #functions.print_all_pandaDF(pd_samples_retrieved)
     
     ## time stamp
     start_time_partial = functions.timestamp(start_time_total)
@@ -183,7 +184,8 @@ def run_prep(options):
     ## debugging messages
     if (options.debug):
         print (colored("** DEBUG: pd_samples_retrieved", 'yellow'))
-        functions.print_all_pandaDF(pd_samples_retrieved)
+        #functions.print_all_pandaDF(pd_samples_retrieved)
+        print (pd_samples_retrieved)
         print (colored("** DEBUG: outdir_dict", 'yellow'))
         print (outdir_dict)
     

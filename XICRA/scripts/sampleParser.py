@@ -372,37 +372,38 @@ def get_files(options, input_dir, mode, extension):
 	print ('+ Getting files from input folder... ')
 	print ('+ Mode: ', mode,'. Extension:', extension)
 	if (options.project):
-		### a folder containing a project is provided
-		if os.path.isdir(input_dir):
-			print ('+ Input folder exists')
-			## get files in folder
-			for ext in extension:
-				if mode == 'trim':
-					files_tmp = functions.get_fullpath_list(input_dir)
-					files = [s for s in files_tmp if ext in s]
-				else:
-					files_tmp = functions.retrieve_matching_files(input_dir, ext)				
-					files = files + files_tmp
+		
+		## input folder is not a dir, is it a batch input file?
+		if (options.batch):
+			if os.path.isfile(input_dir):
+				if (options.debug):
+					print (colored("\n**DEBUG: sampleParser.get_files input folder is a batch file, get full path **", 'yellow'))
+				dir_list = [line.rstrip('\n') for line in open(input_dir)]
+				for d in dir_list:
+					if os.path.exists(d):
+						print ('+ Folder (%s) exists' %d)
+						files = files + functions.get_fullpath_list(d)
+					else:
+						## input folder does not exist...
+						if (options.debug):
+							print (colored("\n**DEBUG: sampleParser.get_files batch option; input folder does not exists **", 'yellow'))
+							print (d)
+							print ("\n")
+		else:		
+			### a folder containing a project is provided
+			if os.path.exists(input_dir):
+				print ('+ Input folder exists')
+				## get files in folder
+				for ext in extension:
+					if mode == 'trim':
+						files_tmp = functions.get_fullpath_list(input_dir)
+						files = [s for s in files_tmp if ext in s]
+					else:
+						files_tmp = functions.retrieve_matching_files(input_dir, ext)				
+						files = files + files_tmp
+	
+				files = set(files)
 
-			files = set(files)
-
-		else:
-			## input folder is not a dir, is it a batch input file?
-			if (options.batch):
-				if os.path.isfile(input_dir):
-					if (options.debug):
-						print (colored("\n**DEBUG: sampleParser.get_files input folder is a batch file, get full path **", 'yellow'))
-					dir_list = [line.rstrip('\n') for line in open(input_dir)]
-					for d in dir_list:
-						if os.path.exists(d):
-							print ('+ Folder (%s) exists' %d)
-							files = files + functions.get_fullpath_list(d)
-						else:
-							## input folder does not exist...
-							if (options.debug):
-								print (colored("\n**DEBUG: sampleParser.get_files batch option; input folder does not exists **", 'yellow'))
-								print (d)
-								print ("\n")
 			else:
 				## input folder does not exist...
 				if (options.debug):
