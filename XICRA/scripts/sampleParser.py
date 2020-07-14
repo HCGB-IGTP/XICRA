@@ -490,7 +490,6 @@ def get_files(options, input_dir, mode, extension):
 	files = [s for s in files if '.annot' not in s]
 	files = [s for s in files if '.abundances.txt' not in s]
 	files = [s for s in files if '.gff3' not in s]
-	files = [s for s in files if 'fastq.gz' not in s]
 	files = [s for s in files if 'trimmed.fq' not in s]
 	files = [s for s in files if 'trim.clpsd.fq' not in s]
 	files = [s for s in files if 'failed.fq.gz' not in s]
