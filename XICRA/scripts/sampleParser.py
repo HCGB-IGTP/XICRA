@@ -216,7 +216,8 @@ def select_samples (list_samples, samples_prefix, pair=True, exclude=False, Debu
 		print ("non_duplicate_samples")
 		print (non_duplicate_samples)
 		print ("tmp dataframe")
-		functions.print_all_pandaDF(tmp)
+		#functions.print_all_pandaDF(tmp)
+		print(tmp)
 				
 	## get info
 	name_frame_samples = get_fields(non_duplicate_samples, pair, Debug, include_all)	
@@ -482,13 +483,14 @@ def get_files(options, input_dir, mode, extension):
 	samples_names = list(filter(None, samples_names)) ## empty space
 
 	## discard some files obtain
-	files = [s for s in files if 'single_copy_busco_sequences' not in s]
-	files = [s for s in files if 'orphan' not in s]
-	files = [s for s in files if 'augustus_output' not in s]
-	files = [s for s in files if 'hmmer_output' not in s]
-	files = [s for s in files if 'configs' not in s]
-	files = [s for s in files if '00.0_0.cor.fastq.gz' not in s]
-	files = [s for s in files if 'report_summary' not in s]
+	files = [s for s in files if '.bam' not in s]
+	files = [s for s in files if '.sam' not in s]
+	files = [s for s in files if '.log' not in s]
+	files = [s for s in files if '.annot' not in s]
+	files = [s for s in files if '.abundances.txt' not in s]
+	files = [s for s in files if '.gff3' not in s]
+	files = [s for s in files if 'fastq.gz' not in s]
+	files = [s for s in files if 'trimmed.fq' not in s]
 	files = list(filter(None, files)) ## empty space
 		
 	## files list...
