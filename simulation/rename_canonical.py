@@ -43,7 +43,7 @@ with open(sys.argv[1], 'r') as fh:
                 
                 lines = []
                 ## add tag
-                new_name = record['name'].split(' ')[0] + '::canonical'
+                new_name = record['name'].split(' ')[0] + '::CN'
                 new_name = new_name.replace('miR', 'mir')
                 
                 ## convert U->T

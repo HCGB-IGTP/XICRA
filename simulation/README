@@ -43,15 +43,11 @@ cat isomiR_simulation/*fa | sed 's/|/::/' > all_seqs.fa
 python rename_canonical.py mature_hsapiens.fa mature_hsapiens_renamed.fa
 cat mature_hsapiens_renamed.fa >> all_seqs.fa
 
-## check this
->hsa-mir-513a-3p|>hsa-mir-513c-3p|TS-5833
->hsa-mir-513c-3p|>hsa-mir-513a-3p|TS-7697
->hsa-mir-513c-3p|>hsa-mir-513a-3p|TS-7822
-
 ## get frequency
-python ../get_freq.py
+python get_freq.py all_seqs.fa fasta test_out.csv
 
 ## modify frequency
+
 
 ## simulate NGS reads using art
 
