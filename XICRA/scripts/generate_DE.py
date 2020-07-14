@@ -45,7 +45,7 @@ def generate_DE(dataframe_results, Debug, outfolder):
 			print (dict_files)
 
 		## get data
-		(all_data, all_seqs) = generate_matrix(dict_files, soft_name, Debug)
+		(all_data, all_seqs) = generate_matrix(dict_files, soft_name.lower(), Debug)
 		
 		## discard duplicate UIDs if any
 		all_data_filtered, all_data_duplicated = discard_UID_duplicated(all_data)
