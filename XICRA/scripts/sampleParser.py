@@ -373,7 +373,7 @@ def get_files(options, input_dir, mode, extension):
 	print ('+ Mode: ', mode,'. Extension:', extension)
 	if (options.project):
 		### a folder containing a project is provided
-		if os.path.exists(input_dir):
+		if os.path.isdir(input_dir):
 			print ('+ Input folder exists')
 			## get files in folder
 			for ext in extension:
