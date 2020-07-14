@@ -396,7 +396,7 @@ def get_files(options, input_dir, mode, extension):
 					for d in dir_list:
 						if os.path.exists(d):
 							print ('+ Folder (%s) exists' %d)
-							files = files.append(functions.get_fullpath_list(d))
+							files = files + functions.get_fullpath_list(d)
 						else:
 							## input folder does not exist...
 							if (options.debug):
