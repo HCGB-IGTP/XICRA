@@ -77,7 +77,11 @@ with open(sys.argv[1], 'r') as fh:
             list_split = record['name'].split('::')
 
             #print (list_split)
-            miRNA = list_split[0].replace('>', '')
+            if (sys.argv[2]=='fastq'):
+                miRNA = list_split[0].replace('@', '') 
+            elif (sys.argv[2]=='fasta'):
+                miRNA = list_split[0].replace('>', '')
+
             variant_list = list_split[1].split('-')
             variant_type = variant_list[0]
             
