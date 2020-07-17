@@ -4,13 +4,13 @@
 ## Copyright (C) 2019-2020 Lauro Sumoy Lab, IGTP, Spain   ##
 ############################################################
 
-import argparse ## https://docs.python.org/3/library/argparse.html#module-argparse
+import argparse 
 import os
 import sys
 import XICRA.modules
 
 ## initiate parser
-parser = argparse.ArgumentParser(prog='XICRA', description='Small RNA (sRNA) pipeline for...'
+parser = argparse.ArgumentParser(prog='XICRA', description='Paired-end small RNA sequence analysis pipeline.'
   	##,epilog="(c) 2019. Jose F. Sanchez and Lauro Sumoy."
 )
 subparsers = parser.add_subparsers(title='Available modules', help='', metavar='')

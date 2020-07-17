@@ -345,14 +345,15 @@ def optimir (reads, outpath, file_name, num_threads, matureFasta, hairpinFasta, 
     optimir_exe = set_config.get_exe("optimir", Debug=Debug)
     sRNAbench_db = os.path.abspath(os.path.join(os.path.dirname(optimir_exe), '..')) ## optimir
     logfile = os.path.join(outpath, 'optimir.log')
+    errfile = os.path.join(outpath, 'optimir.err')
     
     if (len(reads) > 1):
         print (colored("** ERROR: Only 1 fastq file is allowed please joined reads before...", 'red'))
         exit()
  
     ## create command  
-    cmd = "%s process --fq %s --gff_out -o %s --maturesFasta %s --hairpinsFasta %s --gff3 %s 2> %s" %(
-        optimir_exe, reads[0], outpath, matureFasta, hairpinFasta, miRNA_gff, logfile)
+    cmd = "%s process --fq %s --gff_out -o %s --maturesFasta %s --hairpinsFasta %s --gff3 %s > %s 2> %s" %(
+        optimir_exe, reads[0], outpath, matureFasta, hairpinFasta, miRNA_gff, logfile, errfile)
     return(functions.system_call(cmd))
 
 ###############       
