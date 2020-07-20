@@ -213,6 +213,7 @@ def run_miRNA(options):
                 print('%r generated an exception: %s' % (details, exc))
 
     print ("\n\n+ miRNA analysis is finished...")
+    print ("+ Let's summarize all results...")
     
     ## outdir
     outdir_report = functions.create_subfolder("report", outdir)

@@ -30,17 +30,17 @@ def generate_DE(dataframe_results, Debug, outfolder):
 
 	## generate results
 	for soft_name in soft_list:
+		
+		print ("\n+ Summarizing results for software: ", soft_name)
+		
 		# retrieve files in dictionary
 		tmp_df = dataframe_results[ dataframe_results['soft'] == soft_name].set_index('name')
+		dict_files = tmp_df['filename'].to_dict()
+
 		if Debug:
 			print ("## Debug:")
 			print ("tmp_df")
 			print (tmp_df)
-
-		##
-		dict_files = tmp_df['filename'].to_dict()
-
-		if Debug:
 			print ("dict_files")
 			print (dict_files)
 
