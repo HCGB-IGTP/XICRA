@@ -493,6 +493,7 @@ def get_files(options, input_dir, mode, extension):
 	files = [s for s in files if 'trimmed.fq' not in s]
 	files = [s for s in files if 'trim.clpsd.fq' not in s]
 	files = [s for s in files if 'failed.fq.gz' not in s]
+	files = [s for s in files if 'unjoin' not in s]
 	
 	if (mode == 'fastq'):
 		files = [s for s in files if 'trim' not in s]
