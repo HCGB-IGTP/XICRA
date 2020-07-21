@@ -99,10 +99,7 @@ in_out_group_qc.add_argument("--detached", action="store_true", help="Isolated m
 in_out_group_qc.add_argument("--include_lane", action="store_true", help="Include the lane tag (*L00X*) in the sample name. See --help_format for additional details [Default OFF]")
 in_out_group_qc.add_argument("--include_all", action="store_true", help="Include all characters as tag name before read pair, if any. See --help_format for additional details [Default OFF]")
 
-exclusive_group_qc_name = subparser_qc.add_argument_group("Options")
-exclusive_group_qc = exclusive_group_qc_name.add_mutually_exclusive_group(required= not any(elem in help_options for elem in sys.argv))
-exclusive_group_qc.add_argument("--raw_reads", action="store_true",  help="Check quality for each sample using FASTQC analysis. Input: reads (fastq/fq). See --help_format for further details.")
-##exclusive_group_qc.add_argument("--alignment", action="store_true",  help="Check quality for each sample using FASTQC analysis. Input: reads (fastq/fq). See --help_format for further details.")
+#exclusive_group_qc_name = subparser_qc.add_argument_group("Options")
 
 options_group_qc = subparser_qc.add_argument_group("Configuration")
 options_group_qc.add_argument("--single_end", action="store_true", help="Single end files [Default OFF]. Default mode is paired-end. Only applicable if --raw_reads option.")

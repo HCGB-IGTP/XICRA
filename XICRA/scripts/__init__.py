@@ -1,5 +1,6 @@
 __all__ = [
     'functions',
+    'fastqc_caller',
     'multiQC_report',
     'sampleParser',
     'reads2tabular',
