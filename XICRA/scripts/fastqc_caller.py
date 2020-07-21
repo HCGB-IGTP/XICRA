@@ -22,16 +22,27 @@ from XICRA.config import set_config
 ############
 def call_fastqc(path, file1, file2, sample, fastqc_bin, threads):    
     ## call system for fastqc sample given
-    #name = functions.create_subfolder(sample, path)
-    logFile = path + '/' + sample + '.log'
     
-    if os.path.isfile(logFile):
-        return ('OK')
-    
-    ##print ("+ Calling fastqc for samples...")    
-    cmd_fastqc = '%s --extract -t %s -o %s %s %s > %s 2> %s' %(fastqc_bin, threads, path, file1, file2, logFile, logFile)
+    ## check if previously done and succeeded
+    filename_stamp = path + '/.success'
+    if os.path.isfile(filename_stamp):
+        stamp = functions.read_time_stamp(filename_stamp)
+        print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'fastqc'), 'yellow'))
+    else:
+        #name = functions.create_subfolder(sample, path)
+        logFile = path + '/' + sample + '.log'
+        
+        ##print ("+ Calling fastqc for samples...")    
+        cmd_fastqc = '%s --extract -t %s -o %s %s %s > %s 2> %s' %(fastqc_bin, threads, path, file1, file2, logFile, logFile)
+        fastq_code = functions.system_call( cmd_fastqc )
+        
+        if fastq_code:
+            functions.print_time_stamp(filename_stamp)
+        else:
+            print ('** Sample %s failed...' %sample)
+
     ## send command    
-    return (functions.system_call( cmd_fastqc ))
+    return (fastq_code)
         
 ############
 def run_module_fastqc(path, files, sample, threads):    
