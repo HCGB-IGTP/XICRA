@@ -54,7 +54,7 @@ python get_freq.py all_seqs.fa fasta all_seqs.freqs.csv
 python simulation_sender.py --fasta all_seqs.fa 
 		--folder example --reads PE --seqSys HS25 --fcov 10 -t 2 
 		--freqs all_seqs.freqs.csv -n 10 -r 10 
-		--art_bin ./art_illumina -m 25 -s 5
+		--art_bin ./art_illumina -m 50 -s 5
 
 
 
