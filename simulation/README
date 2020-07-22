@@ -44,12 +44,17 @@ python rename_canonical.py mature_hsapiens.fa mature_hsapiens_renamed.fa
 cat mature_hsapiens_renamed.fa >> all_seqs.fa
 
 ## get frequency
-python get_freq.py all_seqs.fa fasta test_out.csv
-
-## modify frequency
-
+python get_freq.py all_seqs.fa fasta all_seqs.freqs.csv
 
 ## simulate NGS reads using art
+- ## modify frequency
+- ## get isomiRs sequences
+- ## simulate reads
+
+python simulation_sender.py --fasta all_seqs.fa 
+		--folder example --reads PE --seqSys HS25 --fcov 10 -t 2 
+		--freqs all_seqs.freqs.csv -n 10 -r 10 
+		--art_bin ./art_illumina -m 25 -s 5
 
 
 

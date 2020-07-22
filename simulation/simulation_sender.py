@@ -83,11 +83,11 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta, t
                     ## add random seed? --rndSeed
                     
                     ## outfile
-                    outfile_name = name + '_P-' + profile + '_T-' + reads + '_x-' + fcov + '_L-' + str(int_len)
+                    outfile_name = name + '_P-' + profile + '_T-' + reads + '_x-' + fcov + '_L-' + str(int_len) + '_R'
                     outfile_path = os.path.join(tmp_fastq, outfile_name)
                     
                     ## command
-                    art_illumina_cmd = "%s -na -p -ss %s -i %s -l %s -f %s -o %s" %(art_illumina_bin, profile, fasta_file_len, str_len, fcov, outfile_path)
+                    art_illumina_cmd = "%s -na -p -m 25 -s 5 -ss %s -i %s -l %s -f %s -o %s" %(art_illumina_bin, profile, fasta_file_len, str_len, fcov, outfile_path)
                     
                     code = functions.system_call(art_illumina_cmd)
                     if not code:
