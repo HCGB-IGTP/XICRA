@@ -455,9 +455,13 @@ def get_files(options, input_dir, mode, extension):
 	exclude=False
 
 	if (options.in_sample):
-		in_file = os.path.abspath(options.in_sample)
-		samples_names = [line.rstrip('\n') for line in open(in_file)]
-		print ('+ Retrieve selected samples to obtain from the list files available.')		
+		if os.path.isfile(os.path.abspath(options.in_sample)):
+			in_file = os.path.abspath(options.in_sample)
+			samples_names = [line.rstrip('\n') for line in open(in_file)]
+			print ('+ Retrieve selected samples to obtain from the list files available.')
+		else:
+			sample_names = options.in_sample
+		
 		exclude=False
 
 		## in sample list...

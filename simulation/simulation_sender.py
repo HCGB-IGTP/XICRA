@@ -107,7 +107,7 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta, t
                 ## send XICRA command
                 
                 ## create argparse with arguments provided to call XICRA prep
-                output_folder_XICRA = os.path.join(coverage_path)
+                output_folder_XICRA = os.path.join(coverage_path, 'analysis')
                 XICRA_options_prep = argparse.Namespace(input=reads_path, output_folder=output_folder_XICRA, 
                                                         single_end=False, batch=False, in_sample=False, 
                                                         ex_sample=False, detached=False, include_lane=False, 
@@ -128,11 +128,15 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta, t
                 XICRA_options_miRNA = argparse.Namespace(input=output_folder_XICRA, 
                                                         single_end=False, batch=False, in_sample=False, 
                                                         ex_sample=False, detached=False, include_lane=False, 
-                                                        include_all=False, threads=threads_given,
+                                                        include_all=False, threads=threads_given, noTrim=True,
                                                         software="sRNAbench optimir miraligner", species='hsa',
                                                         database=database_folder, miRNA_gff=False, hairpinFasta=False, matureFasta=False, miRBase_str=False, 
                                                         help_format=False,  help_project=False, help_miRNA=False, debug=False)
                 miRNA.run_miRNA(XICRA_options_miRNA)
+                
+                
+                ## now run for R1 and R2
+                
 
 #########################################################
 def process_fasta_length (fasta_file, folder, debug): 
