@@ -132,7 +132,7 @@ def call_XICRA(folder_path, fastq_reads, name, threads_given, debug_bool, databa
     join.run_join(XICRA_options_join)
     
     ## create argparse with arguments provided to call XICRA prep
-    software_miRNA = list("sRNAbench", "optimir", "miraligner")
+    software_miRNA = ["sRNAbench", "optimir", "miraligner"]
     XICRA_options_miRNA = argparse.Namespace(input=output_folder_XICRA, 
                                             single_end=False, batch=False, in_sample=False, noTrim=False, 
                                             ex_sample=False, detached=False, include_lane=False, 
