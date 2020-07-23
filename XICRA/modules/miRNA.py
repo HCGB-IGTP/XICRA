@@ -86,7 +86,7 @@ def run_miRNA(options):
         if options.noTrim:
             pd_samples_retrieved = sampleParser.get_files(options, input_dir, "fastq", ("fastq", "fq", "fastq.gz", "fq.gz"))
         else:
-            pd_samples_retrieved = sampleParser.get_files(options, input_dir, "join", ['_trim_joined.fastq'])
+            pd_samples_retrieved = sampleParser.get_files(options, input_dir, "join", ['_joined.fastq'])
     else:
         if options.noTrim:
             pd_samples_retrieved = sampleParser.get_files(options, input_dir, "fastq", ("fastq", "fq", "fastq.gz", "fq.gz"))

@@ -5,6 +5,7 @@
 ############################################################
 from builtins import len
 from numpy.f2py.auxfuncs import debugcapi
+from numpy import tri
 """
 Generates simulation and sends XICRA command
 """
@@ -32,7 +33,8 @@ import XICRA
 ## cobertura: 10
 
 #########################################################
-def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta, threads_given, debug, art_illumina_bin, database_folder):
+def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta, 
+                  threads_given, debug, art_illumina_bin, database_folder, send_XICRA):
 
     for profile in seqSys_list:
         print (" + Simulating reads for profile: " + profile)
@@ -87,56 +89,100 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta, t
                     outfile_path = os.path.join(tmp_fastq, outfile_name)
                     
                     ## command
-                    art_illumina_cmd = "%s -na -p -m 50 -s 5 -ss %s -i %s -l %s -f %s -o %s" %(art_illumina_bin, profile, fasta_file_len, str_len, fcov, outfile_path)
+                    art_illumina_cmd = "%s -na -p -m 50 -s 5 -ss %s -i %s -l %s -c %s -o %s" %(art_illumina_bin, profile, fasta_file_len, str_len, fcov, outfile_path)
                     
                     code = functions.system_call(art_illumina_cmd)
                     if not code:
                         print ("** ERROR: Some error happened during ART simulation")
                         exit()
-                        
-                ## merge reads all lengths
-                reads_path = functions.create_subfolder('reads', coverage_path)
-                R1_all_reads = functions.retrieve_matching_files(tmp_fastq, "R1.fq")
-                R1_reads = os.path.join(reads_path, name + '_R1.fq')
-                functions.merge_files(R1_reads, R1_all_reads)
-                
-                R2_all_reads = functions.retrieve_matching_files(tmp_fastq, "R2.fq")
-                R2_reads = os.path.join(reads_path, name + '_R2.fq')
-                functions.merge_files(R2_reads, R2_all_reads)
-                
-                ## send XICRA command
-                
-                ## create argparse with arguments provided to call XICRA prep
-                output_folder_XICRA = os.path.join(coverage_path, 'analysis')
-                XICRA_options_prep = argparse.Namespace(input=reads_path, output_folder=output_folder_XICRA, 
-                                                        single_end=False, batch=False, in_sample=False, 
-                                                        ex_sample=False, detached=False, include_lane=False, 
-                                                        include_all=False, threads=threads_given, merge_Reads=False, 
-                                                        copy_reads=False, rename=False, help_format=False, 
-                                                        help_project=False, debug=False)
-                prep.run_prep(XICRA_options_prep)
-                
-                ## create argparse with arguments provided to call XICRA prep
-                XICRA_options_join = argparse.Namespace(input=output_folder_XICRA, noTrim=True,
-                                                        single_end=False, batch=False, in_sample=False, 
-                                                        ex_sample=False, detached=False, include_lane=False, 
-                                                        include_all=False, threads=threads_given, perc_diff= 8,  
-                                                        help_format=False,  help_project=False, help_join_reads=False, debug=False)
-                join.run_join(XICRA_options_join)
-                
-                ## create argparse with arguments provided to call XICRA prep
-                XICRA_options_miRNA = argparse.Namespace(input=output_folder_XICRA, 
-                                                        single_end=False, batch=False, in_sample=False, 
-                                                        ex_sample=False, detached=False, include_lane=False, 
-                                                        include_all=False, threads=threads_given, noTrim=True,
-                                                        software="sRNAbench optimir miraligner", species='hsa',
-                                                        database=database_folder, miRNA_gff=False, hairpinFasta=False, matureFasta=False, miRBase_str=False, 
-                                                        help_format=False,  help_project=False, help_miRNA=False, debug=False)
-                miRNA.run_miRNA(XICRA_options_miRNA)
-                
-                
-                ## now run for R1 and R2
-                
+                    
+                    call_XICRA(coverage_path, tmp_fastq, name, threads_given, debug, database_folder)
+
+###################
+def call_XICRA(folder_path, fastq_reads, name, threads_given, debug, database_folder):
+    
+    ## merge reads all lengths
+    reads_path = functions.create_subfolder('reads', folder_path)
+    R1_all_reads = functions.retrieve_matching_files(fastq_reads, "R1.fq")
+    R1_reads = os.path.join(reads_path, name + '_R1.fq')
+    functions.merge_files(R1_reads, R1_all_reads)
+    
+    R2_all_reads = functions.retrieve_matching_files(fastq_reads, "R2.fq")
+    R2_reads = os.path.join(reads_path, name + '_R2.fq')
+    functions.merge_files(R2_reads, R2_all_reads)
+    
+    ## send XICRA command
+    
+    ## create argparse with arguments provided to call XICRA prep
+    output_folder_XICRA = os.path.join(folder_path, 'analysis')
+    XICRA_options_prep = argparse.Namespace(input=reads_path, output_folder=output_folder_XICRA, 
+                                            single_end=False, batch=False, in_sample=False, 
+                                            ex_sample=False, detached=False, include_lane=False, 
+                                            include_all=False, threads=threads_given, merge_Reads=False, 
+                                            copy_reads=False, rename=False, help_format=False, 
+                                            help_project=False, debug=False)
+    prep.run_prep(XICRA_options_prep)
+    
+    ## create argparse with arguments provided to call XICRA prep
+    XICRA_options_join = argparse.Namespace(input=output_folder_XICRA, noTrim=True,
+                                            single_end=False, batch=False, in_sample=False, 
+                                            ex_sample=False, detached=False, include_lane=False, 
+                                            include_all=False, threads=threads_given, perc_diff= 8,  
+                                            help_format=False,  help_project=False, help_join_reads=False, debug=False)
+    join.run_join(XICRA_options_join)
+    
+    ## create argparse with arguments provided to call XICRA prep
+    XICRA_options_miRNA = argparse.Namespace(input=output_folder_XICRA, 
+                                            single_end=False, batch=False, in_sample=False, 
+                                            ex_sample=False, detached=False, include_lane=False, 
+                                            include_all=False, threads=threads_given, noTrim=True,
+                                            software="sRNAbench optimir miraligner", species='hsa',
+                                            database=database_folder, miRNA_gff=False, hairpinFasta=False, matureFasta=False, miRBase_str=False, 
+                                            help_format=False,  help_project=False, help_miRNA=False, debug=False)
+    miRNA.run_miRNA(XICRA_options_miRNA)
+    
+    #####################################
+    ## now run for R1 and R2
+    #####################################
+    
+    #########
+    ## R1
+    #########
+    R1_in_file = os.path.join(folder_path, "R1.txt")
+    with open(R1_in_file, 'w') as fh:
+        fh.write("R1")
+    fh.close()
+    
+    ## create argparse with arguments provided to call XICRA prep
+    output_folder_XICRA_R1 = os.path.join(folder_path, 'analysis_R1')
+    XICRA_options_miRNA_R1 = argparse.Namespace(input=reads_path, output_folder =output_folder_XICRA_R1,
+                                            single_end=True, batch=False, in_sample=R1_in_file, 
+                                            ex_sample=False, detached=True, include_lane=False, 
+                                            include_all=False, threads=threads_given, noTrim=True,
+                                            software="sRNAbench optimir miraligner", species='hsa',
+                                            database=database_folder, miRNA_gff=False, hairpinFasta=False, matureFasta=False, miRBase_str=False, 
+                                            help_format=False,  help_project=False, help_miRNA=False, debug=False)
+    miRNA.run_miRNA(XICRA_options_miRNA_R1)
+    
+    #########
+    ## R2
+    #########
+    R2_in_file = os.path.join(folder_path, "R2.txt")
+    with open(R2_in_file, 'w') as fh2:
+        fh2.write("R2")
+    fh2.close()
+    
+    output_folder_XICRA_R1 = os.path.join(folder_path, 'analysis_R1')
+    XICRA_options_miRNA_R1 = argparse.Namespace(input=reads_path, output_folder =output_folder_XICRA_R1,
+                                            single_end=True, batch=False, in_sample=R1_in_file, 
+                                            ex_sample=False, detached=True, include_lane=False, 
+                                            include_all=False, threads=threads_given, noTrim=True,
+                                            software="sRNAbench optimir miraligner", species='hsa',
+                                            database=database_folder, miRNA_gff=False, hairpinFasta=False, matureFasta=False, miRBase_str=False, 
+                                            help_format=False,  help_project=False, help_miRNA=False, debug=False)
+    miRNA.run_miRNA(XICRA_options_miRNA_R1)
+
+
 
 #########################################################
 def process_fasta_length (fasta_file, folder, debug): 
@@ -218,6 +264,8 @@ parser.add_argument('-n', '--n_rows', type=int, default=10)
 parser.add_argument('-r', '--replicates', type=int, default=10)
 parser.add_argument('--database', action='store', help="XICRA miRNA database or new folder for downloading necessary files")
 
+
+parser.add_argument('--send_XICRA', action='store_true', default=True, help='Send XICRA analysis for each replicate')
 parser.add_argument('--debug', action='store_true', default=False, help='Developer messages')
 args = parser.parse_args()
 #####################################################
@@ -261,7 +309,9 @@ if (args.freqs):
         ## subset freqs table
         mod_freq_script = os.path.join(dirnamePath, "mod_freq.py")
         mod_freqs_file = os.path.join(replicate_path, str_rep + ".freqs")
-        mod_freq_python_cmd = "python %s --freq %s --out %s --random_rows %s" %(mod_freq_script, args.freqs, mod_freqs_file, args.n_rows)
+        mod_freq_python_cmd = "python %s --freq %s --out %s --random_rows %s" %(
+            mod_freq_script, args.freqs, mod_freqs_file, args.n_rows)
+        
         ## function system command
         print ("+ Create random subset of miRNA freqs")
         code= functions.system_call(mod_freq_python_cmd)
@@ -272,7 +322,9 @@ if (args.freqs):
         ## subset isomiRs
         get_isomiRs_script = os.path.join(dirnamePath, "get_isomiRs.py")
         mod_freqs_file_isomiRs = mod_freqs_file + '.isomiRs'
-        get_isomiRs_python_cmd = "python %s --freq %s --out %s --fasta %s" %(get_isomiRs_script, mod_freqs_file + '.csv', mod_freqs_file_isomiRs, args.fasta)
+        get_isomiRs_python_cmd = "python %s --freq %s --out %s --fasta %s" %(
+            get_isomiRs_script, mod_freqs_file + '.csv', mod_freqs_file_isomiRs, args.fasta)
+        
         print ("+ Select miRNA sequences")
         code2 = functions.system_call(get_isomiRs_python_cmd)
         if not (code2):
@@ -282,7 +334,12 @@ if (args.freqs):
         ## simulate
         print ("+ Simulate NGS reads from miRNA sequences")
         subset_fasta = mod_freqs_file_isomiRs + '.fasta'
-        NGS_simulator(str_rep, replicate_path, args.seqSys_list, args.type_reads, args.fcov_list, subset_fasta, args.threads, args.debug, args.art_bin, args.database)
+        NGS_simulator(str_rep, replicate_path, args.seqSys_list, args.type_reads, 
+                      args.fcov_list, subset_fasta, args.threads, args.debug, 
+                      args.art_bin, args.database, args.send_XICRA)
+        
         print ("\n\n")
 else:
-    NGS_simulator('sim', os.path.abspath(args.folder), args.seqSys_list, args.type_reads, args.fcov_list, args.fasta, args.threads, args.debug, args.art_bin, args.database)
+    NGS_simulator('sim', os.path.abspath(args.folder), args.seqSys_list, 
+                  args.type_reads, args.fcov_list, args.fasta, args.threads, 
+                  args.debug, args.art_bin, args.database, args.send_XICRA)
