@@ -32,7 +32,7 @@ import XICRA
 ## cobertura: 10
 
 #########################################################
-def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta, threads, debug, art_illumina_bin):
+def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta, threads_given, debug, art_illumina_bin, database_folder):
 
     for profile in seqSys_list:
         print (" + Simulating reads for profile: " + profile)
@@ -108,14 +108,31 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta, t
                 
                 ## create argparse with arguments provided to call XICRA prep
                 output_folder_XICRA = os.path.join(coverage_path)
-                XICRA_options_prep = argparse.Namespace(input=reads_path, output_folder=output_folder_XICRA, single_end=False, 
-				batch=False, in_sample=False, ex_sample=False, detached=False, include_lane=False, include_all=False, threads=2, 					merge_Reads=False, copy_reads=False, rename=False, help_format=False, help_project=False, debug=False)
+                XICRA_options_prep = argparse.Namespace(input=reads_path, output_folder=output_folder_XICRA, 
+                                                        single_end=False, batch=False, in_sample=False, 
+                                                        ex_sample=False, detached=False, include_lane=False, 
+                                                        include_all=False, threads=threads_given, merge_Reads=False, 
+                                                        copy_reads=False, rename=False, help_format=False, 
+                                                        help_project=False, debug=False)
                 prep.run_prep(XICRA_options_prep)
                 
                 ## create argparse with arguments provided to call XICRA prep
-                XICRA_options_join = argparse.Namespace(input=output_folder_XICRA, noTrim=True)
-                join.run_join(**vars(XICRA_options_join))
+                XICRA_options_join = argparse.Namespace(input=output_folder_XICRA, noTrim=True,
+                                                        single_end=False, batch=False, in_sample=False, 
+                                                        ex_sample=False, detached=False, include_lane=False, 
+                                                        include_all=False, threads=threads_given, perc_diff= 8,  
+                                                        help_format=False,  help_project=False, help_join_reads=False, debug=False)
+                join.run_join(XICRA_options_join)
                 
+                ## create argparse with arguments provided to call XICRA prep
+                XICRA_options_miRNA = argparse.Namespace(input=output_folder_XICRA, 
+                                                        single_end=False, batch=False, in_sample=False, 
+                                                        ex_sample=False, detached=False, include_lane=False, 
+                                                        include_all=False, threads=threads_given,
+                                                        software="sRNAbench optimir miraligner", species='hsa',
+                                                        database=database_folder, miRNA_gff=False, hairpinFasta=False, matureFasta=False, miRBase_str=False, 
+                                                        help_format=False,  help_project=False, help_miRNA=False, debug=False)
+                miRNA.run_miRNA(XICRA_options_miRNA)
 
 #########################################################
 def process_fasta_length (fasta_file, folder, debug): 
@@ -195,6 +212,7 @@ parser.add_argument('-t', '--threads', type=int, default=2)
 parser.add_argument('--freqs', action='store', help='Frequencies table to subset nrows')
 parser.add_argument('-n', '--n_rows', type=int, default=10)
 parser.add_argument('-r', '--replicates', type=int, default=10)
+parser.add_argument('--database', action='store', help="XICRA miRNA database or new folder for downloading necessary files")
 
 parser.add_argument('--debug', action='store_true', default=False, help='Developer messages')
 args = parser.parse_args()
@@ -260,7 +278,7 @@ if (args.freqs):
         ## simulate
         print ("+ Simulate NGS reads from miRNA sequences")
         subset_fasta = mod_freqs_file_isomiRs + '.fasta'
-        NGS_simulator(str_rep, replicate_path, args.seqSys_list, args.type_reads, args.fcov_list, subset_fasta, args.threads, args.debug, args.art_bin)
+        NGS_simulator(str_rep, replicate_path, args.seqSys_list, args.type_reads, args.fcov_list, subset_fasta, args.threads, args.debug, args.art_bin, args.database)
         print ("\n\n")
 else:
-    NGS_simulator('sim', os.path.abspath(args.folder), args.seqSys_list, args.type_reads, args.fcov_list, args.fasta, args.threads, args.debug, args.art_bin)
+    NGS_simulator('sim', os.path.abspath(args.folder), args.seqSys_list, args.type_reads, args.fcov_list, args.fasta, args.threads, args.debug, args.art_bin, args.database)
