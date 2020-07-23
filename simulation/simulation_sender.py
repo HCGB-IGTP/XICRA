@@ -174,16 +174,16 @@ def call_XICRA(folder_path, fastq_reads, name, threads_given, debug_bool, databa
         fh2.write("R2")
     fh2.close()
     
-    output_folder_XICRA_R1 = os.path.join(folder_path, 'analysis_R1')
-    XICRA_options_miRNA_R1 = argparse.Namespace(input=reads_path, output_folder =output_folder_XICRA_R1,
-                                            single_end=True, batch=False, in_sample=R1_in_file, 
+    output_folder_XICRA_R2 = os.path.join(folder_path, 'analysis_R2')
+    XICRA_options_miRNA_R2 = argparse.Namespace(input=reads_path, output_folder =output_folder_XICRA_R2,
+                                            single_end=True, batch=False, in_sample=R2_in_file, 
                                             ex_sample=False, detached=True, include_lane=False, 
                                             include_all=False, threads=threads_given, noTrim=True,
                                             soft_name="sRNAbench optimir miraligner", species='hsa',
                                             database=database_folder, miRNA_gff=False, hairpinFasta=False, 
                                             matureFasta=False, miRBase_str=False, 
                                             help_format=False,  help_project=False, help_miRNA=False, debug=debug_bool)
-    miRNA.run_miRNA(XICRA_options_miRNA_R1)
+    miRNA.run_miRNA(XICRA_options_miRNA_R2)
 
 
 

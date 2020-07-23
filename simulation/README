@@ -56,5 +56,3 @@ python simulation_sender.py --fasta all_seqs.fa
 		--freqs all_seqs.freqs.csv -n 10 -r 10 
 		--art_bin ./art_illumina -m 50 -s 5
 
-
-
