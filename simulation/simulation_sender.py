@@ -96,7 +96,7 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta,
                         print ("** ERROR: Some error happened during ART simulation")
                         exit()
                     
-                    call_XICRA(coverage_path, tmp_fastq, name, threads_given, debug, database_folder)
+                call_XICRA(coverage_path, tmp_fastq, name, threads_given, debug, database_folder)
 
 ###################
 def call_XICRA(folder_path, fastq_reads, name, threads_given, debug, database_folder):
