@@ -162,7 +162,7 @@ def run_prep(options):
     outdir_dict = functions.outdir_project(outdir, options.project, pd_samples_retrieved, "raw")    
         
     ## merge option
-    if (options.merge):
+    if (options.merge_Reads):
         print ("+ Sample files will be merged...")
         ## TODO: check when rename option provided
         pd_samples_merged = sampleParser.one_file_per_sample(
