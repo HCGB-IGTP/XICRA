@@ -25,6 +25,7 @@ from XICRA.scripts import reads2tabular
 from XICRA.modules import prep
 from XICRA.modules import join
 from XICRA.modules import miRNA
+import XICRA
 
 ## paired - end y luego hacer R1 y R2
 ## HS25 HiSeq 2500
@@ -95,11 +96,11 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta, t
                         
                 ## merge reads all lengths
                 reads_path = functions.create_subfolder('reads', coverage_path)
-                R1_all_reads = sort(functions.retrieve_matching_files(tmp_fastq, "R1.fq"))
+                R1_all_reads = functions.retrieve_matching_files(tmp_fastq, "R1.fq")
                 R1_reads = os.path.join(reads_path, name + '_R1.fq')
                 functions.merge_files(R1_reads, R1_all_reads)
                 
-                R2_all_reads = sort(functions.retrieve_matching_files(tmp_fastq, "R2.fq"))
+                R2_all_reads = functions.retrieve_matching_files(tmp_fastq, "R2.fq")
                 R2_reads = os.path.join(reads_path, name + '_R2.fq')
                 functions.merge_files(R2_reads, R2_all_reads)
                 
@@ -107,8 +108,9 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta, t
                 
                 ## create argparse with arguments provided to call XICRA prep
                 output_folder_XICRA = os.path.join(coverage_path)
-                XICRA_options_prep = argparse.Namespace(input=reads_path, output_folder= output_folder_XICRA)
-                prep.run_prep(**vars(XICRA_options_prep))
+                XICRA_options_prep = argparse.Namespace(input=reads_path, output_folder=output_folder_XICRA, single_end=False, 
+				batch=False, in_sample=False, ex_sample=False, detached=False, include_lane=False, include_all=False, threads=2, 					merge_Reads=False, copy_reads=False, rename=False, help_format=False, help_project=False, debug=False)
+                prep.run_prep(XICRA_options_prep)
                 
                 ## create argparse with arguments provided to call XICRA prep
                 XICRA_options_join = argparse.Namespace(input=output_folder_XICRA, noTrim=True)

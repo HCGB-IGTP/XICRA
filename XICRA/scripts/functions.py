@@ -17,6 +17,7 @@ from termcolor import colored
 import pandas as pd
 import urllib.request
 import patoolib ## to extract
+import shutil
 
 ########################################################################
 ######## 					TIME								######## 					
