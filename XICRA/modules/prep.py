@@ -224,4 +224,4 @@ def run_prep(options):
     start_time_partial = functions.timestamp(start_time_total)
 
     print ("+ Exiting prep module.")
-    exit()
+    return()

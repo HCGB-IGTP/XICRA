@@ -236,8 +236,7 @@ def run_miRNA(options):
     print ("\n*************** Finish *******************")
     start_time_partial = functions.timestamp(start_time_total)
     print ("\n+ Exiting miRNA module.")
-    exit()
-
+    return()
 
 ###############
 def miRNA_analysis(reads, folder, name, threads, miRNA_gff, soft_list, 

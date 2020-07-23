@@ -134,8 +134,7 @@ def run_join(options):
     print ("\n*************** Finish *******************")
     start_time_partial = functions.timestamp(start_time_total)
     print ("\n+ Exiting join module.")
-    exit()
-    
+    return()
 
 #############################################
 def fastqjoin_caller(list_reads, sample_folder, name, threads, perc_diff, Debug):
