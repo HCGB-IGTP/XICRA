@@ -133,11 +133,12 @@ def call_XICRA(folder_path, fastq_reads, name, threads_given, debug_bool, databa
     
     ## create argparse with arguments provided to call XICRA prep
     XICRA_options_miRNA = argparse.Namespace(input=output_folder_XICRA, 
-                                            single_end=False, batch=False, in_sample=False, 
+                                            single_end=False, batch=False, in_sample=False, noTrim=False, 
                                             ex_sample=False, detached=False, include_lane=False, 
                                             include_all=False, threads=threads_given, noTrim=True,
                                             soft_name="sRNAbench optimir miraligner", species='hsa',
-                                            database=database_folder, miRNA_gff=False, hairpinFasta=False, matureFasta=False, miRBase_str=False, 
+                                            database=database_folder, miRNA_gff=False, hairpinFasta=False, 
+                                            matureFasta=False, miRBase_str=False, 
                                             help_format=False,  help_project=False, help_miRNA=False, debug=debug_bool)
     miRNA.run_miRNA(XICRA_options_miRNA)
     
@@ -160,8 +161,9 @@ def call_XICRA(folder_path, fastq_reads, name, threads_given, debug_bool, databa
                                             ex_sample=False, detached=True, include_lane=False, 
                                             include_all=False, threads=threads_given, noTrim=True,
                                             soft_name="sRNAbench optimir miraligner", species='hsa',
-                                            database=database_folder, miRNA_gff=False, hairpinFasta=False, matureFasta=False, miRBase_str=False, 
-                                            help_format=False,  help_project=False, help_miRNA=False, debug=False)
+                                            database=database_folder, miRNA_gff=False, hairpinFasta=False, 
+                                            matureFasta=False, miRBase_str=False, 
+                                            help_format=False,  help_project=False, help_miRNA=False, debug=debug_bool)
     miRNA.run_miRNA(XICRA_options_miRNA_R1)
     
     #########
@@ -178,8 +180,9 @@ def call_XICRA(folder_path, fastq_reads, name, threads_given, debug_bool, databa
                                             ex_sample=False, detached=True, include_lane=False, 
                                             include_all=False, threads=threads_given, noTrim=True,
                                             soft_name="sRNAbench optimir miraligner", species='hsa',
-                                            database=database_folder, miRNA_gff=False, hairpinFasta=False, matureFasta=False, miRBase_str=False, 
-                                            help_format=False,  help_project=False, help_miRNA=False, debug=False)
+                                            database=database_folder, miRNA_gff=False, hairpinFasta=False, 
+                                            matureFasta=False, miRBase_str=False, 
+                                            help_format=False,  help_project=False, help_miRNA=False, debug=debug_bool)
     miRNA.run_miRNA(XICRA_options_miRNA_R1)
 
 

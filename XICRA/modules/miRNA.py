@@ -60,7 +60,7 @@ def run_miRNA(options):
         options.pair = True
     
     functions.pipeline_header()
-    functions.boxymcboxface("Join paired-end reads")
+    functions.boxymcboxface("miRNA analysis")
     print ("--------- Starting Process ---------")
     functions.print_time()
 
