@@ -135,7 +135,7 @@ def call_XICRA(folder_path, fastq_reads, name, threads_given, debug_bool, databa
     XICRA_options_miRNA = argparse.Namespace(input=output_folder_XICRA, 
                                             single_end=False, batch=False, in_sample=False, noTrim=False, 
                                             ex_sample=False, detached=False, include_lane=False, 
-                                            include_all=False, threads=threads_given, noTrim=True,
+                                            include_all=False, threads=threads_given,
                                             soft_name="sRNAbench optimir miraligner", species='hsa',
                                             database=database_folder, miRNA_gff=False, hairpinFasta=False, 
                                             matureFasta=False, miRBase_str=False, 
