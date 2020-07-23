@@ -166,6 +166,7 @@ def call_XICRA(folder_path, fastq_reads, name, threads_given, debug_bool, databa
                                             help_format=False,  help_project=False, help_miRNA=False, debug=debug_bool)
     miRNA.run_miRNA(XICRA_options_miRNA_R1)
     
+    
     #########
     ## R2
     #########
