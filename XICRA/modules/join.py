@@ -78,7 +78,10 @@ def run_join(options):
         options.perc_diff = 8
     
     ## get files
-    pd_samples_retrieved = sampleParser.get_files(options, input_dir, "trim", ['_trim_'])
+    if options.noTrim:
+        pd_samples_retrieved = sampleParser.get_files(options, input_dir, "fastq", ("fastq", "fq", "fastq.gz", "fq.gz"))
+    else:
+        pd_samples_retrieved = sampleParser.get_files(options, input_dir, "trim", ['_trim_'])
     
     ## debug message
     if (Debug):
