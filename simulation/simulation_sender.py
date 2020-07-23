@@ -99,7 +99,7 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta,
                 call_XICRA(coverage_path, tmp_fastq, name, threads_given, debug, database_folder)
 
 ###################
-def call_XICRA(folder_path, fastq_reads, name, threads_given, debug, database_folder):
+def call_XICRA(folder_path, fastq_reads, name, threads_given, debug_bool, database_folder):
     
     ## merge reads all lengths
     reads_path = functions.create_subfolder('reads', folder_path)
@@ -120,7 +120,7 @@ def call_XICRA(folder_path, fastq_reads, name, threads_given, debug, database_fo
                                             ex_sample=False, detached=False, include_lane=False, 
                                             include_all=False, threads=threads_given, merge_Reads=False, 
                                             copy_reads=False, rename=False, help_format=False, 
-                                            help_project=False, debug=False)
+                                            help_project=False, debug=debug_bool)
     prep.run_prep(XICRA_options_prep)
     
     ## create argparse with arguments provided to call XICRA prep
@@ -128,7 +128,7 @@ def call_XICRA(folder_path, fastq_reads, name, threads_given, debug, database_fo
                                             single_end=False, batch=False, in_sample=False, 
                                             ex_sample=False, detached=False, include_lane=False, 
                                             include_all=False, threads=threads_given, perc_diff= 8,  
-                                            help_format=False,  help_project=False, help_join_reads=False, debug=False)
+                                            help_format=False,  help_project=False, help_join_reads=False, debug=debug_bool)
     join.run_join(XICRA_options_join)
     
     ## create argparse with arguments provided to call XICRA prep
@@ -138,7 +138,7 @@ def call_XICRA(folder_path, fastq_reads, name, threads_given, debug, database_fo
                                             include_all=False, threads=threads_given, noTrim=True,
                                             soft_name="sRNAbench optimir miraligner", species='hsa',
                                             database=database_folder, miRNA_gff=False, hairpinFasta=False, matureFasta=False, miRBase_str=False, 
-                                            help_format=False,  help_project=False, help_miRNA=False, debug=False)
+                                            help_format=False,  help_project=False, help_miRNA=False, debug=debug_bool)
     miRNA.run_miRNA(XICRA_options_miRNA)
     
     #####################################
