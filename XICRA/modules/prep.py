@@ -190,7 +190,7 @@ def run_prep(options):
         print (outdir_dict)
     
     ## copy or create symbolic link for files
-    if (options.copy):
+    if (options.copy_reads):
         print ("+ Sample files will be copied...")
         ## print to a file
         timestamp = functions.create_human_timestamp()
@@ -201,7 +201,7 @@ def run_prep(options):
     
     list_reads = []
     for index, row in pd_samples_retrieved.iterrows():
-        if (options.copy):
+        if (options.copy_reads):
             ## TODO: debug & set threads to copy faster
             shutil.copy(row['sample'], os.path.join(outdir_dict[row['new_name']], row['new_file'] ))            
             string = row['sample'] + '\t' + os.path.join(outdir_dict[row['new_name']], row['new_file']) + '\n'
@@ -213,7 +213,7 @@ def run_prep(options):
                 functions.get_symbolic_link_file(row['sample'], 
                                                  os.path.join(outdir_dict[row['new_name']], row['new_file']))
 
-    if (options.copy):
+    if (options.copy_reads):
         print ("+ Sample files have been copied...")
         copy_details_hd.close()
     else:
