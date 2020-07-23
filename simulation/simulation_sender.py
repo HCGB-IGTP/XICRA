@@ -22,6 +22,9 @@ import numpy as np
 ## import my modules
 from XICRA.scripts import functions
 from XICRA.scripts import reads2tabular
+from XICRA.modules import prep
+from XICRA.modules import join
+from XICRA.modules import miRNA
 
 ## paired - end y luego hacer R1 y R2
 ## HS25 HiSeq 2500
@@ -32,7 +35,6 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta, t
 
     for profile in seqSys_list:
         print (" + Simulating reads for profile: " + profile)
-
         ## check how many profiles to use
         if len(seqSys_list) == 1:
             profile_path = abs_folder
@@ -42,7 +44,6 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta, t
 
         for reads in type_reads:
             print ("  + Reads type: " + reads)
-    
             ## check how many profiles to use
             if len(type_reads) == 1:
                 reads_path = abs_folder
@@ -51,7 +52,6 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta, t
 
             for fcov in fcov_list:
                 print ("   + Coverage x" + fcov)
-
                 ## check how many profiles to use
                 if len(type_reads) == 1:
                     coverage_path = abs_folder
@@ -80,8 +80,7 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta, t
                     print ("    ** Sequence fasta file: " + fasta_file_len)
                     print ("    ** Length: " + str_len)
                     
-                    ## add random seed? --rndSeed
-                    
+                    ## add random seed? --rndSeed for exact simulations?
                     ## outfile
                     outfile_name = name + '_P-' + profile + '_T-' + reads + '_x-' + fcov + '_L-' + str(int_len) + '_R'
                     outfile_path = os.path.join(tmp_fastq, outfile_name)
@@ -94,7 +93,27 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta, t
                         print ("** ERROR: Some error happened during ART simulation")
                         exit()
                         
+                ## merge reads all lengths
+                reads_path = functions.create_subfolder('reads', coverage_path)
+                R1_all_reads = sort(functions.retrieve_matching_files(tmp_fastq, "R1.fq"))
+                R1_reads = os.path.join(reads_path, name + '_R1.fq')
+                functions.merge_files(R1_reads, R1_all_reads)
+                
+                R2_all_reads = sort(functions.retrieve_matching_files(tmp_fastq, "R2.fq"))
+                R2_reads = os.path.join(reads_path, name + '_R2.fq')
+                functions.merge_files(R2_reads, R2_all_reads)
+                
                 ## send XICRA command
+                
+                ## create argparse with arguments provided to call XICRA prep
+                output_folder_XICRA = os.path.join(coverage_path)
+                XICRA_options_prep = argparse.Namespace(input=reads_path, output_folder= output_folder_XICRA)
+                prep.run_prep(**vars(XICRA_options_prep))
+                
+                ## create argparse with arguments provided to call XICRA prep
+                XICRA_options_join = argparse.Namespace(input=output_folder_XICRA, noTrim=True)
+                join.run_join(**vars(XICRA_options_join))
+                
 
 #########################################################
 def process_fasta_length (fasta_file, folder, debug): 

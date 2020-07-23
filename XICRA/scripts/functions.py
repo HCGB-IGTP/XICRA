@@ -449,3 +449,26 @@ def extract(fileGiven, out, remove=True):
 		os.remove(fileGiven)
 		print ("\n")
 
+###############    
+def merge_files(outfile, list_files):
+	"""
+	Merge files into final file
+	
+	:param outfile: String for output file
+	:param list_files: List of files to merge
+	
+	:type outfile: string
+	:type list_files: list
+		
+	"""
+	list_files = list(list_files)
+	list_files.sort()
+	print ("\tMerging files into: ", outfile)
+	#print ("\tFiles: ", list_files)
+
+	with open(outfile, 'w') as wfp:
+		for fn in list_files:
+			with open(fn, 'r') as rfp:
+				shutil.copyfileobj(rfp, wfp)
+
+	return()
