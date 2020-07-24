@@ -89,30 +89,61 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta,
                     outfile_path = os.path.join(tmp_fastq, outfile_name)
                     
                     ## command
-                    art_illumina_cmd = "%s -na -p -m 50 -s 5 -ss %s -i %s -l %s -c %s -o %s" %(art_illumina_bin, profile, fasta_file_len, str_len, fcov, outfile_path)
+                    art_illumina_cmd = "%s -sam -p -m 50 -s 5 -ss %s -i %s -l %s -c %s -o %s" %(art_illumina_bin, profile, fasta_file_len, str_len, fcov, outfile_path)
                     
                     code = functions.system_call(art_illumina_cmd)
                     if not code:
                         print ("** ERROR: Some error happened during ART simulation")
                         exit()
+                        
+                    ##### Remove non 5'-3' simulated reads
+                    ## read aln file
+                    aln_file_R1 = outfile_name + '1.aln' 
+                    n = 2
+                    with open(fasta, 'r') as fh:
+                        lines = []
+                        for line in fh:
+                            if line.startswith('#'):
+                                continue
+                            if line.startswith('@'):
+                                continue
+                            if not line.startswith('>'):
+                                lines.append(line.rstrip())
+                            
+                            line_list = line.split('\t')
+                            if line_list[3] == '+':
+                                lines.append(line.rstrip())
+                                
+                                if len(lines) > n:
+                                    record = process_fasta(lines)
+                                    sys.stderr.write("Record: %s\n" % (str(record)))
+                                    lines = []
+                                    
+                                    ## add sequences & count
+                                    freq_fasta[record['sequence']] += 1
+
                     
-                call_XICRA(coverage_path, tmp_fastq, name, threads_given, debug, database_folder)
+                ## merge reads all lengths
+                reads_path = functions.create_subfolder('reads_tmp', coverage_path)
+                R1_all_reads = functions.retrieve_matching_files(tmp_fastq, "R1.fq")
+                R1_reads = os.path.join(reads_path, name + '_R1.fq')
+                functions.merge_files(R1_reads, R1_all_reads)
+                
+                R2_all_reads = functions.retrieve_matching_files(tmp_fastq, "R2.fq")
+                R2_reads = os.path.join(reads_path, name + '_R2.fq')
+                functions.merge_files(R2_reads, R2_all_reads)
+                
+                ## 
+                exit()
+                              
+                ## 
+                call_XICRA(coverage_path, reads_path, name, threads_given, debug, database_folder)
+    return()
 
 ###################
-def call_XICRA(folder_path, fastq_reads, name, threads_given, debug_bool, database_folder):
-    
-    ## merge reads all lengths
-    reads_path = functions.create_subfolder('reads', folder_path)
-    R1_all_reads = functions.retrieve_matching_files(fastq_reads, "R1.fq")
-    R1_reads = os.path.join(reads_path, name + '_R1.fq')
-    functions.merge_files(R1_reads, R1_all_reads)
-    
-    R2_all_reads = functions.retrieve_matching_files(fastq_reads, "R2.fq")
-    R2_reads = os.path.join(reads_path, name + '_R2.fq')
-    functions.merge_files(R2_reads, R2_all_reads)
+def call_XICRA(folder_path, reads_path, name, threads_given, debug_bool, database_folder):
     
     ## send XICRA command
-    
     ## create argparse with arguments provided to call XICRA prep
     output_folder_XICRA = os.path.join(folder_path, 'analysis')
     XICRA_options_prep = argparse.Namespace(input=reads_path, output_folder=output_folder_XICRA, 
@@ -171,6 +202,9 @@ def call_XICRA(folder_path, fastq_reads, name, threads_given, debug_bool, databa
     #########
     ## R2
     #########
+    ## rev_comp reads
+    
+    
     R2_in_file = os.path.join(folder_path, "R2.txt")
     with open(R2_in_file, 'w') as fh2:
         fh2.write("R2")
@@ -186,8 +220,7 @@ def call_XICRA(folder_path, fastq_reads, name, threads_given, debug_bool, databa
                                             matureFasta=False, miRBase_str=False, 
                                             help_format=False,  help_project=False, help_miRNA=False, debug=debug_bool)
     miRNA.run_miRNA(XICRA_options_miRNA_R2)
-
-
+    return()
 
 #########################################################
 def process_fasta_length (fasta_file, folder, debug): 
@@ -236,7 +269,7 @@ simulation_sender.py: Given a fasta file and simulation parameters it
 Version: 0.1
 License: GPLv3
 
-USAGE: python simulation_sender.py --foolder out_name --fasta fasta_file --reads PE SE 
+USAGE: python simulation_sender.py --folder out_name --fasta fasta_file --reads PE SE 
                    --seqSys HS10 GA2 --art_bin path/art_illumina -l 16 --fcov 10 20 30 -t 4
                    [--freqs table.freqs.csv] [--n_rows 100] [--replicates 100]
                    [--debug]
@@ -321,7 +354,7 @@ if (args.freqs):
         print ("+ Create random subset of miRNA freqs")
         code= functions.system_call(mod_freq_python_cmd)
         if not (code):
-            print ("** ERROR: Somethin happened and the script failed...")
+            print ("** ERROR: Something happened and the script failed...")
             exit()
             
         ## subset isomiRs
@@ -333,7 +366,7 @@ if (args.freqs):
         print ("+ Select miRNA sequences")
         code2 = functions.system_call(get_isomiRs_python_cmd)
         if not (code2):
-            print ("** ERROR: Somethin happened and the script failed...")
+            print ("** ERROR: Something happened and the script failed...")
             exit()
         
         ## simulate
