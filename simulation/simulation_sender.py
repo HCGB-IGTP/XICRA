@@ -30,7 +30,7 @@ from XICRA.modules import miRNA
 
 #########################################################
 def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta, 
-                  threads_given, debug, art_illumina_bin, database_folder, send_XICRA):
+                  threads_given, debug, art_illumina_bin, seqtk_bin, database_folder, send_XICRA):
 
     for profile in seqSys_list:
         print (" + Simulating reads for profile: " + profile)
@@ -94,8 +94,7 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta,
                     
                     ## filter R1
                     fastq_R2_ids = discard_revcomp(outfile_path)
-                    print (fastq_R2_ids)
-
+                    
                     ## adjust R2
                     R2_fastq = outfile_path + '2.fq'
                     R2_filter = outfile_path + 'filter_R2.fq'
@@ -107,8 +106,7 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta,
                                  if len(lines) == 4:
                                       record = reads2tabular.process_fastq(lines)
                                       #sys.stderr.write("Record: %s\n" % (str(record)))
-                                      lines = []
-                                 
+                                      lines = []                                 
                                       if record['name'] in fastq_R2_ids.keys():
                                           outfh.write("%s\n%s\n%s\n%s\n" % (record['name'], record['sequence'], record['optional'], record['quality']))
                                             
@@ -123,16 +121,8 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta,
                 R2_reads = os.path.join(reads_path, name + '_R2.fq')
                 functions.merge_files(R2_reads, R2_all_reads_tmp)
                 
-                ## Adjust filtered reads from previous
-                # R1_all_reads
-                # R2_all_reads
-                
-                
                 ## 
-                exit()
-                              
-                ## 
-                call_XICRA(coverage_path, reads_path, name, threads_given, debug, database_folder)
+                call_XICRA(coverage_path, reads_path, name, threads_given, debug, database_folder, seqtk_bin, R2_reads)
     return()
 
 ##############
@@ -194,7 +184,11 @@ def discard_revcomp(outfile_path):
     return (fastq_dict)
 
 ###################
-def call_XICRA(folder_path, reads_path, name, threads_given, debug_bool, database_folder):
+def call_XICRA(folder_path, reads_path, name, threads_given, debug_bool, database_folder, seqtk_bin, R2_reads):
+    
+    ## debugging messages
+    if debug_bool:
+        print ("\n********* XICRA PE analysis *********\n")
     
     ## send XICRA command
     ## create argparse with arguments provided to call XICRA prep
@@ -227,9 +221,9 @@ def call_XICRA(folder_path, reads_path, name, threads_given, debug_bool, databas
                                             help_format=False,  help_project=False, help_miRNA=False, debug=debug_bool)
     miRNA.run_miRNA(XICRA_options_miRNA)
     
-    #####################################
-    ## now run for R1 and R2
-    #####################################
+    ## debugging messages
+    if debug_bool:
+        print ("\n********* XICRA R1 analysis *********\n")
     
     #########
     ## R1
@@ -256,8 +250,19 @@ def call_XICRA(folder_path, reads_path, name, threads_given, debug_bool, databas
     ## R2
     #########
     ## rev_comp reads
+    ## debugging messages
+    if debug_bool:
+        print ("\n********* XICRA R2 analysis *********\n")
     
-    
+    R2_reads_revComp = R2_reads.split("R2.fq")[0] + "_revComp.fq" 
+    seqtk_cmd = "%s seq -r %s > %s" %(seqtk_bin, R2_reads, R2_reads_revComp)
+    print ("+ Reverse complement reads")
+    code = functions.system_call(seqtk_cmd)
+    if not code:
+        print ("** ERROR: Some error occurred when using seqtk for reverse complement")
+        exit()
+        
+    ##
     R2_in_file = os.path.join(folder_path, "R2.txt")
     with open(R2_in_file, 'w') as fh2:
         fh2.write("R2")
@@ -347,6 +352,7 @@ parser.add_argument('--seqSys', dest='seqSys_list', nargs='*',
                     help='The name of Illumina sequencing system of the built-in profile used for simulation', required=True)
 
 parser.add_argument('--art_bin', action='store', help='ART NGS simulation binary file [art_illumina]', required=True)
+parser.add_argument('--seqtk_bin', action='store', help='seqtk binary file', required=True)
 parser.add_argument('--fcov', dest='fcov_list', nargs='*', help='Fold coverage')
 parser.add_argument('-t', '--threads', type=int, default=2)
 
@@ -427,10 +433,10 @@ if (args.freqs):
         subset_fasta = mod_freqs_file_isomiRs + '.fasta'
         NGS_simulator(str_rep, replicate_path, args.seqSys_list, args.type_reads, 
                       args.fcov_list, subset_fasta, args.threads, args.debug, 
-                      args.art_bin, args.database, args.send_XICRA)
+                      args.art_bin, args.seqtk_bin, args.database, args.send_XICRA)
         
         print ("\n\n")
 else:
     NGS_simulator('sim', os.path.abspath(args.folder), args.seqSys_list, 
                   args.type_reads, args.fcov_list, args.fasta, args.threads, 
-                  args.debug, args.art_bin, args.database, args.send_XICRA)
+                  args.debug, args.art_bin, args.seqtk_bin, args.database, args.send_XICRA)
