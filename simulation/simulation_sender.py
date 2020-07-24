@@ -92,17 +92,34 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta,
                         print ("** ERROR: Some error happened during ART simulation")
                         exit()
                     
-                    ## 
-                    filtered_R1_reads = discard_revcomp(outfile_path)
-                    
+                    ## filter R1
+                    fastq_R2_ids = discard_revcomp(outfile_path)
+                    print (fastq_R2_ids)
+
+                    ## adjust R2
+                    R2_fastq = outfile_path + '2.fq'
+                    R2_filter = outfile_path + 'filter_R2.fq'
+                    with open(R2_filter, 'w') as outfh:
+                         with open(R2_fastq, 'r') as fh:
+                             lines = []
+                             for line in fh:
+                                 lines.append(line.rstrip())
+                                 if len(lines) == 4:
+                                      record = reads2tabular.process_fastq(lines)
+                                      #sys.stderr.write("Record: %s\n" % (str(record)))
+                                      lines = []
+                                 
+                                      if record['name'] in fastq_R2_ids.keys():
+                                          outfh.write("%s\n%s\n%s\n%s\n" % (record['name'], record['sequence'], record['optional'], record['quality']))
+                                            
                 ## merge reads all lengths
-                reads_path = functions.create_subfolder('reads_tmp', coverage_path)
+                reads_path = functions.create_subfolder('reads', coverage_path)
                 R1_all_reads = functions.retrieve_matching_files(tmp_fastq, "filter_R1.fq")
                 R1_reads = os.path.join(reads_path, name + '_R1.fq')
                 functions.merge_files(R1_reads, R1_all_reads)
                 
                 ## concat all reads 
-                R2_all_reads_tmp = functions.retrieve_matching_files(tmp_fastq, "R2.fq")
+                R2_all_reads_tmp = functions.retrieve_matching_files(tmp_fastq, "filter_R2.fq")
                 R2_reads = os.path.join(reads_path, name + '_R2.fq')
                 functions.merge_files(R2_reads, R2_all_reads_tmp)
                 
@@ -127,6 +144,7 @@ def discard_revcomp(outfile_path):
     
     ## read aln file
     freq_fasta = defaultdict(int)
+    fastq_dict = defaultdict(int)
     with open(aln_file_R1, 'r') as fh:
         lines = []
         for line in fh:
@@ -137,7 +155,8 @@ def discard_revcomp(outfile_path):
             if line.startswith('>'):
                 line_list = line.rstrip().split('\t')
                 if line_list[3] == '+':
-                    lines.append(line_list[1])
+                    ID=line_list[1]
+                    lines.append(ID[:-2])
                 continue
             else:
                 if len(lines) == 1:
@@ -149,11 +168,11 @@ def discard_revcomp(outfile_path):
                 lines = []
                     
                 ## add sequences & count
-                freq_fasta[record['name']] += 1
+                freq_fasta[record['sequence']] += 1
     
     ## read R1 fastq file
-    fastq_file = outfile_path + 'R1.fq'
-    out_file = outfile_path + 'filter_R1.fq'
+    fastq_file = outfile_path + '1.fq'
+    out_file = outfile_path + '_filter_R1.fq'
     ## print in file
     
     with open(out_file,'w') as file:
@@ -162,14 +181,17 @@ def discard_revcomp(outfile_path):
             for line in fh:
                 lines.append(line.rstrip())
                 if len(lines) == 4:
-                    record = process_fastq(lines)
+                    record = reads2tabular.process_fastq(lines)
                     #sys.stderr.write("Record: %s\n" % (str(record)))
                     lines = []
+                    fastq_ID = record['name'].replace('/1', '/2')
                     
-                    if record['name'] in freq_fasta.keys():
+                    if record['sequence'] in freq_fasta.keys():
                         file.write("%s\n%s\n%s\n%s\n" % (record['name'], record['sequence'], record['optional'], record['quality']))
+                        fastq_dict[fastq_ID] += 1
+    
     file.close()
-    return (out_file)
+    return (fastq_dict)
 
 ###################
 def call_XICRA(folder_path, reads_path, name, threads_given, debug_bool, database_folder):
