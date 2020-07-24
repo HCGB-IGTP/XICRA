@@ -3,9 +3,6 @@
 ## Jose F. Sanchez                                        ##
 ## Copyright (C) 2019-2020 Lauro Sumoy Lab, IGTP, Spain   ##
 ############################################################
-from builtins import len
-from numpy.f2py.auxfuncs import debugcapi
-from numpy import tri
 """
 Generates simulation and sends XICRA command
 """
@@ -26,7 +23,6 @@ from XICRA.scripts import reads2tabular
 from XICRA.modules import prep
 from XICRA.modules import join
 from XICRA.modules import miRNA
-import XICRA
 
 ## paired - end y luego hacer R1 y R2
 ## HS25 HiSeq 2500
@@ -98,29 +94,36 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta,
                         
                     ##### Remove non 5'-3' simulated reads
                     ## read aln file
-                    aln_file_R1 = outfile_name + '1.aln' 
+                    aln_file_R1 = outfile_path + '1.aln' 
                     n = 2
-                    with open(fasta, 'r') as fh:
+                    freq_fasta = defaultdict(int)
+                    with open(aln_file_R1, 'r') as fh:
                         lines = []
                         for line in fh:
                             if line.startswith('#'):
                                 continue
                             if line.startswith('@'):
                                 continue
-                            if not line.startswith('>'):
-                                lines.append(line.rstrip())
-                            
-                            line_list = line.split('\t')
-                            if line_list[3] == '+':
-                                lines.append(line.rstrip())
-                                
-                                if len(lines) > n:
-                                    record = process_fasta(lines)
-                                    sys.stderr.write("Record: %s\n" % (str(record)))
-                                    lines = []
+
+                            if line.startswith('>'):
+                                line_list = line.rstrip().split('\t')
+                                print (line_list)
+                                if line_list[3] == '+':
+                                    lines.append(line.rstrip())
+                                continue
+
+                            else:
+                                if len(lines) == 1:
+                                    lines.append(line.rstrip())
+
+                                                      
+                            if len(lines) == n:
+                                record = reads2tabular.process_fasta(lines)
+                                sys.stderr.write("Record: %s\n" % (str(record)))
+                                lines = []
                                     
-                                    ## add sequences & count
-                                    freq_fasta[record['sequence']] += 1
+                                ## add sequences & count
+                                freq_fasta[record['sequence']] += 1
 
                     
                 ## merge reads all lengths
