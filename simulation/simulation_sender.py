@@ -16,6 +16,7 @@ import pandas as pd
 from collections import defaultdict
 import argparse
 import numpy as np
+from termcolor import colored
 
 ## import my modules
 from XICRA.scripts import functions
@@ -122,7 +123,15 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta,
                 functions.merge_files(R2_reads, R2_all_reads_tmp)
                 
                 ## 
-                call_XICRA(coverage_path, reads_path, name, threads_given, debug, database_folder, seqtk_bin, R2_reads)
+                if send_XICRA:
+                    call_XICRA(coverage_path, reads_path, name, threads_given, debug, database_folder, seqtk_bin, R2_reads)
+                    ## print time stamp
+                    filename_stamp = coverage_path + '/.success'
+                    functions.print_time_stamp(filename_stamp)
+                else:
+                    print ("+ Simulation for is ready in folder: ")
+                    print (coverage_path)
+    
     return()
 
 ##############
@@ -403,39 +412,44 @@ if (args.freqs):
         print ("+ Replicate: " + str_rep)
         replicate_path = functions.create_subfolder(str_rep, args.folder)
         
-        ## subset freqs table
-        mod_freq_script = os.path.join(dirnamePath, "mod_freq.py")
-        mod_freqs_file = os.path.join(replicate_path, str_rep + ".freqs")
-        mod_freq_python_cmd = "python %s --freq %s --out %s --random_rows %s" %(
-            mod_freq_script, args.freqs, mod_freqs_file, args.n_rows)
-        
-        ## function system command
-        print ("+ Create random subset of miRNA freqs")
-        code= functions.system_call(mod_freq_python_cmd)
-        if not (code):
-            print ("** ERROR: Something happened and the script failed...")
-            exit()
+        filename_stamp = replicate_path + '/.success'
+        if os.path.isfile(filename_stamp):
+            stamp =    functions.read_time_stamp(filename_stamp)
+            print (colored("\tA previous command generated results on: %s [%s]" %(stamp, str_rep), 'yellow'))
+        else:
+            ## subset freqs table
+            mod_freq_script = os.path.join(dirnamePath, "mod_freq.py")
+            mod_freqs_file = os.path.join(replicate_path, str_rep + ".freqs")
+            mod_freq_python_cmd = "python %s --freq %s --out %s --random_rows %s" %(
+                mod_freq_script, args.freqs, mod_freqs_file, args.n_rows)
             
-        ## subset isomiRs
-        get_isomiRs_script = os.path.join(dirnamePath, "get_isomiRs.py")
-        mod_freqs_file_isomiRs = mod_freqs_file + '.isomiRs'
-        get_isomiRs_python_cmd = "python %s --freq %s --out %s --fasta %s" %(
-            get_isomiRs_script, mod_freqs_file + '.csv', mod_freqs_file_isomiRs, args.fasta)
-        
-        print ("+ Select miRNA sequences")
-        code2 = functions.system_call(get_isomiRs_python_cmd)
-        if not (code2):
-            print ("** ERROR: Something happened and the script failed...")
-            exit()
-        
-        ## simulate
-        print ("+ Simulate NGS reads from miRNA sequences")
-        subset_fasta = mod_freqs_file_isomiRs + '.fasta'
-        NGS_simulator(str_rep, replicate_path, args.seqSys_list, args.type_reads, 
-                      args.fcov_list, subset_fasta, args.threads, args.debug, 
-                      args.art_bin, args.seqtk_bin, args.database, args.send_XICRA)
-        
-        print ("\n\n")
+            ## function system command
+            print ("+ Create random subset of miRNA freqs")
+            code= functions.system_call(mod_freq_python_cmd)
+            if not (code):
+                print ("** ERROR: Something happened and the script failed...")
+                exit()
+                
+            ## subset isomiRs
+            get_isomiRs_script = os.path.join(dirnamePath, "get_isomiRs.py")
+            mod_freqs_file_isomiRs = mod_freqs_file + '.isomiRs'
+            get_isomiRs_python_cmd = "python %s --freq %s --out %s --fasta %s" %(
+                get_isomiRs_script, mod_freqs_file + '.csv', mod_freqs_file_isomiRs, args.fasta)
+            
+            print ("+ Select miRNA sequences")
+            code2 = functions.system_call(get_isomiRs_python_cmd)
+            if not (code2):
+                print ("** ERROR: Something happened and the script failed...")
+                exit()
+            
+            ## simulate
+            print ("+ Simulate NGS reads from miRNA sequences")
+            subset_fasta = mod_freqs_file_isomiRs + '.fasta'
+            NGS_simulator(str_rep, replicate_path, args.seqSys_list, args.type_reads, 
+                          args.fcov_list, subset_fasta, args.threads, args.debug, 
+                          args.art_bin, args.seqtk_bin, args.database, args.send_XICRA)
+            
+            print ("\n\n")
 else:
     NGS_simulator('sim', os.path.abspath(args.folder), args.seqSys_list, 
                   args.type_reads, args.fcov_list, args.fasta, args.threads, 
