@@ -254,7 +254,7 @@ def call_XICRA(folder_path, reads_path, name, threads_given, debug_bool, databas
     if debug_bool:
         print ("\n********* XICRA R2 analysis *********\n")
     
-    R2_reads_revComp = R2_reads.split("R2.fq")[0] + "_revComp.fq" 
+    R2_reads_revComp = R2_reads.split("R2.fq")[0] + "revComp.fq" 
     seqtk_cmd = "%s seq -r %s > %s" %(seqtk_bin, R2_reads, R2_reads_revComp)
     print ("+ Reverse complement reads")
     code = functions.system_call(seqtk_cmd)
@@ -265,7 +265,7 @@ def call_XICRA(folder_path, reads_path, name, threads_given, debug_bool, databas
     ##
     R2_in_file = os.path.join(folder_path, "R2.txt")
     with open(R2_in_file, 'w') as fh2:
-        fh2.write("R2")
+        fh2.write("revComp")
     fh2.close()
     
     output_folder_XICRA_R2 = os.path.join(folder_path, 'analysis_R2')
