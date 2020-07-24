@@ -91,50 +91,25 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta,
                     if not code:
                         print ("** ERROR: Some error happened during ART simulation")
                         exit()
-                        
-                    ##### Remove non 5'-3' simulated reads
-                    ## read aln file
-                    aln_file_R1 = outfile_path + '1.aln' 
-                    n = 2
-                    freq_fasta = defaultdict(int)
-                    with open(aln_file_R1, 'r') as fh:
-                        lines = []
-                        for line in fh:
-                            if line.startswith('#'):
-                                continue
-                            if line.startswith('@'):
-                                continue
-
-                            if line.startswith('>'):
-                                line_list = line.rstrip().split('\t')
-                                print (line_list)
-                                if line_list[3] == '+':
-                                    lines.append(line.rstrip())
-                                continue
-
-                            else:
-                                if len(lines) == 1:
-                                    lines.append(line.rstrip())
-
-                                                      
-                            if len(lines) == n:
-                                record = reads2tabular.process_fasta(lines)
-                                sys.stderr.write("Record: %s\n" % (str(record)))
-                                lines = []
-                                    
-                                ## add sequences & count
-                                freq_fasta[record['sequence']] += 1
-
+                    
+                    ## 
+                    filtered_R1_reads = discard_revcomp(outfile_path)
                     
                 ## merge reads all lengths
                 reads_path = functions.create_subfolder('reads_tmp', coverage_path)
-                R1_all_reads = functions.retrieve_matching_files(tmp_fastq, "R1.fq")
+                R1_all_reads = functions.retrieve_matching_files(tmp_fastq, "filter_R1.fq")
                 R1_reads = os.path.join(reads_path, name + '_R1.fq')
                 functions.merge_files(R1_reads, R1_all_reads)
                 
-                R2_all_reads = functions.retrieve_matching_files(tmp_fastq, "R2.fq")
+                ## concat all reads 
+                R2_all_reads_tmp = functions.retrieve_matching_files(tmp_fastq, "R2.fq")
                 R2_reads = os.path.join(reads_path, name + '_R2.fq')
-                functions.merge_files(R2_reads, R2_all_reads)
+                functions.merge_files(R2_reads, R2_all_reads_tmp)
+                
+                ## Adjust filtered reads from previous
+                # R1_all_reads
+                # R2_all_reads
+                
                 
                 ## 
                 exit()
@@ -142,6 +117,59 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta,
                 ## 
                 call_XICRA(coverage_path, reads_path, name, threads_given, debug, database_folder)
     return()
+
+##############
+def discard_revcomp(outfile_path):
+    ##### Remove non 5'-3' simulated reads
+    ## use art illumina aln file generated for R1
+    
+    aln_file_R1 = outfile_path + '1.aln'
+    
+    ## read aln file
+    freq_fasta = defaultdict(int)
+    with open(aln_file_R1, 'r') as fh:
+        lines = []
+        for line in fh:
+            if line.startswith('#'):
+                continue
+            if line.startswith('@'):
+                continue
+            if line.startswith('>'):
+                line_list = line.rstrip().split('\t')
+                if line_list[3] == '+':
+                    lines.append(line_list[1])
+                continue
+            else:
+                if len(lines) == 1:
+                    lines.append(line.rstrip())
+                                      
+            if len(lines) == 2:
+                record = reads2tabular.process_fasta(lines)
+                ##sys.stderr.write("Record: %s\n" % (str(record)))
+                lines = []
+                    
+                ## add sequences & count
+                freq_fasta[record['name']] += 1
+    
+    ## read R1 fastq file
+    fastq_file = outfile_path + 'R1.fq'
+    out_file = outfile_path + 'filter_R1.fq'
+    ## print in file
+    
+    with open(out_file,'w') as file:
+        with open(fastq_file, 'r') as fh:
+            lines = []
+            for line in fh:
+                lines.append(line.rstrip())
+                if len(lines) == 4:
+                    record = process_fastq(lines)
+                    #sys.stderr.write("Record: %s\n" % (str(record)))
+                    lines = []
+                    
+                    if record['name'] in freq_fasta.keys():
+                        file.write("%s\n%s\n%s\n%s\n" % (record['name'], record['sequence'], record['optional'], record['quality']))
+    file.close()
+    return (out_file)
 
 ###################
 def call_XICRA(folder_path, reads_path, name, threads_given, debug_bool, database_folder):
