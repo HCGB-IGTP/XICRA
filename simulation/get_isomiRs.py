@@ -93,11 +93,10 @@ with open(args.out + '.fasta', 'w') as outfh:
                         ## right now it saves the last 
                         isomiRs_seqs.loc[miRNA, variant_type] = record['name'].replace('>', '') + 'x' + str(count_isomiRs)
     
-                        ## string to write: miRNA x times
-                        string = record['name'] + '\n' + record['sequence'] + "\n"
-                        
                         ## print a singlee isomiR for each variant as many times as desired
                         for i in range(0, count_isomiRs):
+                            ## string to write: miRNA x times
+                            string = record['name'] + '_' + str(i) + '\n' + record['sequence'] + "\n"
                             outfh.write(string)
                     else:
                         isomiRs_seqs.loc[miRNA, variant_type] = ""
