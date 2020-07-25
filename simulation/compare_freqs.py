@@ -96,17 +96,19 @@ def analysis_observed_expected(name, given_tag, counts_observed, count_R1_reads,
                     
                     ## TODO: check if any sequence expected matches the UID observed
                     ## see as example: hsa-miR-3944-3p,TTCGGGCTGGCCTGCTGCTCCGGGG
-                    #expected_count = 0
+                    expected_count = 0
                     (TP, FP, FN, S, P) = get_results(observed_count, expected_count)
-                    
                     ## Do not save this result
-                    #(TP, FP, FN, S, P) = get_results(observed_count, expected_count)
-                    
+
             else:
                 if args.debug:
                     print ("\n+ ---------------------------------------------------- +")
                     print ("miRNA: " + miRNA_ID)
                     print ("Variant: " + miRNA_variant)
+                
+                ## skip
+                if (miRNA_variant == 'notsure'):
+                    continue
                 
                 if (':' in miRNA_variant): 
                     if ('add' in miRNA_variant): ## iso_add5p, iso_add3p
@@ -166,6 +168,16 @@ def analysis_observed_expected(name, given_tag, counts_observed, count_R1_reads,
                             print ("********************************\n")
                             print ("+ ---------------------------------------------------- +\n")
                         continue
+                
+                
+                    ### Save results            
+                    if args.debug:  
+                        print ("save results for this entry")
+                    #columns=("name", "miRNA", 'variant', "sequence", "obs", "exp", "TP", "FP", "FN", "S", "P"))
+                    results_df.loc[len(results_df)] = (name, miRNA_ID, miRNA_variant, 
+                                                       observed_seq_isomiR, observed_count, expected_count,
+                                                       TP, FP, FN, S, P)
+                
                 else:
                     ## debugging messages
                     if args.debug:  
@@ -179,13 +191,7 @@ def analysis_observed_expected(name, given_tag, counts_observed, count_R1_reads,
             if args.debug:  
                 print ("+ ---------------------------------------------------- +\n")
 
-            ### Save results            
-            if args.debug:  
-                print ("save results for this entry")
-            #columns=("name", "miRNA", 'variant', "sequence", "obs", "exp", "TP", "FP", "FN", "S", "P"))
-            results_df.loc[len(results_df)] = (name, miRNA_ID, miRNA_variant, 
-                                               observed_seq_isomiR, observed_count, expected_count,
-                                               TP, FP, FN, S, P)
+            
 
     ##
     return(results_df)
