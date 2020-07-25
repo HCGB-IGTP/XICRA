@@ -3,10 +3,6 @@
 ## Jose F. Sanchez                                        ##
 ## Copyright (C) 2019-2020 Lauro Sumoy Lab, IGTP, Spain   ##
 ############################################################
-from lxml.html.builder import TR
-from _collections import defaultdict
-from email.policy import default
-from networkx.classes import function
 """
 Get frequence of reads for each type, variant, etc
 """
@@ -19,6 +15,8 @@ from io import open
 import pandas as pd
 import argparse
 import numpy as np
+from termcolor import colored
+from collections import defaultdict
 
 ## import my modules
 from XICRA.scripts import functions
@@ -67,15 +65,15 @@ def count_miRNA_fastq (fastq_file):
     return fastq_count        
 
 ###################
-def analysis_observed_expected(name, counts_observed, count_R1_reads, expected_counts_given, seqs_observed, isomiRDict):
+def analysis_observed_expected(name, given_tag, counts_observed, count_R1_reads, expected_counts_given, seqs_observed, isomiRDict):
 
     results_df = pd.DataFrame(columns=("name", "miRNA", "variant", "sequence", "obs", "exp", "TP", "FP", "FN", "S", "P"))
 
     ## analysis
-    total_count_observed = counts_observed[args.tag].sum()
+    total_count_observed = counts_observed[given_tag].sum()
     miRNA_grouped = counts_observed.groupby(['miRNA'])
     for miRNA_ID, cluster in miRNA_grouped:
-        total_count_observed_cluster = cluster[args.tag].sum()    
+        total_count_observed_cluster = cluster[given_tag].sum()    
         total_count_expected = count_R1_reads[miRNA_ID.lower()]
         if args.debug:
             print ("###################")
@@ -87,7 +85,7 @@ def analysis_observed_expected(name, counts_observed, count_R1_reads, expected_c
             
         for index, row in cluster.iterrows():
             miRNA_variant = row['variant'] 
-            observed_count = row[args.tag]
+            observed_count = row[given_tag]
             if (',' in str(miRNA_variant)):
                 ## complex variant
                 if args.debug:  
@@ -130,7 +128,7 @@ def analysis_observed_expected(name, counts_observed, count_R1_reads, expected_c
                         entry_thisVariant_miRNA = ""
                     else:
                         entry_thisVariant = entry_thisVariant.split('x')
-                        entry_thisVariant_count = int(entry_thisVariant[1])
+                        entry_thisVariant_count = int(entry_thisVariant[-1])
                         entry_thisVariant_miRNA = entry_thisVariant[0]
                     
                     ## count
@@ -237,9 +235,10 @@ License: GPLv3
 ''', epilog="Original code: JFSanchezHerrero")
 
 #####################################################
-parser.add_argument('--tag', action='store', help='Name of the sample', required=True)
 parser.add_argument('--name', action='store', help='Name to output results', required=True)
-parser.add_argument('--folder_rep', action='store', help='Folder containing full analysis', required=True)
+parser.add_argument('--folder', action='store', help='Folder containing full analysis', required=True)
+parser.add_argument('--tag', action='store', help='Name of the sample')
+parser.add_argument('--replicates', action='store_true', help='Analysis contains multiple replicates')
 
 subparser_observed_freqs_name = parser.add_argument_group("Observed frequencies")
 subparser_observed_freqs = subparser_observed_freqs_name.add_mutually_exclusive_group(required= True)
@@ -333,94 +332,207 @@ variantDict = {
     
 }
 
-## original counts
-print ("# Read expected frequency table")
-folder_rep = os.path.abspath(args.folder_rep)
+## main folder provided
+folder = os.path.abspath(args.folder)
+folder_rep_list = ()
+rep_ID=""
+## check how many replicates
+if args.replicates:
+    ## multiple replicates subfolders containing results
+    print ("+ Analysis for multiple replicates provided")
+    args.retrieve_all = True
+    folder_rep_list = [os.path.join(folder, o) for o in os.listdir(folder) 
+                       if os.path.isdir(os.path.join(folder,o))]
+    print(folder_rep_list)
+    ####
+    
+else:
+    ## analysis for just one replicate
+    print ("+ Analysis for one folder provided")
+    folder_rep_list = [folder]
+    print(folder)
+    
+    if args.retrieve_all:
+        ## all analysis will be retrieved
+        rep_ID= args.tag
+    else:
+        ##
+        if not args.tag:
+            print (colored("** ERROR: No option --tag provided. **", 'red'))
+            exit()
+        ##
+        if '_revComp' in args.tag:
+            rep_ID = args.tag.split('_revComp')[0]
+        elif '_R1' in args.tag:
+            rep_ID = args.tag.split('_R1')[0]
+        else:
+            rep_ID = args.tag
 
 ####
-if '_revComp' in args.tag:
-    tag = args.tag.split('_revComp')[0]
-elif '_R1' in args.tag:
-    tag = args.tag.split('_R1')[0]
-else:
-    tag = args.tag
-
-isomiRs_freqs = os.path.join(folder_rep, tag + '.freqs.isomiRs.csv')
-isomiRs_fasta = os.path.join(folder_rep, tag + '.freqs.isomiRs.fasta')
-expected_counts = functions.get_data(isomiRs_freqs, ',', 'index_col=0')
-col_list = list(expected_counts) ## get columns
-
-## debugging messages
-if args.debug:
-    print ("\n***************** Debug **********************")
-    print ("expected_counts")
-    print (expected_counts)
-
-isomiR_dict =  {}
-for miRNA, row in expected_counts.iterrows():
-    for col in col_list:
-        if (type(row[col]) == float):
-           continue 
-        if (row[col] == 0):
-            continue
-        entry = row[col].split('x')
-        isomiR_dict[entry[0]] = {'count':entry[1], 'seq': ""} 
-
-## debugging messages
-if args.debug:
-    print ("\n***************** Debug **********************")
-    print ("isomiR_dict")
-    print (isomiR_dict)
-
-print ("# Read sequence data expected")
-with open(isomiRs_fasta, 'r') as fh:
-    lines = []
-    for line in fh:
-        lines.append(line.rstrip())
-        if len(lines) == 2:
-            record = reads2tabular.process_fasta(lines)
-            #sys.stderr.write("Record: %s\n" % (str(record)))
-            lines = []
-            fasta_ID = record['name'].replace('>', '')
-            fasta_ID = fasta_ID.split('_')[0]
-            if (fasta_ID in isomiR_dict.keys()):
-                isomiR_dict[fasta_ID]['seq'] = record['sequence'] 
-
-## debugging messages
-if args.debug:
-    print ("\n***************** Debug **********************")
-    print ("isomiR_dict")
-    print (isomiR_dict)
-
-## get total count of reads
-total_count_miRNA = defaultdict(int)
-reads_R1 = os.path.join(folder_rep, 'reads', tag + '_R1.fq')
-reads_R2 = os.path.join(folder_rep, 'reads', tag + '_R2.fq')
-reads_R1_count = count_miRNA_fastq(reads_R1)
-reads_R2_count = count_miRNA_fastq(reads_R2)
-
-## todo: check if count matches both reads
-
-## debugging messages
-if args.debug:
-    print ("\n***************** Debug **********************")
-    print ("reads_R1_count")
-    print (reads_R1_count)
-    print ("reads_R2_count")    
-    print (reads_R2_count)    
-
-## get observed data
-if (args.observed_freqs):
-    print ("+ Single file provided with observed data. Retrieve expected vs. observed results.")
-    observed_counts, observed_seqs = observed_data_analysis(args.observed_freqs)
-    results = analysis_observed_expected(args.name, observed_counts, reads_R1_count, expected_counts, observed_seqs, isomiR_dict)
+results = pd.DataFrame()
+for folder_rep in folder_rep_list:
+    if args.replicates:
+        rep_ID = os.path.basename(folder_rep)
     
-elif (args.retrieve_all):
-    print ("+ Retrieve all available comparisons from folder provided. Retrieve expected vs. observed results for all at the same time.")
-    ## todo
+    ##
+    print ("\n+ Analysis for: " + rep_ID)
     
+    ## original counts
+    print ("# Read expected frequency table")
+    isomiRs_freqs = os.path.join(folder_rep, rep_ID + '.freqs.isomiRs.csv')
+    isomiRs_fasta = os.path.join(folder_rep, rep_ID + '.freqs.isomiRs.fasta')
+    expected_counts = functions.get_data(isomiRs_freqs, ',', 'index_col=0')
     
+    ## debugging messages
+    if args.debug:
+        print ("\n***************** Debug **********************")
+        print ("expected_counts")
+        print (expected_counts)
+    
+    isomiR_dict =  {}
+    col_list = list(expected_counts) ## get columns
+    for miRNA, row in expected_counts.iterrows():
+        for col in col_list:
+            if (type(row[col]) == float):
+               continue 
+            if (row[col] == 0):
+                continue
+            entry = row[col].split('x')
+            isomiR_dict[entry[0]] = {'count':entry[1], 'seq': ""} 
+    
+    ## debugging messages
+    if args.debug:
+        print ("\n***************** Debug **********************")
+        print ("isomiR_dict")
+        print (isomiR_dict)
+    
+    print ("# Read sequence data expected")
+    with open(isomiRs_fasta, 'r') as fh:
+        lines = []
+        for line in fh:
+            lines.append(line.rstrip())
+            if len(lines) == 2:
+                record = reads2tabular.process_fasta(lines)
+                #sys.stderr.write("Record: %s\n" % (str(record)))
+                lines = []
+                fasta_ID = record['name'].replace('>', '')
+                fasta_ID = fasta_ID.split('_')[0]
+                if (fasta_ID in isomiR_dict.keys()):
+                    isomiR_dict[fasta_ID]['seq'] = record['sequence'] 
+    
+    ## debugging messages
+    if args.debug:
+        print ("\n***************** Debug **********************")
+        print ("isomiR_dict")
+        print (isomiR_dict)
+    
+    ## get total count of reads
+    total_count_miRNA = defaultdict(int)
+    reads_R1 = os.path.join(folder_rep, 'reads', rep_ID + '_R1.fq')
+    reads_R2 = os.path.join(folder_rep, 'reads', rep_ID + '_R2.fq')
+    reads_R1_count = count_miRNA_fastq(reads_R1)
+    reads_R2_count = count_miRNA_fastq(reads_R2)
+    
+    ## todo: check if count matches both reads
+    
+    ## debugging messages
+    if args.debug:
+        print ("\n***************** Debug **********************")
+        print ("reads_R1_count")
+        print (reads_R1_count)
+        print ("reads_R2_count")    
+        print (reads_R2_count)    
+    
+    ## get observed data
+    if (args.observed_freqs):
+        print ("+ Single file provided with observed data. Retrieve expected vs. observed results.")
+        observed_counts, observed_seqs = observed_data_analysis(args.observed_freqs)
+        results = analysis_observed_expected(args.name, args.tag, observed_counts, 
+                                             reads_R1_count, expected_counts, 
+                                             observed_seqs, isomiR_dict)
+        continue
+        
+    elif (args.retrieve_all):
+        print ("+ Retrieve all available comparisons from folder provided. Retrieve expected vs. observed results for all at the same time.")
+        
+        observed_counts_dict = {}
+        
+        ## PE
+        PE_analysis_folder=os.path.join(folder_rep, 'analysis', 'report', 'miRNA')
+        if os.path.isdir(PE_analysis_folder):
+            files_PE_analysis = functions.retrieve_matching_files(PE_analysis_folder, ".csv")
+            files_PE_analysis = [s for s in files_PE_analysis if '_seq' not in s]
+            files_PE_analysis = [s for s in files_PE_analysis if '_dup' not in s]
+            for f in files_PE_analysis:
+                soft=f.split('expression-')[1].split('.csv')[0]
+                observed_counts_dict[soft] = {'PE': f}
+                
+            
+        ## R1
+        R1_analysis_folder=os.path.join(folder_rep, 'analysis_R1', 'report', 'miRNA')
+        if os.path.isdir(R1_analysis_folder):
+            files_R1_analysis = functions.retrieve_matching_files(R1_analysis_folder, ".csv")
+            files_R1_analysis = [s for s in files_R1_analysis if '_seq' not in s]
+            files_R1_analysis = [s for s in files_R1_analysis if '_dup' not in s]
+            for f in files_R1_analysis:
+                    soft=f.split('expression-')[1].split('.csv')[0]
+                    observed_counts_dict[soft]['R1'] =  f
+                
+        
+        ## R2
+        R2_analysis_folder=os.path.join(folder_rep, 'analysis_R2', 'report', 'miRNA')
+        if os.path.isdir(R2_analysis_folder):
+            files_R2_analysis = functions.retrieve_matching_files(R2_analysis_folder, ".csv")
+            files_R2_analysis = [s for s in files_R2_analysis if '_seq' not in s]
+            files_R2_analysis = [s for s in files_R2_analysis if '_dup' not in s]
+            for f in files_R2_analysis:
+                    soft=f.split('expression-')[1].split('.csv')[0]
+                    observed_counts_dict[soft]['R2'] =  f
+
+        ## debugging messages
+        if args.debug:
+            print ("\n***************** Debug **********************")
+            print ("observed_counts_dict")
+            print (observed_counts_dict)
+            print()
+        
+        for soft_name in observed_counts_dict.keys():
+            for type_read in observed_counts_dict[soft_name]:
+                if type_read == 'R1':
+                    tag_given = rep_ID + '_R1'
+                elif type_read == 'R2':
+                    tag_given = rep_ID + '_revComp'
+                else:
+                    tag_given = rep_ID
+
+                ## debugging messages
+                if args.debug:
+                    print ("\n***************** Debug **********************")
+                    print ("tag_given: " + tag_given)                    
+                    print ("rep_ID: " + rep_ID)                    
+                    print ("soft_name: " + soft_name)                    
+                    print ("type_read: " + type_read)                    
+                    print ("File: "+ observed_counts_dict[soft_name][type_read])
+            
+                print ("\t+ Analysis for: "+  rep_ID + " :: " + soft_name + " :: " + type_read)                    
+                observed_counts, observed_seqs = observed_data_analysis(observed_counts_dict[soft_name][type_read])
+                results_tmp = analysis_observed_expected(rep_ID, tag_given, 
+                                                         observed_counts, reads_R1_count, expected_counts, 
+                                                         observed_seqs, isomiR_dict)
+                ## add soft_name and type_read
+                results_tmp['soft'] = soft_name
+                results_tmp['type_read'] = type_read
+                
+                if results.empty:
+                    results=results_tmp
+                else:
+                    ## concat for all results
+                    results = pd.concat([results, results_tmp])
+        
 ##
+print ("\n\n + Save simulation results in file:")
 name = args.name + "_XICRA.simulations.csv"
+print (name)
 results.to_csv(name )
+exit()
             
