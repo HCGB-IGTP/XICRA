@@ -714,7 +714,7 @@ for folder_rep in folder_rep_list:
                     results=results_tmp
                 else:
                     ## concat for all results
-                    results = pd.concat([results, results_tmp])
+                    results = pd.concat([results, results_tmp], ignore_index=True)
 
                 print ("\n\n + Save tmp simulation results in file:")
                 name = rep_ID + "_" + soft_name + "_" + type_read + "_XICRA.simulations.csv"
