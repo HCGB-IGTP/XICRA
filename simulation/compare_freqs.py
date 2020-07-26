@@ -17,6 +17,7 @@ import argparse
 import numpy as np
 from termcolor import colored
 from collections import defaultdict
+import collections
 
 ## import my modules
 from XICRA.scripts import functions
@@ -68,7 +69,9 @@ def count_miRNA_fastq (fastq_file):
 def analysis_observed_expected(name, given_tag, counts_observed, count_R1_reads, expected_counts_given, seqs_observed, isomiRDict):
 
     results_df = pd.DataFrame(columns=("name", "miRNA", "variant", "sequence", "obs", "exp", "TP", "FP", "FN", "S", "P"))
-
+    seen_seqs_expected = defaultdict(int)
+    seen_seqs_observed = defaultdict(int)
+    
     ## analysis
     total_count_observed = counts_observed[given_tag].sum()
     miRNA_grouped = counts_observed.groupby(['miRNA'])
@@ -86,29 +89,33 @@ def analysis_observed_expected(name, given_tag, counts_observed, count_R1_reads,
         for index, row in cluster.iterrows():
             miRNA_variant = row['variant'] 
             observed_count = row[given_tag]
+            observed_seq_isomiR = seqs_observed.loc[row['UID'], 'Read']
+
             if (',' in str(miRNA_variant)):
+                ####################################
                 ## complex variant
                 if args.debug:  
                     print ("+ ---------------------------------------------------- +")
                     print ("** Complex variant: " + miRNA_variant)
-                    print ("False Positive") ## complex variant
                     print ("observed_count:" + str(observed_count))
-                    
-                    ## TODO: check if any sequence expected matches the UID observed
-                    ## see as example: hsa-miR-3944-3p,TTCGGGCTGGCCTGCTGCTCCGGGG
-                    expected_count = 0
-                    (TP, FP, FN, S, P) = get_results(observed_count, expected_count)
-                    ## Do not save this result
-
+                    print ("To check later with sequence")
+                ####################################
             else:
                 if args.debug:
                     print ("\n+ ---------------------------------------------------- +")
                     print ("miRNA: " + miRNA_ID)
                     print ("Variant: " + miRNA_variant)
                 
-                ## skip
-                if (miRNA_variant == 'notsure'):
-                    continue
+                ####################################
+                #### Save results as special
+                if (str(miRNA_variant) == 'notsure'):
+                    ## debugging messages
+                    if args.debug:  
+                        print ("Unknown variant") ## complex variant
+                        print ("observed_count:" + str(observed_count))
+                        print ("Variant: " + miRNA_variant)
+                        print ("To check later with sequence")
+                ####################################
                 
                 if (':' in miRNA_variant): 
                     if ('add' in miRNA_variant): ## iso_add5p, iso_add3p
@@ -116,86 +123,260 @@ def analysis_observed_expected(name, given_tag, counts_observed, count_R1_reads,
                     else:
                         miRNA_variant = miRNA_variant[:-1] ## iso_5p, iso_3p, deletion
                         
-                if (variantDict[miRNA_variant]): ## exists in variantDict
+                try:
+                    if (variantDict[miRNA_variant]): ## exists in variantDict
                     
-                    if (miRNA_ID.lower() not in expected_counts_given.index):
-                        continue
-                        ## Do not save this result
-                        #(TP, FP, FN, S, P) = get_results(observed_count, expected_count)
-                        
-                    entry_thisVariant = expected_counts_given.loc[miRNA_ID.lower(), variantDict[miRNA_variant]]
-                    
-                    if type(entry_thisVariant) is float:
-                        entry_thisVariant_count = 0
-                        entry_thisVariant_miRNA = ""
-                    else:
-                        entry_thisVariant = entry_thisVariant.split('x')
-                        entry_thisVariant_count = int(entry_thisVariant[-1])
-                        entry_thisVariant_miRNA = entry_thisVariant[0]
-                    
-                    ## count
-                    expected_count=int(entry_thisVariant_count/100*total_count_expected)
-                    
-                    ## same sequence??
-                    if (entry_thisVariant_miRNA in isomiRDict.keys()):
-                        expected_seq_isomiR = isomiRDict[entry_thisVariant_miRNA]['seq']
-                    else:
-                        expected_seq_isomiR = ""
-                    ##
-                    observed_seq_isomiR = seqs_observed.loc[row['UID'], 'Read']
+                        if (miRNA_ID.lower() not in expected_counts_given.index):
+                            ####################################
+                            expected_count = 0
+                            (TP, FP, FN, S, P) = get_results(observed_count, expected_count)
+                            
+                            if args.debug:  
+                                print ("save results for this entry as special")
+                            
+                            #columns=("name", "miRNA", 'variant', "sequence", "obs", "exp", "TP", "FP", "FN", "S", "P"))
+                            results_df.loc[len(results_df)] = (name, miRNA_ID, miRNA_variant, 
+                                       observed_seq_isomiR, observed_count, "NEW", TP, FP, FN, S, P)
+                            seen_seqs_observed[observed_seq_isomiR] += 1
+                            continue
     
-                    ## debugging messages
-                    if args.debug:  
-                        print ("\nVariant conversion:")
-                        print (variantDict[miRNA_variant])
-                        print ("entry_thisVariant_freq_count: " + str(entry_thisVariant_count))
-                        print ("entry_thisVariant_miRNA: " + entry_thisVariant_miRNA)
-                        print ("\nCounts\nexpected_count: " + str(expected_count))
-                        print ("observed_count:" + str(observed_count))
-                        print ("\nSequences\nLicense plate: " + row['UID'])
-                        print ("observed_seq_isomiR: " + observed_seq_isomiR)
-                        print ("expected_seq_isomiR: " + expected_seq_isomiR)
+                            ## Do not save this result
+                            #(TP, FP, FN, S, P) = get_results(observed_count, expected_count)
+                            ####################################
+                            
+                        entry_thisVariant = expected_counts_given.loc[miRNA_ID.lower(), variantDict[miRNA_variant]]
                         
-                    
-                    if (expected_seq_isomiR == observed_seq_isomiR):
-                        (TP, FP, FN, S, P) = get_results(observed_count, expected_count)
-                    elif (expected_seq_isomiR == ""):
-                        (TP, FP, FN, S, P) = get_results(observed_count, expected_count)
-                    else:
+                        if type(entry_thisVariant) is float:
+                            entry_thisVariant_count = 0
+                            entry_thisVariant_miRNA = ""
+                        else:
+                            entry_thisVariant = entry_thisVariant.split('x')
+                            entry_thisVariant_count = int(entry_thisVariant[-1])
+                            entry_thisVariant_miRNA = entry_thisVariant[0]
+                        
+                        ## count
+                        expected_count=int(entry_thisVariant_count/100*total_count_expected)
+                        
+                        ## same sequence??
+                        if (entry_thisVariant_miRNA in isomiRDict.keys()):
+                            expected_seq_isomiR = isomiRDict[entry_thisVariant_miRNA]['seq']
+                        else:
+                            expected_seq_isomiR = ""
+                        ##
+                        observed_seq_isomiR = seqs_observed.loc[row['UID'], 'Read']
+        
+                        ## debugging messages
                         if args.debug:  
-                            print ("\n******** ATTENTION **********")
-                            print ("Same variant different isomiR")
-                            print ("********************************\n")
-                            print ("+ ---------------------------------------------------- +\n")
-                        continue
+                            print ("\nVariant conversion:")
+                            print (variantDict[miRNA_variant])
+                            print ("entry_thisVariant_freq_count: " + str(entry_thisVariant_count))
+                            print ("entry_thisVariant_miRNA: " + entry_thisVariant_miRNA)
+                            print ("\nCounts\nexpected_count: " + str(expected_count))
+                            print ("observed_count:" + str(observed_count))
+                            print ("\nSequences\nLicense plate: " + row['UID'])
+                            print ("observed_seq_isomiR: " + observed_seq_isomiR)
+                            print ("expected_seq_isomiR: " + expected_seq_isomiR)
+                            
+                        
+                        if (expected_seq_isomiR == observed_seq_isomiR):
+                            (TP, FP, FN, S, P) = get_results(observed_count, expected_count)
+                        elif (expected_seq_isomiR == ""):
+                            (TP, FP, FN, S, P) = get_results(observed_count, expected_count)
+                        else:
+                            if args.debug:  
+                                print ("\n******** ATTENTION **********")
+                                print ("Same variant different isomiR")
+                                print ("********************************\n")
+                                print ("+ ---------------------------------------------------- +\n")
+                            continue
+    
+                        ### Save results            
+                        if args.debug:  
+                            print ("save results for this entry")
+                        #columns=("name", "miRNA", 'variant', "sequence", "obs", "exp", "TP", "FP", "FN", "S", "P"))
+                        results_df.loc[len(results_df)] = (name, miRNA_ID, miRNA_variant, 
+                                                           observed_seq_isomiR, observed_count, expected_count,
+                                                           TP, FP, FN, S, P)
+                        seen_seqs_expected[expected_seq_isomiR] += 1
+                        seen_seqs_observed[observed_seq_isomiR] += 1
                 
-                
-                    ### Save results            
-                    if args.debug:  
-                        print ("save results for this entry")
-                    #columns=("name", "miRNA", 'variant', "sequence", "obs", "exp", "TP", "FP", "FN", "S", "P"))
-                    results_df.loc[len(results_df)] = (name, miRNA_ID, miRNA_variant, 
-                                                       observed_seq_isomiR, observed_count, expected_count,
-                                                       TP, FP, FN, S, P)
-                
-                else:
+                except:
+                    ## miRNA_variant does not exists in dictionary
+                    
+                    ####################################
+                    ## not variant available within miRTop conversion
+                    ####################################
                     ## debugging messages
                     if args.debug:  
                         print ("Unknown variant") ## complex variant
                         print ("observed_count:" + str(observed_count))
+                        print ("Variant: " + miRNA_variant)
                     
-                    ## Do not save this result
-                    #(TP, FP, FN, S, P) = get_results(observed_count, expected_count)
-            
+                    expected_count = 0
+                    (TP, FP, FN, S, P) = get_results(observed_count, expected_count)
+                
+                    ## Save results as special            
+                    if args.debug:  
+                        print ("save results for this entry as special")
+                    
+                    #columns=("name", "miRNA", 'variant', "sequence", "obs", "exp", "TP", "FP", "FN", "S", "P"))
+                    results_df.loc[len(results_df)] = (name, miRNA_ID, miRNA_variant, 
+                                                       observed_seq_isomiR, observed_count, "NEW",
+                                                       TP, FP, FN, S, P)
+                    seen_seqs_observed[observed_seq_isomiR] += 1
+
+                    ####################################
+                    
             ### debugging messages
             if args.debug:  
                 print ("+ ---------------------------------------------------- +\n")
+    
+    
+    ## debugging messages
+    if args.debug:  
+        print ("\n\n##############################################")
+        print ("Check results at the level of sequence")
+        print ("##############################################")
+    
+    ########################################################    
+    ## now traverse sequence dictionaries
+    ########################################################    
+    ## first expected vs. observed
+    ########################################################    
+    for miRNA in isomiRDict.keys():
+        miRNA_ID = miRNA.split('::')[0].replace('mir', 'miR')
+        this_seq = isomiRDict[miRNA]['seq']
+        if not this_seq in seen_seqs_observed.keys() and not this_seq in seen_seqs_expected.keys():
+            ## Expected data
+            expected_entry_thisVariant = int(isomiRDict[miRNA]['count'])
+            expected_count=int(expected_entry_thisVariant/100*total_count_expected)
 
+            ## make sure not previously added
+            if not (seqs_observed[seqs_observed['Read'] == this_seq].empty):
+                ## not observed?
+                this_Seq_UID = seqs_observed[seqs_observed['Read'] == this_seq].index.values[0]        
             
+                ## debugging messages
+                if args.debug:  
+                    print ("+ ---------------------------------------------------- +\n")
+                    print ("miRNA:" + miRNA)
+                    print ("isomiRDict: ")
+                    print (isomiRDict[miRNA])
+                    print (this_Seq_UID)
+                
+                ## info
+                df_observed_this_entry = counts_observed[counts_observed['UID'] == this_Seq_UID]
+                observed_count = int(df_observed_this_entry[given_tag])
+                miRNA_variant = df_observed_this_entry['variant'] 
+                
+                ## debugging messages
+                if args.debug:  
+                    print ("\nVariant:")
+                    print (miRNA_variant)
+                    print ("entry_thisVariant_freq_count: " + str(expected_entry_thisVariant))
+                    print ("entry_thisVariant_miRNA: " + miRNA_ID)
+                    
+                    print ("\nCounts\nexpected_count: " + str(expected_count))
+                    print ("observed_count:" + str(observed_count))
+                    
+                    print ("\nSequences\nLicense plate: " + this_Seq_UID)
+                    print ("sequence: " + this_seq)
+                    
+                ## get statistics
+                (TP, FP, FN, S, P) = get_results(observed_count, expected_count)
+                
+                ### Save results            
+                if args.debug:  
+                    print ("save results for this entry")
+                #columns=("name", "miRNA", 'variant', "sequence", "obs", "exp", "TP", "FP", "FN", "S", "P"))
+                results_df.loc[len(results_df)] = (name, miRNA_ID, miRNA_variant, 
+                                                   this_seq, observed_count, expected_count,
+                                                   TP, FP, FN, S, P)
+                
+                seen_seqs_expected[this_seq] += 1
+                seen_seqs_observed[this_seq] += 1
 
-    ##
+            else:
+                observed_count = 0
+                miRNA_variant = miRNA.split('::')[1].split('-')[0]
+
+
+                ## debugging messages
+                if args.debug:  
+                    print ("+ ---------------------------------------------------- +\n")
+                    print ("miRNA:" + miRNA_ID)
+                    print ("isomiRDict: ")
+                    print (isomiRDict[miRNA])
+                    print ("\nVariant:")
+                    print (miRNA_variant)
+                
+                    print ("entry_thisVariant_freq_count: " + str(expected_entry_thisVariant))
+                    print ("entry_thisVariant_miRNA: " + miRNA_ID)
+                    
+                    print ("\nCounts\nexpected_count: " + str(expected_count))
+                    print ("observed_count:" + str(observed_count))
+                    
+                    print ("Sequence: " + this_seq)
+                    
+                ## get statistics
+                (TP, FP, FN, S, P) = get_results(observed_count, expected_count)
+                
+                ### Save results            
+                if args.debug:  
+                    print ("save results for this entry")
+       
+                #columns=("name", "miRNA", 'variant', "sequence", "obs", "exp", "TP", "FP", "FN", "S", "P"))
+                results_df.loc[len(results_df)] = (name, miRNA_ID, miRNA_variant + '_NotObserved', 
+                                                   this_seq, observed_count, expected_count,
+                                                   TP, FP, FN, S, P)
+                seen_seqs_expected[this_seq] += 1
+                seen_seqs_observed[this_seq] += 1
+
+    ########################################################    
+    ## now: expected vs. observed
+    ########################################################    
+    for entry, row in seqs_observed.iterrows():
+        this_seq = row['Read']
+        ## make sure not previously added
+        if not this_seq in seen_seqs_observed.keys() and not this_seq in seen_seqs_expected.keys():
+            ## info
+            expected_entry_thisVariant = ""
+            expected_count = 0
+            df_observed_this_entry = counts_observed[counts_observed['UID'] == entry]
+            observed_count = int(df_observed_this_entry[given_tag])
+            miRNA_variant = df_observed_this_entry['variant'].values[0]
+            miRNA_ID = df_observed_this_entry['miRNA'].values[0]
+    
+            ## debugging messages
+            if args.debug:  
+                print ("\nVariant:")
+                print (miRNA_variant)
+                print ("entry_thisVariant_freq_count: " + str(expected_entry_thisVariant))
+                print ("entry_thisVariant_miRNA: " + miRNA_ID)
+                
+                print ("\nCounts\nexpected_count: " + str(expected_count))
+                print ("observed_count:" + str(observed_count))
+                
+                print ("\nSequences\nLicense plate: " + entry)
+                print ("sequence: " + this_seq)
+
+            ## get statistics
+            (TP, FP, FN, S, P) = get_results(observed_count, expected_count)
+            
+            ### Save results            
+            if args.debug:  
+                print ("save results for this entry")
+   
+            #columns=("name", "miRNA", 'variant', "sequence", "obs", "exp", "TP", "FP", "FN", "S", "P"))
+            results_df.loc[len(results_df)] = (name, miRNA_ID, miRNA_variant + '_New', 
+                                               this_seq, observed_count, expected_count,
+                                               TP, FP, FN, S, P)
+            seen_seqs_expected[this_seq] += 1
+            seen_seqs_observed[this_seq] += 1
+      
     return(results_df)
 
+#########################################
 def get_results(observed_count, expected_count):
     ##
     TP=0
@@ -534,7 +715,11 @@ for folder_rep in folder_rep_list:
                 else:
                     ## concat for all results
                     results = pd.concat([results, results_tmp])
-        
+
+                print ("\n\n + Save tmp simulation results in file:")
+                name = rep_ID + "_" + soft_name + "_" + type_read + "_XICRA.simulations.csv"
+                results_tmp.to_csv(name )
+    
 ##
 print ("\n\n + Save simulation results in file:")
 name = args.name + "_XICRA.simulations.csv"
