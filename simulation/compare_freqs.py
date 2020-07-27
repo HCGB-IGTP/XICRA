@@ -181,12 +181,17 @@ def analysis_observed_expected(name, given_tag, counts_observed, count_R1_reads,
                             print ("\nSequences\nLicense plate: " + row['UID'])
                             print ("observed_seq_isomiR: " + observed_seq_isomiR)
                             print ("expected_seq_isomiR: " + expected_seq_isomiR)
-                            
+                            print ("save results for this entry")
                         
                         if (expected_seq_isomiR == observed_seq_isomiR):
                             (TP, FP, FN, S, P) = get_results(observed_count, expected_count)
-                        elif (expected_seq_isomiR == ""):
-                            (TP, FP, FN, S, P) = get_results(observed_count, expected_count)
+                            #columns=("name", "miRNA", 'variant', "sequence", "obs", "exp", "TP", "FP", "FN", "S", "P"))
+                            results_df.loc[len(results_df)] = (name, miRNA_ID, miRNA_variant, 
+                                                               observed_seq_isomiR, observed_count, expected_count,
+                                                               TP, FP, FN, S, P)
+                            seen_seqs_expected[expected_seq_isomiR] += 1
+                            seen_seqs_observed[observed_seq_isomiR] += 1
+                    
                         else:
                             if args.debug:  
                                 print ("\n******** ATTENTION **********")
@@ -194,17 +199,7 @@ def analysis_observed_expected(name, given_tag, counts_observed, count_R1_reads,
                                 print ("********************************\n")
                                 print ("+ ---------------------------------------------------- +\n")
                             continue
-    
-                        ### Save results            
-                        if args.debug:  
-                            print ("save results for this entry")
-                        #columns=("name", "miRNA", 'variant', "sequence", "obs", "exp", "TP", "FP", "FN", "S", "P"))
-                        results_df.loc[len(results_df)] = (name, miRNA_ID, miRNA_variant, 
-                                                           observed_seq_isomiR, observed_count, expected_count,
-                                                           TP, FP, FN, S, P)
-                        seen_seqs_expected[expected_seq_isomiR] += 1
-                        seen_seqs_observed[observed_seq_isomiR] += 1
-                
+                        
                 except:
                     ## miRNA_variant does not exists in dictionary
                     
@@ -384,7 +379,7 @@ def get_results(observed_count, expected_count):
         FN=0
     else:
         TP=observed_count
-        FP=0
+        FP=0        
         FN=abs(expected_count-observed_count)
 
     ## sensitivity & precision
