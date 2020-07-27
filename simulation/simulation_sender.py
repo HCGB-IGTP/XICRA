@@ -53,7 +53,7 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta,
             for fcov in fcov_list:
                 print ("   + Coverage x" + fcov)
                 ## check how many profiles to use
-                if len(type_reads) == 1:
+                if len(fcov_list) == 1:
                     coverage_path = reads_path
                 else:
                     coverage_path = functions.create_subfolder("x" + fcov, reads_path)
@@ -88,7 +88,7 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta,
                     ## command
                     art_illumina_cmd = "%s --rndSeed 123456789 -sam -ss %s -i %s -l %s -c %s -o %s" %(art_illumina_bin, profile, fasta_file_len, str_len, fcov, outfile_path)
                     
-                    if (type_reads == 'PE'):
+                    if (reads == 'PE'):
                         art_illumina_cmd = art_illumina_cmd + " -p -m 50 -s 5"
                     
                     
@@ -128,7 +128,7 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta,
                 
                 ## 
                 if send_XICRA:
-                    if (type_reads == 'PE'):
+                    if (reads == 'PE'):
                         call_XICRA_PE(coverage_path, reads_path, name, threads_given, debug, database_folder, seqtk_bin, R2_reads)
                         ## print time stamp
                         filename_stamp = coverage_path + '/.success'
