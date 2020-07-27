@@ -199,7 +199,7 @@ def get_fullpath_list(dir_given):
 	:returns: List of absolute path files.
 	"""
 	return_path = []
-	for root, dirs, files in os.walk(dir_given):
+	for root, dirs, files in os.walk(dir_given, followlinks=True):
 		for f in files:
 			return_path.append(os.path.join(root,f))
 	return return_path
