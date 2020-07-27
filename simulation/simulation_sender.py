@@ -46,7 +46,7 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta,
             print ("  + Reads type: " + reads)
             ## check how many profiles to use
             if len(type_reads) == 1:
-                reads_path = abs_folder
+                reads_path = profile_path
             else:
                 reads_path = functions.create_subfolder(reads, profile_path)
 
