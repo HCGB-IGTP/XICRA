@@ -141,7 +141,7 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta,
                         filename_stamp = coverage_path + '/.success'
                         functions.print_time_stamp(filename_stamp)
                     else:
-                        call_XICRA_SE(coverage_path, reads_path, name, threads_given, debug, database_folder, seqtk_bin, R2_reads)
+                        call_XICRA_SE(coverage_path, reads_path, name, threads_given, debug, database_folder)
                         ## print time stamp
                         filename_stamp = coverage_path + '/.success'
                         functions.print_time_stamp(filename_stamp)
@@ -218,7 +218,7 @@ def discard_revcomp(outfile_path, reads):
     return (fastq_dict)
 
 ###################
-def call_XICRA_SE(folder_path, reads_path, name, threads_given, debug_bool, database_folder, seqtk_bin, R2_reads):
+def call_XICRA_SE(folder_path, reads_path, name, threads_given, debug_bool, database_folder):
     
     ## debugging messages
     if debug_bool:
