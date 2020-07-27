@@ -714,6 +714,9 @@ for folder_rep in folder_rep_list:
                         tag_given = rep_ID + '_revComp'
                     else:
                         tag_given = rep_ID
+                    
+                    if type_ID == 'SE':
+                        tag_given = rep_ID
     
                     ## debugging messages
                     if args.debug:
