@@ -262,7 +262,7 @@ def call_XICRA_PE(folder_path, reads_path, name, threads_given, debug_bool, data
     XICRA_options_join = argparse.Namespace(input=output_folder_XICRA, noTrim=True,
                                             single_end=False, batch=False, in_sample=False, 
                                             ex_sample=False, detached=False, include_lane=False, 
-                                            include_all=False, threads=threads_given, perc_diff= 8,  
+                                            include_all=False, threads=threads_given, perc_diff= 0,  
                                             help_format=False,  help_project=False, help_join_reads=False, debug=debug_bool)
     join.run_join(XICRA_options_join)
     
