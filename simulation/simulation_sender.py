@@ -98,7 +98,7 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta,
                         exit()
                     
                     ## filter R1
-                    fastq_R2_ids = discard_revcomp(outfile_path)
+                    fastq_R2_ids = discard_revcomp(outfile_path, reads)
                     
                     ## adjust R2
                     R2_fastq = outfile_path + '2.fq'
@@ -117,15 +117,21 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta,
                                             
                 ## merge reads all lengths
                 reads_path = functions.create_subfolder('reads', coverage_path)
-                R1_all_reads = functions.retrieve_matching_files(tmp_fastq, "filter_R1.fq")
-                R1_reads = os.path.join(reads_path, name + '_R1.fq')
+                if (reads == 'PE'):
+                    R1_all_reads = functions.retrieve_matching_files(tmp_fastq, "filter_R1.fq")
+                    R1_reads = os.path.join(reads_path, name + '_R1.fq')
+                else:
+                    R1_all_reads = functions.retrieve_matching_files(tmp_fastq, "filter.fq")
+                    R1_reads = os.path.join(reads_path, name + '.fq')
+                    
                 functions.merge_files(R1_reads, R1_all_reads)
                 
-                ## concat all reads 
-                R2_all_reads_tmp = functions.retrieve_matching_files(tmp_fastq, "filter_R2.fq")
-                R2_reads = os.path.join(reads_path, name + '_R2.fq')
-                functions.merge_files(R2_reads, R2_all_reads_tmp)
-                
+                if (reads == 'PE'):
+                    ## concat all reads 
+                    R2_all_reads_tmp = functions.retrieve_matching_files(tmp_fastq, "filter_R2.fq")
+                    R2_reads = os.path.join(reads_path, name + '_R2.fq')
+                    functions.merge_files(R2_reads, R2_all_reads_tmp)
+
                 ## 
                 if send_XICRA:
                     if (reads == 'PE'):
@@ -145,11 +151,14 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta,
     return()
 
 ##############
-def discard_revcomp(outfile_path):
+def discard_revcomp(outfile_path, reads):
     ##### Remove non 5'-3' simulated reads
     ## use art illumina aln file generated for R1
-    
-    aln_file_R1 = outfile_path + '1.aln'
+    if (reads == 'PE'):
+        aln_file_R1 = outfile_path + '1.aln'
+    else:
+        aln_file_R1 = outfile_path + '.aln'
+                    
     
     ## read aln file
     freq_fasta = defaultdict(int)
@@ -179,11 +188,16 @@ def discard_revcomp(outfile_path):
                 ## add sequences & count
                 freq_fasta[record['sequence']] += 1
     
-    ## read R1 fastq file
-    fastq_file = outfile_path + '1.fq'
-    out_file = outfile_path + '_filter_R1.fq'
+    if (reads == 'PE'):
+        ## read R1 fastq file
+        fastq_file = outfile_path + '1.fq'
+        out_file = outfile_path + '_filter_R1.fq'
+    else:
+        fastq_file = outfile_path + '.fq'
+        out_file = outfile_path + '_filter.fq'
+        
+        
     ## print in file
-    
     with open(out_file,'w') as file:
         with open(fastq_file, 'r') as fh:
             lines = []
