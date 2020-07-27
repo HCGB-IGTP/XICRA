@@ -660,7 +660,13 @@ for folder_rep in folder_rep_list:
             results = analysis_observed_expected(args.name, args.tag, observed_counts, 
                                                  reads_R1_count, expected_counts, 
                                                  observed_seqs, isomiR_dict)
-            continue
+            
+            ##
+            print ("\n\n + Save simulation results in file:")
+            name = args.name + "_XICRA.simulations.csv"
+            print (name)
+            results.to_csv(name)
+            
             
         elif (args.retrieve_all):
             print ("+ Retrieve all available comparisons from folder provided. Retrieve expected vs. observed results for all at the same time.")
@@ -752,7 +758,7 @@ for folder_rep in folder_rep_list:
         print ("\n\n + Save simulation results in file:")
         name = args.name + "_" + type_ID + "_XICRA.simulations.csv"
         print (name)
-        results.to_csv(name )
+        results.to_csv(name)
 
 exit()
             
