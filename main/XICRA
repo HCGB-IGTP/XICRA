@@ -167,7 +167,7 @@ in_out_group_join.add_argument("--include_all", action="store_true", help="Inclu
 
 options_group_join = subparser_join.add_argument_group("Options")
 options_group_join.add_argument("--threads", type=int, help="Number of CPUs to use [Default: 2].", default=2)
-options_group_join.add_argument("--perc_diff", type=int, help="Percentage difference for fastqjoin [Default: 8].")
+options_group_join.add_argument("--perc_diff", type=int, help="Percentage difference for fastqjoin [Default: 0].")
 options_group_join.add_argument("--noTrim", action='store_true', help="Use non-trimmed reads [or not containing '_trim' in the name].")
 
 

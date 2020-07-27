@@ -75,7 +75,7 @@ def run_join(options):
     
     ## Percentage difference for joining sequences
     if not options.perc_diff:
-        options.perc_diff = 8
+        options.perc_diff = 0
     
     ## get files
     if options.noTrim:

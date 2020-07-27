@@ -27,25 +27,27 @@ from XICRA.scripts import reads2tabular
 def observed_data_analysis(observed_freqs):
         
     print ("# Read observed raw data")
-    print (observed_freqs)
     observed_counts = functions.get_data(observed_freqs, ',', '')
     observed_counts[['miRNA','variant', 'UID']] = observed_counts.ID.str.split("&",expand=True,)
     
     ## debugging messages
     if args.debug:
         print ("\n***************** Debug **********************")
+        print ("File:")
+        print (observed_freqs)
         print ("observed_counts")
         print (observed_counts)
     
     ## read sequence isomiRs identified
     print ("# Read sequence data observed")
     observed_seqs_file = observed_freqs.split('.csv')[0] + '_seq.csv'
-    print (observed_seqs_file)
     observed_seqs = functions.get_data(observed_seqs_file, ',', 'index_col=0')
     
     ## debugging messages
     if args.debug:
         print ("\n***************** Debug **********************")
+        print ("File:")
+        print (observed_seqs_file)
         print ("observed_seqs")
         print (observed_seqs)
     
@@ -727,7 +729,7 @@ for folder_rep in folder_rep_list:
                         print ("type_read: " + type_read)                    
                         print ("File: "+ observed_counts_dict[soft_name][type_read])
                 
-                    print ("\t+ Analysis for: "+  rep_ID + " :: " + soft_name + " :: " + type_read)                    
+                    print ("\t+ Analysis for: "+  type_ID + " :: " + rep_ID + " :: " + soft_name + " :: " + type_read)                    
                     observed_counts, observed_seqs = observed_data_analysis(observed_counts_dict[soft_name][type_read])
                     results_tmp = analysis_observed_expected(rep_ID, tag_given, 
                                                              observed_counts, reads_R1_count, expected_counts, 
@@ -746,11 +748,11 @@ for folder_rep in folder_rep_list:
                     name = type_ID + "_" + rep_ID + "_" + soft_name + "_" + type_read + "_XICRA.simulations.csv"
                     results_tmp.to_csv(name )
     
-    ##
-    print ("\n\n + Save simulation results in file:")
-    name = args.name + "_" + type_ID + "_XICRA.simulations.csv"
-    print (name)
-    results.to_csv(name )
+        ##
+        print ("\n\n + Save simulation results in file:")
+        name = args.name + "_" + type_ID + "_XICRA.simulations.csv"
+        print (name)
+        results.to_csv(name )
 
 exit()
             
