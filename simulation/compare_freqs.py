@@ -27,6 +27,7 @@ from XICRA.scripts import reads2tabular
 def observed_data_analysis(observed_freqs):
         
     print ("# Read observed raw data")
+    print (observed_freqs)
     observed_counts = functions.get_data(observed_freqs, ',', '')
     observed_counts[['miRNA','variant', 'UID']] = observed_counts.ID.str.split("&",expand=True,)
     
@@ -39,6 +40,7 @@ def observed_data_analysis(observed_freqs):
     ## read sequence isomiRs identified
     print ("# Read sequence data observed")
     observed_seqs_file = observed_freqs.split('.csv')[0] + '_seq.csv'
+    print (observed_seqs_file)
     observed_seqs = functions.get_data(observed_seqs_file, ',', 'index_col=0')
     
     ## debugging messages
@@ -135,15 +137,16 @@ def analysis_observed_expected(name, given_tag, counts_observed, count_R1_reads,
                                 print ("save results for this entry as special")
                             
                             #columns=("name", "miRNA", 'variant', "sequence", "obs", "exp", "TP", "FP", "FN", "S", "P"))
-                            results_df.loc[len(results_df)] = (name, miRNA_ID, miRNA_variant, 
-                                       observed_seq_isomiR, observed_count, "NEW", TP, FP, FN, S, P)
+                            results_df.loc[len(results_df)] = (name, miRNA_ID, miRNA_variant + "_New_miRNA", 
+                                       observed_seq_isomiR, observed_count, expected_count, TP, FP, FN, S, P)
                             seen_seqs_observed[observed_seq_isomiR] += 1
                             continue
     
                             ## Do not save this result
                             #(TP, FP, FN, S, P) = get_results(observed_count, expected_count)
                             ####################################
-                            
+                        
+                        ## else
                         entry_thisVariant = expected_counts_given.loc[miRNA_ID.lower(), variantDict[miRNA_variant]]
                         
                         if type(entry_thisVariant) is float:
@@ -220,8 +223,8 @@ def analysis_observed_expected(name, given_tag, counts_observed, count_R1_reads,
                         print ("save results for this entry as special")
                     
                     #columns=("name", "miRNA", 'variant', "sequence", "obs", "exp", "TP", "FP", "FN", "S", "P"))
-                    results_df.loc[len(results_df)] = (name, miRNA_ID, miRNA_variant, 
-                                                       observed_seq_isomiR, observed_count, "NEW",
+                    results_df.loc[len(results_df)] = (name, miRNA_ID, miRNA_variant + '_New_variant', 
+                                                       observed_seq_isomiR, observed_count, expected_count,
                                                        TP, FP, FN, S, P)
                     seen_seqs_observed[observed_seq_isomiR] += 1
 
@@ -252,8 +255,8 @@ def analysis_observed_expected(name, given_tag, counts_observed, count_R1_reads,
             expected_count=int(expected_entry_thisVariant/100*total_count_expected)
 
             ## make sure not previously added
+            ## but sequence found as observed
             if not (seqs_observed[seqs_observed['Read'] == this_seq].empty):
-                ## not observed?
                 this_Seq_UID = seqs_observed[seqs_observed['Read'] == this_seq].index.values[0]        
             
                 ## debugging messages
@@ -267,7 +270,7 @@ def analysis_observed_expected(name, given_tag, counts_observed, count_R1_reads,
                 ## info
                 df_observed_this_entry = counts_observed[counts_observed['UID'] == this_Seq_UID]
                 observed_count = int(df_observed_this_entry[given_tag])
-                miRNA_variant = df_observed_this_entry['variant'] 
+                miRNA_variant = df_observed_this_entry['variant'].values[0]
                 
                 ## debugging messages
                 if args.debug:  
@@ -275,32 +278,32 @@ def analysis_observed_expected(name, given_tag, counts_observed, count_R1_reads,
                     print (miRNA_variant)
                     print ("entry_thisVariant_freq_count: " + str(expected_entry_thisVariant))
                     print ("entry_thisVariant_miRNA: " + miRNA_ID)
-                    
                     print ("\nCounts\nexpected_count: " + str(expected_count))
                     print ("observed_count:" + str(observed_count))
-                    
                     print ("\nSequences\nLicense plate: " + this_Seq_UID)
                     print ("sequence: " + this_seq)
+                    ### Save results            
+                    print ("save results for this entry")
                     
                 ## get statistics
                 (TP, FP, FN, S, P) = get_results(observed_count, expected_count)
-                
-                ### Save results            
-                if args.debug:  
-                    print ("save results for this entry")
                 #columns=("name", "miRNA", 'variant', "sequence", "obs", "exp", "TP", "FP", "FN", "S", "P"))
                 results_df.loc[len(results_df)] = (name, miRNA_ID, miRNA_variant, 
                                                    this_seq, observed_count, expected_count,
                                                    TP, FP, FN, S, P)
-                
                 seen_seqs_expected[this_seq] += 1
                 seen_seqs_observed[this_seq] += 1
 
             else:
                 observed_count = 0
-                miRNA_variant = miRNA.split('::')[1].split('-')[0]
-
-
+                
+                if ('::' in  miRNA):
+                    miRNA_variant_tmp = miRNA.split('::')[1]
+                    if ('-' in miRNA_variant_tmp):
+                        miRNA_variant=miRNA_variant_tmp.split('-')[0]
+                    else:
+                        miRNA_variant = miRNA_variant_tmp
+                        
                 ## debugging messages
                 if args.debug:  
                     print ("+ ---------------------------------------------------- +\n")
@@ -308,23 +311,18 @@ def analysis_observed_expected(name, given_tag, counts_observed, count_R1_reads,
                     print ("isomiRDict: ")
                     print (isomiRDict[miRNA])
                     print ("\nVariant:")
-                    print (miRNA_variant)
-                
+                    print (miRNA_variant)                
                     print ("entry_thisVariant_freq_count: " + str(expected_entry_thisVariant))
                     print ("entry_thisVariant_miRNA: " + miRNA_ID)
-                    
                     print ("\nCounts\nexpected_count: " + str(expected_count))
                     print ("observed_count:" + str(observed_count))
-                    
                     print ("Sequence: " + this_seq)
-                    
+                    ### Save results            
+                    print ("save results for this entry")
+       
                 ## get statistics
                 (TP, FP, FN, S, P) = get_results(observed_count, expected_count)
                 
-                ### Save results            
-                if args.debug:  
-                    print ("save results for this entry")
-       
                 #columns=("name", "miRNA", 'variant', "sequence", "obs", "exp", "TP", "FP", "FN", "S", "P"))
                 results_df.loc[len(results_df)] = (name, miRNA_ID, miRNA_variant + '_NotObserved', 
                                                    this_seq, observed_count, expected_count,
@@ -352,21 +350,17 @@ def analysis_observed_expected(name, given_tag, counts_observed, count_R1_reads,
                 print ("\nVariant:")
                 print (miRNA_variant)
                 print ("entry_thisVariant_freq_count: " + str(expected_entry_thisVariant))
-                print ("entry_thisVariant_miRNA: " + miRNA_ID)
-                
+                print ("entry_thisVariant_miRNA: " + miRNA_ID)                
                 print ("\nCounts\nexpected_count: " + str(expected_count))
-                print ("observed_count:" + str(observed_count))
-                
+                print ("observed_count:" + str(observed_count))                
                 print ("\nSequences\nLicense plate: " + entry)
                 print ("sequence: " + this_seq)
-
-            ## get statistics
-            (TP, FP, FN, S, P) = get_results(observed_count, expected_count)
-            
-            ### Save results            
-            if args.debug:  
+                ### Save results            
                 print ("save results for this entry")
    
+            ## get statistics
+            (TP, FP, FN, S, P) = get_results(observed_count, expected_count)
+                
             #columns=("name", "miRNA", 'variant', "sequence", "obs", "exp", "TP", "FP", "FN", "S", "P"))
             results_df.loc[len(results_df)] = (name, miRNA_ID, miRNA_variant + '_New', 
                                                this_seq, observed_count, expected_count,

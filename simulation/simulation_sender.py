@@ -86,7 +86,11 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta,
                     outfile_path = os.path.join(tmp_fastq, outfile_name)
                     
                     ## command
-                    art_illumina_cmd = "%s -sam -p -m 50 -s 5 -ss %s -i %s -l %s -c %s -o %s" %(art_illumina_bin, profile, fasta_file_len, str_len, fcov, outfile_path)
+                    art_illumina_cmd = "%s --rndSeed 123456789 -sam -ss %s -i %s -l %s -c %s -o %s" %(art_illumina_bin, profile, fasta_file_len, str_len, fcov, outfile_path)
+                    
+                    if (type_reads == 'PE'):
+                        art_illumina_cmd = art_illumina_cmd + " -p -m 50 -s 5"
+                    
                     
                     code = functions.system_call(art_illumina_cmd)
                     if not code:
@@ -124,10 +128,16 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta,
                 
                 ## 
                 if send_XICRA:
-                    call_XICRA(coverage_path, reads_path, name, threads_given, debug, database_folder, seqtk_bin, R2_reads)
-                    ## print time stamp
-                    filename_stamp = coverage_path + '/.success'
-                    functions.print_time_stamp(filename_stamp)
+                    if (type_reads == 'PE'):
+                        call_XICRA_PE(coverage_path, reads_path, name, threads_given, debug, database_folder, seqtk_bin, R2_reads)
+                        ## print time stamp
+                        filename_stamp = coverage_path + '/.success'
+                        functions.print_time_stamp(filename_stamp)
+                    else:
+                        call_XICRA_SE(coverage_path, reads_path, name, threads_given, debug, database_folder, seqtk_bin, R2_reads)
+                        ## print time stamp
+                        filename_stamp = coverage_path + '/.success'
+                        functions.print_time_stamp(filename_stamp)
                 else:
                     print ("+ Simulation for is ready in folder: ")
                     print (coverage_path)
@@ -193,7 +203,30 @@ def discard_revcomp(outfile_path):
     return (fastq_dict)
 
 ###################
-def call_XICRA(folder_path, reads_path, name, threads_given, debug_bool, database_folder, seqtk_bin, R2_reads):
+def call_XICRA_SE(folder_path, reads_path, name, threads_given, debug_bool, database_folder, seqtk_bin, R2_reads):
+    
+    ## debugging messages
+    if debug_bool:
+        print ("\n********* XICRA SE analysis *********\n")
+    
+    ## send XICRA command
+    ## create argparse with arguments provided to call XICRA miRNA
+    output_folder_XICRA = os.path.join(folder_path, 'analysis_R1')
+    
+    software_miRNA = ["sRNAbench", "optimir", "miraligner"]
+    XICRA_options_miRNA = argparse.Namespace(input=reads_path, output_folder=output_folder_XICRA,
+                                            single_end=True, batch=False, in_sample=False, noTrim=True, 
+                                            ex_sample=False, detached=False, include_lane=False, 
+                                            include_all=False, threads=threads_given,
+                                            soft_name=software_miRNA, species='hsa',
+                                            database=database_folder, miRNA_gff=False, hairpinFasta=False, 
+                                            matureFasta=False, miRBase_str=False, 
+                                            help_format=False,  help_project=False, help_miRNA=False, debug=debug_bool)
+    miRNA.run_miRNA(XICRA_options_miRNA)
+    return()
+
+###################
+def call_XICRA_PE(folder_path, reads_path, name, threads_given, debug_bool, database_folder, seqtk_bin, R2_reads):
     
     ## debugging messages
     if debug_bool:
