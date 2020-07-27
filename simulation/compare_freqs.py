@@ -683,9 +683,11 @@ for folder_rep in folder_rep_list:
                 files_R1_analysis = [s for s in files_R1_analysis if '_seq' not in s]
                 files_R1_analysis = [s for s in files_R1_analysis if '_dup' not in s]
                 for f in files_R1_analysis:
-                        soft=f.split('expression-')[1].split('.csv')[0]
+                    soft=f.split('expression-')[1].split('.csv')[0]
+                    if os.path.isdir(PE_analysis_folder):
                         observed_counts_dict[soft]['R1'] =  f
-                    
+                    else:
+                        observed_counts_dict[soft] = {'R1': f}                    
             
             ## R2
             R2_analysis_folder=os.path.join(type_read_folder, 'analysis_R2', 'report', 'miRNA')
@@ -694,8 +696,8 @@ for folder_rep in folder_rep_list:
                 files_R2_analysis = [s for s in files_R2_analysis if '_seq' not in s]
                 files_R2_analysis = [s for s in files_R2_analysis if '_dup' not in s]
                 for f in files_R2_analysis:
-                        soft=f.split('expression-')[1].split('.csv')[0]
-                        observed_counts_dict[soft]['R2'] =  f
+                    soft=f.split('expression-')[1].split('.csv')[0]
+                    observed_counts_dict[soft]['R2'] =  f
     
             ## debugging messages
             if args.debug:
