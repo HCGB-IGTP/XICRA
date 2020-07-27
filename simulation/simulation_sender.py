@@ -100,21 +100,22 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta,
                     ## filter R1
                     fastq_R2_ids = discard_revcomp(outfile_path, reads)
                     
-                    ## adjust R2
-                    R2_fastq = outfile_path + '2.fq'
-                    R2_filter = outfile_path + 'filter_R2.fq'
-                    with open(R2_filter, 'w') as outfh:
-                         with open(R2_fastq, 'r') as fh:
-                             lines = []
-                             for line in fh:
-                                 lines.append(line.rstrip())
-                                 if len(lines) == 4:
-                                      record = reads2tabular.process_fastq(lines)
-                                      #sys.stderr.write("Record: %s\n" % (str(record)))
-                                      lines = []                                 
-                                      if record['name'] in fastq_R2_ids.keys():
-                                          outfh.write("%s\n%s\n%s\n%s\n" % (record['name'], record['sequence'], record['optional'], record['quality']))
-                                            
+                    if (reads == 'PE'):
+                        ## adjust R2
+                        R2_fastq = outfile_path + '2.fq'
+                        R2_filter = outfile_path + 'filter_R2.fq'
+                        with open(R2_filter, 'w') as outfh:
+                             with open(R2_fastq, 'r') as fh:
+                                 lines = []
+                                 for line in fh:
+                                     lines.append(line.rstrip())
+                                     if len(lines) == 4:
+                                          record = reads2tabular.process_fastq(lines)
+                                          #sys.stderr.write("Record: %s\n" % (str(record)))
+                                          lines = []                                 
+                                          if record['name'] in fastq_R2_ids.keys():
+                                              outfh.write("%s\n%s\n%s\n%s\n" % (record['name'], record['sequence'], record['optional'], record['quality']))
+                                                
                 ## merge reads all lengths
                 reads_path = functions.create_subfolder('reads', coverage_path)
                 if (reads == 'PE'):
