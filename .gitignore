@@ -8,11 +8,11 @@
 .pydevproject
 
 ## environment
-env/XICRA_env/
+XICRA_pip/env/XICRA_env/
 
 ## pypi developer
-/*.egg-info
-/dist
-/build
+XICRA_pip/*.egg-info
+XICRA_pip/dist
+XICRA_pip/build
 
 
