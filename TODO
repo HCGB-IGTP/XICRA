@@ -1,14 +1,11 @@
 
 ## This is a file only intended for developers of this pipeline
 #
+- Implement tRF and piRNA as separate modules using available previous version scripts in extra/ folder
 - Fix PILFER implementation for piRNA
-
 - Add summary statistics for every process, count, biotypes, etc.
-
 - Implement pybedtools module
-
 - Implement pysam module
-
 - Circos PLOT of hits along the Chromosomes
 
 
