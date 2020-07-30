@@ -7,7 +7,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="XICRA",
-    version="0.3",
+    version="0.9.0",
 
     scripts=glob.glob('main/*'),
     author="Jose F. Sanchez-Herrero",
@@ -17,13 +17,13 @@ setuptools.setup(
 
     long_description_content_type="text/markdown",
     long_description=long_description_text,
-    url="https://github.com/JFsanchezherrero/XICRA",
+    url="https://github.com/HCGB-IGTP/XICRA/tree/master/XICRA_pip",
     packages=setuptools.find_packages(),
-    license='GPLv3',
+    license='MIT License',
 
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
+        "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
     include_package_data=True
