@@ -1,0 +1,194 @@
+digraph G {
+    graph [splines=ortho, rankdir=TB, clusterrank="local"];
+    subgraph cluster_G {
+
+        graph [style="filled,rounded",fillcolor="#80808018", label=""];
+        subgraph cluster_XICRA__config__set_config {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.config.set_config"];
+        }
+        subgraph cluster_XICRA__config__set_config {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.config.set_config"];
+        }
+        subgraph cluster_XICRA__config__set_config {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.config.set_config"];
+        }
+        subgraph cluster_XICRA__config__set_config {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.config.set_config"];
+        }
+        subgraph cluster_XICRA__config__set_config {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.config.set_config"];
+        }
+        subgraph cluster_XICRA__config__set_config {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.config.set_config"];
+        }
+        subgraph cluster_XICRA__config__set_config {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.config.set_config"];
+        }
+        subgraph cluster_XICRA__config__set_config {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.config.set_config"];
+            XICRA__config__set_config__get_exe [label="get_exe", style="filled", fillcolor="#ff9365b2", fontcolor="#000000", group="1"];
+        }
+        subgraph cluster_XICRA__config__set_config {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.config.set_config"];
+        }
+        subgraph cluster_XICRA__config__set_config {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.config.set_config"];
+        }
+        subgraph cluster_XICRA__config__set_config {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.config.set_config"];
+        }
+        subgraph cluster_XICRA__config__set_config {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.config.set_config"];
+        }
+        subgraph cluster_XICRA__scripts__fastqc_caller {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.fastqc_caller"];
+            XICRA__scripts__fastqc_caller__call_fastqc [label="call_fastqc", style="filled", fillcolor="#65a3ffb2", fontcolor="#000000", group="12"];
+        }
+        subgraph cluster_XICRA__scripts__fastqc_caller {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.fastqc_caller"];
+            XICRA__scripts__fastqc_caller__run_module_fastqc [label="run_module_fastqc", style="filled", fillcolor="#65a3ffb2", fontcolor="#000000", group="12"];
+        }
+        subgraph cluster_XICRA__scripts__functions {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.functions"];
+        }
+        subgraph cluster_XICRA__scripts__functions {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.functions"];
+        }
+        subgraph cluster_XICRA__scripts__functions {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.functions"];
+        }
+        subgraph cluster_XICRA__scripts__functions {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.functions"];
+        }
+        subgraph cluster_XICRA__scripts__functions {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.functions"];
+        }
+        subgraph cluster_XICRA__scripts__functions {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.functions"];
+        }
+        subgraph cluster_XICRA__scripts__functions {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.functions"];
+        }
+        subgraph cluster_XICRA__scripts__functions {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.functions"];
+        }
+        subgraph cluster_XICRA__scripts__functions {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.functions"];
+        }
+        subgraph cluster_XICRA__scripts__functions {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.functions"];
+        }
+        subgraph cluster_XICRA__scripts__functions {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.functions"];
+        }
+        subgraph cluster_XICRA__scripts__functions {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.functions"];
+        }
+        subgraph cluster_XICRA__scripts__functions {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.functions"];
+        }
+        subgraph cluster_XICRA__scripts__functions {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.functions"];
+        }
+        subgraph cluster_XICRA__scripts__functions {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.functions"];
+        }
+        subgraph cluster_XICRA__scripts__functions {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.functions"];
+        }
+        subgraph cluster_XICRA__scripts__functions {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.functions"];
+        }
+        subgraph cluster_XICRA__scripts__functions {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.functions"];
+        }
+        subgraph cluster_XICRA__scripts__functions {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.functions"];
+        }
+        subgraph cluster_XICRA__scripts__functions {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.functions"];
+        }
+        subgraph cluster_XICRA__scripts__functions {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.functions"];
+        }
+        subgraph cluster_XICRA__scripts__functions {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.functions"];
+        }
+        subgraph cluster_XICRA__scripts__functions {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.functions"];
+        }
+        subgraph cluster_XICRA__scripts__functions {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.functions"];
+            XICRA__scripts__functions__print_time_stamp [label="print_time_stamp", style="filled", fillcolor="#6575ffb2", fontcolor="#000000", group="13"];
+        }
+        subgraph cluster_XICRA__scripts__functions {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.functions"];
+            XICRA__scripts__functions__read_time_stamp [label="read_time_stamp", style="filled", fillcolor="#6575ffb2", fontcolor="#000000", group="13"];
+        }
+        subgraph cluster_XICRA__scripts__functions {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.functions"];
+        }
+        subgraph cluster_XICRA__scripts__functions {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.functions"];
+        }
+        subgraph cluster_XICRA__scripts__functions {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.functions"];
+            XICRA__scripts__functions__system_call [label="system_call", style="filled", fillcolor="#6575ffb2", fontcolor="#000000", group="13"];
+        }
+        subgraph cluster_XICRA__scripts__functions {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.functions"];
+        }
+        subgraph cluster_XICRA__scripts__functions {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.functions"];
+        }
+    }
+        XICRA__scripts__fastqc_caller__call_fastqc -> XICRA__scripts__functions__print_time_stamp [style="solid", color="#000000"];
+        XICRA__scripts__fastqc_caller__call_fastqc -> XICRA__scripts__functions__read_time_stamp [style="solid", color="#000000"];
+        XICRA__scripts__fastqc_caller__call_fastqc -> XICRA__scripts__functions__system_call [style="solid", color="#000000"];
+        XICRA__scripts__fastqc_caller__run_module_fastqc -> XICRA__config__set_config__get_exe [style="solid", color="#000000"];
+        XICRA__scripts__fastqc_caller__run_module_fastqc -> XICRA__scripts__fastqc_caller__call_fastqc [style="solid", color="#000000"];
+    }

@@ -1,0 +1,18 @@
+digraph G {
+    graph [splines=ortho, rankdir=TB, clusterrank="local"];
+    subgraph cluster_G {
+
+        graph [style="filled,rounded",fillcolor="#80808018", label=""];
+        subgraph cluster_XICRA__scripts__generate_barplot_RNAbiotype {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.generate_barplot_RNAbiotype"];
+            XICRA__scripts__generate_barplot_RNAbiotype__generate_matrix [label="generate_matrix", style="filled", fillcolor="#b265ffb2", fontcolor="#000000", group="15"];
+        }
+        subgraph cluster_XICRA__scripts__generate_barplot_RNAbiotype {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.generate_barplot_RNAbiotype"];
+            XICRA__scripts__generate_barplot_RNAbiotype__main [label="main", style="filled", fillcolor="#b265ffb2", fontcolor="#000000", group="15"];
+        }
+    }
+        XICRA__scripts__generate_barplot_RNAbiotype__main -> XICRA__scripts__generate_barplot_RNAbiotype__generate_matrix [style="solid", color="#000000"];
+    }

@@ -1,0 +1,34 @@
+digraph G {
+    graph [splines=ortho, rankdir=TB, clusterrank="local"];
+    subgraph cluster_G {
+
+        graph [style="filled,rounded",fillcolor="#80808018", label=""];
+        subgraph cluster_XICRA__scripts__reads2tabular {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.reads2tabular"];
+            XICRA__scripts__reads2tabular__help_options [label="help_options", style="filled", fillcolor="#ff65efb2", fontcolor="#000000", group="17"];
+        }
+        subgraph cluster_XICRA__scripts__reads2tabular {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.reads2tabular"];
+            XICRA__scripts__reads2tabular__main [label="main", style="filled", fillcolor="#ff65efb2", fontcolor="#000000", group="17"];
+        }
+        subgraph cluster_XICRA__scripts__reads2tabular {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.reads2tabular"];
+        }
+        subgraph cluster_XICRA__scripts__reads2tabular {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.reads2tabular"];
+            XICRA__scripts__reads2tabular__process_fastq [label="process_fastq", style="filled", fillcolor="#ff65efb2", fontcolor="#000000", group="17"];
+        }
+        subgraph cluster_XICRA__scripts__reads2tabular {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="XICRA.scripts.reads2tabular"];
+            XICRA__scripts__reads2tabular__reads2tabular [label="reads2tabular", style="filled", fillcolor="#ff65efb2", fontcolor="#000000", group="17"];
+        }
+    }
+        XICRA__scripts__reads2tabular__reads2tabular -> XICRA__scripts__reads2tabular__process_fastq [style="solid", color="#000000"];
+        XICRA__scripts__reads2tabular__main -> XICRA__scripts__reads2tabular__help_options [style="solid", color="#000000"];
+        XICRA__scripts__reads2tabular__main -> XICRA__scripts__reads2tabular__reads2tabular [style="solid", color="#000000"];
+    }

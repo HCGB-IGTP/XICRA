@@ -1,7 +1,12 @@
 
 *__pycache__/
-
 *pyc
+
+## documentation
+XICRA_pip/docs/build/
+XICRA_pip/docs/source/_static
+XICRA_pip/docs/source/_templates
+
 
 ## eclipse
 .project
