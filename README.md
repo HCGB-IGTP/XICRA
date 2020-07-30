@@ -31,13 +31,13 @@ XICRA means in Catalan "tassa petita, més aviat alta i estreta, emprada express
 
 ## Documentation
 
-## License
-To add license
+## License 
+MIT License
+Copyright (c) 2020 HCGB-IGTP
+
+See additional details [here](XICRA_pip/LICENSE)
 
 ## Citation
 Sanchez-Herrero et. al .... 2020
 
-## Copyright
-
-Copyright (C) 2019-2020 Lauro Sumoy Lab, IGTP, Spain
 
