@@ -16,7 +16,7 @@ paired-end reads, it also accepts single-end reads.
 
 ## Installation
 
-XICRA is available in the Python Package Index ([pip](https://pypi.org/)).
+XICRA is available in the Python Package Index ([pip](https://pypi.org/project/XICRA/)).
 
 To install type: 
 
@@ -37,4 +37,5 @@ Sanchez-Herrero et. al .... 2020
 
 ## Authors
 Antonio Luna de Haro (v0.1)
+
 Jose F Sanchez-Herrero (v1.0)	
