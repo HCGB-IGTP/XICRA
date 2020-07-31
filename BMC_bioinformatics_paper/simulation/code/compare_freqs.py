@@ -578,7 +578,7 @@ for folder_rep in folder_rep_list:
             if (row[col] == 0):
                 continue
             entry = row[col].split('x')
-            isomiR_dict[entry[0]] = {'count':entry[1], 'seq': ""} 
+            isomiR_dict[entry[0]] = {'count':entry[-1], 'seq': ""} 
     
     ## debugging messages
     if args.debug:
