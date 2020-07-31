@@ -186,3 +186,38 @@ def generate_matrix(dict_files, soft_name, Debug):
 
 ######
 
+######
+def main():
+    ## this code runs when call as a single script
+
+    ## control if options provided or help
+    if len(sys.argv) > 1:
+        print ("")
+    else:
+        print ("Provide file containing sample,file")
+        exit()        
+
+    dictionary_info = functions.file2dictionary(sys.argv[1], ",")
+    print (dictionary_info)
+
+    ## get data
+    (all_data, all_seqs) = generate_matrix(dictionary_info, "miraligner", False)
+
+    ## discard duplicate UIDs if any
+    all_data_filtered, all_data_duplicated = discard_UID_duplicated(all_data)
+
+    ## dump data in folder provided
+    outfolder = "./"
+    csv_outfile = os.path.join(outfolder, 'miRNA_expression')
+    all_data_filtered.to_csv(csv_outfile + ".csv", quoting=csv.QUOTE_NONNUMERIC)
+    all_data_duplicated.to_csv(csv_outfile + '_dup.csv', quoting=csv.QUOTE_NONNUMERIC)
+    all_seqs.to_csv(csv_outfile + '_seq.csv', quoting=csv.QUOTE_NONNUMERIC)
+
+
+
+        
+######
+if __name__== "__main__":
+    main()
+    
+
