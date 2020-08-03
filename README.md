@@ -30,14 +30,7 @@ The XICRA python pipeline is available in [pip](https://pypi.org/project/XICRA/)
 
 `pip install XICRA`
 
-XICRA will install it along some python modules dependencies available (pandas, multiqc, pybedtools, mirtop, etc.). XICRA requires python v3.6 and 
-java (we tested in openjdk 14 2020-03-17) to execute additional software for some of analysis. 
-
-Although not all of the software listed here is required for all users, we encourage you to install them and make them available
-within your $PATH enviroment. See details here:
-
-
-
+See additional details for installation and dependencies [here]()
 
 
 ### XICRA.stats
