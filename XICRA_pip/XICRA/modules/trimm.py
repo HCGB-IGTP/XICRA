@@ -61,10 +61,10 @@ def run_trimm(options):
     else:
         options.pair = True
     
-    functions.pipeline_header()
-    functions.boxymcboxface("Trimming samples")
+    functions.aesthetics_functions.pipeline_header()
+    functions.aesthetics_functions.boxymcboxface("Trimming samples")
     print ("--------- Starting Process ---------")
-    functions.print_time()
+    functions.time_functions.print_time()
 
     ## absolute path for in & out
     input_dir = os.path.abspath(options.input)
