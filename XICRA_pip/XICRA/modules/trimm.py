@@ -18,10 +18,10 @@ from termcolor import colored
 
 ## import my modules
 from XICRA.scripts import multiQC_report
-from XICRA.scripts import sampleParser
-from XICRA.scripts import functions
 from XICRA.config import set_config
 from XICRA.modules import help_XICRA
+from HCGB import functions
+from HCGB import sampleParser
 
 ##############################################
 def run_trimm(options):

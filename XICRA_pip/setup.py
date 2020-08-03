@@ -29,6 +29,6 @@ setuptools.setup(
     include_package_data=True,
 
     install_requires=[
-        'pandas', 'patool', 'termcolor', 'cutadapt', 'mirtop', 'pysam', 'pybedtools', 'biopython', 'multiqc'
+        'pandas', 'patool', 'termcolor', 'cutadapt', 'mirtop', 'pysam', 'pybedtools', 'biopython', 'multiqc', 'HCGB'
     ],
 )

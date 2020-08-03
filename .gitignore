@@ -1,4 +1,4 @@
-
+## compiler
 *__pycache__/
 *pyc
 
@@ -11,6 +11,7 @@ XICRA_pip/docs/source/_templates
 ## eclipse
 .project
 .pydevproject
+.settings/
 
 ## environment
 XICRA_pip/env/XICRA_env/
@@ -21,3 +22,6 @@ XICRA_pip/dist
 XICRA_pip/build
 XICRA_pip/.pypirc
 
+
+## big file to avoid
+BMC_bioinformatics_paper/simulation/data/simulations_results_percDiff-8_XICRA.simulations.csv

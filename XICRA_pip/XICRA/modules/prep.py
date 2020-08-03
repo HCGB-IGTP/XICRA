@@ -17,9 +17,9 @@ import pandas as pd
 from termcolor import colored
 
 ## import my modules
-from XICRA.scripts import sampleParser
-from XICRA.scripts import functions
 from XICRA.modules import help_XICRA
+from HCGB import functions
+from HCGB import sampleParser
 
 ################################
 def run_prep(options):
@@ -39,10 +39,10 @@ def run_prep(options):
         help_XICRA.help_fastq_format()
         exit()
         
-    functions.pipeline_header()
-    functions.boxymcboxface("Preparing samples")
+    functions.aesthetics_functions.pipeline_header()
+    functions.aesthetics_functions.boxymcboxface("Preparing samples")
     print ("--------- Starting Process ---------")
-    functions.print_time()
+    functions.time_functions.print_time()
     
     ## init time
     start_time_total = time.time()
@@ -59,7 +59,7 @@ def run_prep(options):
 
     ## output folder    
     print ("\n+ Create output folder(s):")
-    functions.create_folder(outdir)
+    functions.files_functions.create_folder(outdir)
 
     ## project
     if options.detached:
@@ -78,12 +78,18 @@ def run_prep(options):
     final_dir = ""
     if (options.project):
         print ("+ Generate a directory containing information within the project folder provided")
-        final_dir = functions.create_subfolder("info", outdir)
+        final_dir = functions.files_functions.create_subfolder("info", outdir)
     else:
         final_dir = outdir
     
     ## get files
-    pd_samples_retrieved = sampleParser.get_files(options, input_dir, "fastq", ("fastq", "fq", "fastq.gz", "fq.gz"))
+    print ()
+    functions.aesthetics_functions.print_sepLine("-",50, False)
+    print ('+ Getting files from input folder... ')
+    print ('+ Mode: fastq.\n + Extension: ')
+    print ("[ fastq, fq, fastq.gz, fq.gz ]\n")
+    
+    pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ("fastq", "fq", "fastq.gz", "fq.gz"), options.debug)
         
     ## Information returned in pd_samples_retrieved
     ### sample, dirname, name, name_len, lane, read_pair, lane_file, ext, gz
@@ -94,7 +100,7 @@ def run_prep(options):
         #functions.print_all_pandaDF(pd_samples_retrieved)
     
     ## time stamp
-    start_time_partial = functions.timestamp(start_time_total)
+    start_time_partial = functions.time_functions.timestamp(start_time_total)
     
     ## check character limitation
     list_lengths = pd_samples_retrieved.loc[:,'name_len'].to_list()
@@ -107,7 +113,7 @@ def run_prep(options):
     ### rename files 
     if (options.rename):
         options.rename = os.path.abspath(options.rename)
-        if not functions.is_non_zero_file(options.rename):
+        if not functions.files_functions.is_non_zero_file(options.rename):
             print (colored("** ERROR: File provided with rename information is not readable.", 'red'))
             print (options.rename)
             exit()
@@ -122,7 +128,7 @@ def run_prep(options):
         ## TODO: check integrity of new names and special characters
     
         ## print to a file
-        timestamp = functions.create_human_timestamp()
+        timestamp = functions.time_functions.create_human_timestamp()
         rename_details = final_dir + '/' + timestamp + '_prep_renameDetails.txt'
         rename_details_hd = open(rename_details, 'w')
     
@@ -159,13 +165,13 @@ def run_prep(options):
         pd_samples_retrieved['new_file'] = pd_samples_retrieved['file']
  
     ## create outdir for each sample
-    outdir_dict = functions.outdir_project(outdir, options.project, pd_samples_retrieved, "raw")    
+    outdir_dict = functions.files_functions.outdir_project(outdir, options.project, pd_samples_retrieved, "raw", options.debug)    
         
     ## merge option
     if (options.merge_Reads):
         print ("+ Sample files will be merged...")
         ## TODO: check when rename option provided
-        pd_samples_merged = sampleParser.one_file_per_sample(
+        pd_samples_merged = sampleParser.merge.one_file_per_sample(
             pd_samples_retrieved, outdir_dict, options.threads,    
             final_dir, options.debug)
         
@@ -176,7 +182,7 @@ def run_prep(options):
         
         ## process is finished here
         print ("\n*************** Finish *******************")
-        start_time_partial = functions.timestamp(start_time_total)
+        start_time_partial = functions.time_functions.timestamp(start_time_total)
     
         print ("+ Exiting prep module.")
         exit()
@@ -193,7 +199,7 @@ def run_prep(options):
     if (options.copy_reads):
         print ("+ Sample files will be copied...")
         ## print to a file
-        timestamp = functions.create_human_timestamp()
+        timestamp = functions.time_functions.create_human_timestamp()
         copy_details = final_dir + '/' + timestamp + '_prep_copyDetails.txt'
         copy_details_hd = open(copy_details, 'w')
     else:
@@ -210,7 +216,7 @@ def run_prep(options):
             list_reads.append(row['new_file'])
             
             if options.project:
-                functions.get_symbolic_link_file(row['sample'], 
+                functions.files_functions.get_symbolic_link_file(row['sample'], 
                                                  os.path.join(outdir_dict[row['new_name']], row['new_file']))
 
     if (options.copy_reads):
@@ -218,10 +224,10 @@ def run_prep(options):
         copy_details_hd.close()
     else:
         if not options.project:
-            functions.get_symbolic_link(list_reads, outdir)
+            functions.files_functions.get_symbolic_link(list_reads, outdir)
     
     print ("\n*************** Finish *******************")
-    start_time_partial = functions.timestamp(start_time_total)
+    start_time_partial = functions.time_functions.timestamp(start_time_total)
 
     print ("+ Exiting prep module.")
     return()
