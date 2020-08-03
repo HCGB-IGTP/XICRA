@@ -22,15 +22,19 @@ To install type:
 
 `pip install XICRA`
 
-## Documentation
+### Dependencies 
 
-See a full documentation, user guide and manual in [here](https://readthedocs.org/)
+XICRA will install it along some python modules dependencies available (pandas, multiqc, pybedtools, mirtop, etc.). XICRA requires python v3.6 and 
+java (we tested in openjdk 14 2020-03-17) to execute additional software for some of analysis. 
 
-## Example
-Here we include a brief example on how to use XICRA.
+Although not all of the software listed here is required for all users, we encourage you to install them and make them available
+within your `$PATH` enviroment. See details in the following [table](https://github.com/HCGB-IGTP/XICRA/blob/master/soft_dependencies.csv).
 
-First, we create a python environment and will install XICRA and dependencies.
+### Python environment
 
+We encourage you to create a python environment containing all python modules required for XICRA. 
+
+See as an example this code:
 
 ```sh
 ## create enviroment
@@ -46,7 +50,15 @@ pip install XICRA
 XICRA -h
 ```
 
-Now, we can test XICRA by using an example of 100 miRNA simulated and provideded within the repository as an example of simulation.
+## Documentation
+
+See a full documentation, user guide and manual in [here](https://readthedocs.org/)
+
+## Example
+Here we include a brief example on how to use XICRA.
+
+First, we create a python environment and will install XICRA and dependencies. See example details shown before.
+Then, we can test XICRA by using an example of 100 miRNA simulated and provideded within the repository as an example of simulation.
 
 ```sh
 ## run XICRA example
