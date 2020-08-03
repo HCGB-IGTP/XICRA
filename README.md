@@ -20,8 +20,7 @@ Results are generated for each sample analyzed and summarized for all samples in
 isomiR level (single sequence) but also summarizing for each isomiR variant type. This information can be easily accessed using the accompanied R package 
 [XICRA.stats](https://github.com/HCGB-IGTP/XICRA.stats). Although the pipeline is designed to take paired-end reads, it also accepts single-end reads. 
 
-The workflow of the pipeline is described here.
-![Workflow](workflow/XICRA_pipeline.png "XICRA pipeline")
+See additional details on the code [here](https://github.com/HCGB-IGTP/XICRA/tree/master/XICRA_pip). The workflow of the pipeline is described in the following image. ![Workflow](workflow/XICRA_pipeline.png "XICRA pipeline")
 
 ### Installation
 
@@ -51,7 +50,9 @@ XICRA means in Catalan "tassa petita, més aviat alta i estreta, emprada express
 In this repository we provide supplementary information for the original paper describing the method. See additional details in folder BMC_bioinformatics_paper or [here](BMC_bioinformatics_paper/README.md)
 
 ## Documentation
-See a full documentation deatils [here](https://xicra.readthedocs.io/)
+For a full documentation and details visit Read the Docs site [here](https://xicra.readthedocs.io/). 
+
+See a brief example on how to install and run XICRA [here](https://github.com/HCGB-IGTP/XICRA/tree/master/XICRA_pip#example)
 
 ## License 
 MIT License
