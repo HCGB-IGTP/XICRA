@@ -78,11 +78,16 @@ def run_join(options):
     if not options.perc_diff:
         options.perc_diff = 0
     
+    print ('+ Getting files from input folder... ')
     ## get files
     if options.noTrim:
-        pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ("fastq", "fq", "fastq.gz", "fq.gz"))
+        print ('+ Mode: fastq.\n+ Extension: ')
+        print ("[ fastq, fq, fastq.gz, fq.gz ]\n")
+        pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ("fastq", "fq", "fastq.gz", "fq.gz"), options.debug)
     else:
-        pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "trim", ['_trim_'])
+        print ('+ Mode: trim.\n+ Extension: ')
+        print ("[ _trim_ ]\n")
+        pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "trim", ['_trim_'], options.debug)
     
     ## debug message
     if (Debug):
@@ -94,7 +99,7 @@ def run_join(options):
     if not options.project:
         functions.files_functions.create_folder(outdir)
     ## for samples
-    outdir_dict = functions.files_functions.outdir_project(outdir, options.project, pd_samples_retrieved, "join")
+    outdir_dict = functions.files_functions.outdir_project(outdir, options.project, pd_samples_retrieved, "join", options.debug)
     
     ## optimize threads
     name_list = set(pd_samples_retrieved["new_name"].tolist())
