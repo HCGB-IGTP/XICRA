@@ -17,7 +17,7 @@ setuptools.setup(
 
     long_description_content_type="text/markdown",
     long_description=long_description_text,
-    url="https://github.com/HCGB-IGTP/XICRA/tree/master/XICRA_pip",
+    url="https://github.com/HCGB-IGTP/XICRA/",
     packages=setuptools.find_packages(),
     license='MIT License',
 
@@ -26,5 +26,9 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    include_package_data=True
+    include_package_data=True,
+
+    install_requires=[
+        'pandas', 'patool', 'termcolor', 'cutadapt', 'mirtop', 'pysam', 'pybedtools', 'biopython'
+    ],
 )

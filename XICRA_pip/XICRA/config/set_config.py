@@ -79,12 +79,12 @@ def get_exe(prog, Debug=False, Return_Version=False):
 	if exe_path_tmp is None or len(exe_path_tmp) == 0:
 		if (Return_Version):
 			print(colored("\n**ERROR: Software %s could not be found." % prog,'red'))
-			return('ERROR', 'n.a.')
 			exit()
+			return('ERROR', 'n.a.')
 		else:
 			print(colored("\n**ERROR: Software %s could not be found." % prog,'red'))
-			return('ERROR')
 			exit()
+			return('ERROR')
 		
 
 	## Loop for all possibilities
