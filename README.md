@@ -4,7 +4,7 @@
 
 - [Decription](#description)
   * [Installation](#installation)
-  * [XICRA.stats](#xicra.stats)
+  * [XICRA.stats](#xicrastats)
   * [Etymology](#etymology)
 - [Supplementary information](#supplementary-information)
 - [Documentation](#documentation)
@@ -30,14 +30,13 @@ The XICRA python pipeline is available in [pip](https://pypi.org/project/XICRA/)
 
 `pip install XICRA`
 
-See additional details for installation and dependencies [here]()
-
+See additional details for installation and dependencies [here](https://github.com/HCGB-IGTP/XICRA/blob/master/XICRA_pip/README.md#dependencies). We encourage you to create a python environment containing all modules. See as an example the description [here](https://github.com/HCGB-IGTP/XICRA/blob/master/XICRA_pip/README.md#python-environment)
 
 ### XICRA.stats
 
 We additionally provide a supplementary R package for parsing and plotting some XICRA results. See additional details [here](https://github.com/HCGB-IGTP/XICRA.stats).
 
-Install it in R using:
+Install it in `R` using:
 
 ```R
 # Install XICRA.stats version from GitHub:
