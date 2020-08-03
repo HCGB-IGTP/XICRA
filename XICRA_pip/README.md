@@ -24,7 +24,46 @@ To install type:
 
 ## Documentation
 
-See a full documentation, user guid and manual in [here](https://readthedocs.org/)
+See a full documentation, user guide and manual in [here](https://readthedocs.org/)
+
+## Example
+Here we include a brief example on how to use XICRA.
+
+First, we create a python environment and will install XICRA and dependencies.
+
+
+```sh
+## create enviroment
+python3 -m venv XICRA_env
+
+## activate it
+source XICRA_env/bin/activate
+
+## install XICRA and dependencies
+pip install XICRA
+
+## execute XICRA
+XICRA -h
+```
+
+Now, we can test XICRA by using an example of 100 miRNA simulated and provideded within the repository as an example of simulation.
+
+```sh
+## run XICRA example
+ln -s ~/BMC_bioinformatics_paper/simulation/example/reads/
+
+## prepare reads
+XICRA prep --input reads/ --output_folder test_XICRA
+
+## join reads
+XICRA join --input test_XICRA --noTrim
+
+## create miRNA analysis
+XICRA miRNA --input test_XICRA --software miraligner sRNAbench
+
+## explore results
+ls test_XICRA/report/
+```
 
 ## License 
 MIT License
