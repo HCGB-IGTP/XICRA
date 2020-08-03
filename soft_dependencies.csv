@@ -1,0 +1,7 @@
+software,version,export name,website
+fastqc,0.11.4,fastqc,https://www.bioinformatics.babraham.ac.uk/projects/download.html#fastqc
+fastqjoin,,fastqjoin,https://manpages.debian.org/stretch/ea-utils/fastq-join.1.en.html
+sRNAbench,1.6,sRNAbench.jar,https://github.com/FlorianThibord/OptimiR
+optimir,optimir,https://github.com/FlorianThibord/OptimiR
+miraligner,miraligner.jar,https://github.com/lpantano/seqbuster
+

@@ -24,11 +24,21 @@ See additional details on the code [here](https://github.com/HCGB-IGTP/XICRA/tre
 
 ### Installation
 
-XICRA is available in pip https://pypi.org/project/XICRA/.
+XICRA will require python v3.6 and java (we tested in openjdk 14 2020-03-17).
 
-To install type:
+The XICRA python pipeline is available in [pip](https://pypi.org/project/XICRA/). To install type:
 
 `pip install XICRA`
+
+XICRA will install it along some python modules dependencies available (pandas, multiqc, pybedtools, mirtop, etc.). XICRA requires python v3.6 and 
+java (we tested in openjdk 14 2020-03-17) to execute additional software for some of analysis. 
+
+Although not all of the software listed here is required for all users, we encourage you to install them and make them available
+within your $PATH enviroment. See details here:
+
+
+
+
 
 ### XICRA.stats
 
