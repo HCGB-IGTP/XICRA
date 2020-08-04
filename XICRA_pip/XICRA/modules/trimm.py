@@ -100,7 +100,7 @@ def run_trimm(options):
         adapters_dict['adapter_A'] = options.adapters_A
     
     ## get files
-    pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ("fastq", "fq", "fastq.gz", "fq.gz"))
+    pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ("fastq", "fq", "fastq.gz", "fq.gz"), options.debug)
     
     ## debug message
     if (Debug):

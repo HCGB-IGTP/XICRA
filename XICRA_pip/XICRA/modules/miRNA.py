@@ -84,14 +84,14 @@ def run_miRNA(options):
     if options.pair:
         options.pair = False ## set paired-end to false for further prepocessing
         if options.noTrim:
-            pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ("fastq", "fq", "fastq.gz", "fq.gz"))
+            pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ("fastq", "fq", "fastq.gz", "fq.gz"), options.debug)
         else:
-            pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "join", ['_joined.fastq'])
+            pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "join", ['_joined.fastq'], options.debug)
     else:
         if options.noTrim:
-            pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ("fastq", "fq", "fastq.gz", "fq.gz"))
+            pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ("fastq", "fq", "fastq.gz", "fq.gz"), options.debug)
         else:
-            pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "trim", ['_trim'])
+            pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "trim", ['_trim'], options.debug)
     
     ## debug message
     if (Debug):
