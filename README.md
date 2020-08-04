@@ -62,6 +62,10 @@ Copyright (c) 2020 HCGB-IGTP
 
 See additional details [here](XICRA_pip/LICENSE)
 
+Developed and maintained by Jose F. Sanchez-Herrero and Lauro Sumoy at HCGB-IGTP
+
+http://www.germanstrias.org/technology-services/genomica-bioinformatica/
+
 ## Citation
 Sanchez-Herrero et. al .... 2020
 

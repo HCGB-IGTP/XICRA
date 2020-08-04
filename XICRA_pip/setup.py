@@ -13,7 +13,7 @@ setuptools.setup(
     author="Jose F. Sanchez-Herrero",
 
     author_email="jfbioinformatics@gmail.com",
-    description="",
+    description="Small RNAseq pipeline for paired-end reads",
 
     long_description_content_type="text/markdown",
     long_description=long_description_text,
