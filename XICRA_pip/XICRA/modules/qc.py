@@ -99,7 +99,7 @@ def run_QC(options):
     ## in this case, in some other cases might not occur    
     if not options.project:
         functions.files_functions.create_folder(outdir)
-    outdir_dict = functions.files_functions.outdir_project(outdir, options.project, pd_samples_retrieved, "fastqc")
+    outdir_dict = functions.files_functions.outdir_project(outdir, options.project, pd_samples_retrieved, "fastqc", options.debug)
     
     print ("+ Checking quality for each sample retrieved...")
     start_time_partial = start_time_total

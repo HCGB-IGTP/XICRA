@@ -185,7 +185,7 @@ def run_miRNA(options):
         functions.files_functions.create_folder(outdir)
     
     ## for samples
-    outdir_dict = functions.files_functions.outdir_project(outdir, options.project, pd_samples_retrieved, "miRNA")
+    outdir_dict = functions.files_functions.outdir_project(outdir, options.project, pd_samples_retrieved, "miRNA", options.debug)
     
     ## optimize threads
     name_list = set(pd_samples_retrieved["new_name"].tolist())
