@@ -472,7 +472,7 @@ def miRTop(results_folder, sample_folder, name, threads, format, miRNA_gff, hair
     
     elif format == "seqbuster":
         ## get miraligner info
-        mirna_file = functions.main_functions.retrieve_matching_files(results_folder, ".mirna")[0]
+        mirna_file = functions.main_functions.retrieve_matching_files(results_folder, ".mirna", Debug)[0]
         results_folder = mirna_file
         
         ## check non zero
