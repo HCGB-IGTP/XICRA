@@ -34,7 +34,7 @@ def file_list(wanted_data):
 	"""
 	Retrieves information of additional files under folder ``XICRA/config``.
 
-	Using :func:`XICRA.scripts.functions.get_fullpath_list` retrieves absolute
+	Using :func:`HCGB.functions.main_functions.get_fullpath_list` retrieves absolute
 	path for file of interest.
 
 	:param wanted_data: name for file
@@ -44,7 +44,7 @@ def file_list(wanted_data):
 
 	"""
 	config_folder = os.path.dirname(os.path.realpath(__file__))
-	listOffiles = functions.main_functions.get_fullpath_list(config_folder)
+	listOffiles = functions.main_functions.get_fullpath_list(config_folder, False)
 	
 	for f in listOffiles:
 		name = os.path.splitext(os.path.basename(f))[0]
