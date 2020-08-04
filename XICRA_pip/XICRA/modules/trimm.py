@@ -282,7 +282,7 @@ def cutadapt (cutadapt_exe, reads, path, sample_name, num_threads, Debug, adapte
         return(False)
 
     ##
-    code = functions.system_call_functions.sytem_call(cmd)
+    code = functions.system_call_functions.system_call(cmd)
 
     ## if additional options, run a second cutadapt command
     ## to ensure this options take effect.
@@ -302,7 +302,7 @@ def cutadapt (cutadapt_exe, reads, path, sample_name, num_threads, Debug, adapte
             extra_cmd = '%s %s -j %s -a %s -o %s %s >> %s' %(cutadapt_exe, extra, num_threads, adapters['adapter_a'], 
                                                    o_param2, o_param, logfile)    
         
-        code2 = functions.system_call_functions.sytem_call(extra_cmd)
+        code2 = functions.system_call_functions.system_call(extra_cmd)
         
         ## remove: o_param p_param
         if (len(reads) == 2):        

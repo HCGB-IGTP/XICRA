@@ -487,7 +487,7 @@ def check_R_packages(Debug):
 			print('+ Source: ', row['source'])
 		
 		cmd_check = R_script_exe + ' ' + check_install_system + ' -l ' + index
-		code = functions.system_call_functions.sytem_call(cmd_check, message=False, returned=False)
+		code = functions.system_call_functions.system_call(cmd_check, message=False, returned=False)
 		if (code=='OK'):
 			check_install_module('1', index, '0', 'package')
 		else:
@@ -495,7 +495,7 @@ def check_R_packages(Debug):
 
 			## check if installed in path
 			cmd_check_path = R_script_exe + ' ' + check_install_path + ' -l ' + index + ' -p ' + install_path
-			code2 = functions.system_call_functions.sytem_call(cmd_check_path, message=False, returned=False)
+			code2 = functions.system_call_functions.system_call(cmd_check_path, message=False, returned=False)
 
 			if (code2):
 				check_install_module('1', index, '0', 'Install path package')

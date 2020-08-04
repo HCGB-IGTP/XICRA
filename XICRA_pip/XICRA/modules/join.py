@@ -190,5 +190,5 @@ def fastqjoin (fastqjoin_exe, reads, path, sample_name, num_threads, perc_diff, 
         print ('** Wrong number of files provided for sample: %s...' %sample_name)
         return(False)
 
-    return(functions.system_call_functions.sytem_call(cmd))
+    return(functions.system_call_functions.system_call(cmd))
     

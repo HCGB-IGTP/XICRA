@@ -34,7 +34,7 @@ def call_fastqc(path, file1, file2, sample, fastqc_bin, threads):
         
         ##print ("+ Calling fastqc for samples...")    
         cmd_fastqc = '%s --extract -t %s -o %s %s %s > %s 2> %s' %(fastqc_bin, threads, path, file1, file2, logFile, logFile)
-        fastq_code = functions.system_call_functions.sytem_call( cmd_fastqc )
+        fastq_code = functions.system_call_functions.system_call( cmd_fastqc )
         
         if fastq_code:
             functions.time_functions.print_time_stamp(filename_stamp)

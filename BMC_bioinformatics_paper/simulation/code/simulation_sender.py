@@ -92,7 +92,7 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta,
                         art_illumina_cmd = art_illumina_cmd + " -p -m 50 -s 5"
                     
                     
-                    code = functions.system_call_functions.sytem_call(art_illumina_cmd)
+                    code = functions.system_call_functions.system_call(art_illumina_cmd)
                     if not code:
                         print ("** ERROR: Some error happened during ART simulation")
                         exit()
@@ -314,7 +314,7 @@ def call_XICRA_PE(folder_path, reads_path, name, threads_given, debug_bool, data
     R2_reads_revComp = R2_reads.split("R2.fq")[0] + "revComp.fq" 
     seqtk_cmd = "%s seq -r %s > %s" %(seqtk_bin, R2_reads, R2_reads_revComp)
     print ("+ Reverse complement reads")
-    code = functions.system_call_functions.sytem_call(seqtk_cmd)
+    code = functions.system_call_functions.system_call(seqtk_cmd)
     if not code:
         print ("** ERROR: Some error occurred when using seqtk for reverse complement")
         exit()
@@ -473,7 +473,7 @@ if (args.freqs):
             
             ## function system command
             print ("+ Create random subset of miRNA freqs")
-            code= functions.system_call_functions.sytem_call(mod_freq_python_cmd)
+            code= functions.system_call_functions.system_call(mod_freq_python_cmd)
             if not (code):
                 print ("** ERROR: Something happened and the script failed...")
                 exit()
@@ -485,7 +485,7 @@ if (args.freqs):
                 get_isomiRs_script, mod_freqs_file + '.csv', mod_freqs_file_isomiRs, args.fasta)
             
             print ("+ Select miRNA sequences")
-            code2 = functions.system_call_functions.sytem_call(get_isomiRs_python_cmd)
+            code2 = functions.system_call_functions.system_call(get_isomiRs_python_cmd)
             if not (code2):
                 print ("** ERROR: Something happened and the script failed...")
                 exit()

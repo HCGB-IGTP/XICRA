@@ -333,7 +333,7 @@ def sRNAbench (reads, outpath, file_name, num_threads, species, Debug):
     cmd = cmd + ' plotMiR=true bedGraphMode=true writeGenomeDist=true'
     cmd = cmd + ' chromosomeLevel=true chrMappingByLength=true > ' + logfile 
     
-    return(functions.system_call_functions.sytem_call(cmd))
+    return(functions.system_call_functions.system_call(cmd))
 
 ###############       
 def optimir_caller(reads, sample_folder, name, threads, matureFasta, hairpinFasta, miRNA_gff, species, Debug):
@@ -369,7 +369,7 @@ def optimir (reads, outpath, file_name, num_threads, matureFasta, hairpinFasta, 
     ## create command  
     cmd = "%s process --fq %s --gff_out -o %s --maturesFasta %s --hairpinsFasta %s --gff3 %s > %s 2> %s" %(
         optimir_exe, reads[0], outpath, matureFasta, hairpinFasta, miRNA_gff, logfile, errfile)
-    return(functions.system_call_functions.sytem_call(cmd))
+    return(functions.system_call_functions.system_call(cmd))
 
 ###############       
 def miraligner_caller(reads, sample_folder, name, threads, database, species, Debug):
@@ -411,7 +411,7 @@ def miraligner (reads, outpath, file_name, database, species, Debug):
     cmd = '%s -jar %s -db %s -sub 1 -add 3 -trim 3 -s %s -i %s -o %s 2> %s' %(
         java_exe, miraligner_exe, database, species, tabular_info, outpath_file, logfile)
     
-    return(functions.system_call_functions.sytem_call(cmd))
+    return(functions.system_call_functions.system_call(cmd))
 
 
 ###############       
@@ -493,7 +493,7 @@ def miRTop(results_folder, sample_folder, name, threads, format, miRNA_gff, hair
                                                     mirtop_folder_gff, results_folder, logfile)
         
         ## execute
-        code_miRTop = functions.system_call_functions.sytem_call(cmd)
+        code_miRTop = functions.system_call_functions.system_call(cmd)
         if code_miRTop:
             functions.time_functions.time_functions.print_time_stamp(filename_stamp_gff)
         else:
@@ -509,7 +509,7 @@ def miRTop(results_folder, sample_folder, name, threads, format, miRNA_gff, hair
     #else:
     #    print ('Creating isomiRs stats for sample %s' %name)
     #    cmd_stats = miRTop_exe + ' stats -o %s %s 2>> %s' %(mirtop_folder_stats, mirtop_folder_gff_file, logfile)
-    #    code_miRTop_stats = functions.system_call_functions.sytem_call(cmd_stats)
+    #    code_miRTop_stats = functions.system_call_functions.system_call(cmd_stats)
     #    if code_miRTop_stats:
     #        functions.time_functions.time_functions.print_time_stamp(filename_stamp_stats)
     #    else:
@@ -524,7 +524,7 @@ def miRTop(results_folder, sample_folder, name, threads, format, miRNA_gff, hair
         print ('Creating isomiRs counts for sample %s' %name)
         ## if both succeeded
         cmd_stats = miRTop_exe + ' counts -o %s --gff %s --hairpin %s --gtf %s --sps %s 2>> %s' %(mirtop_folder_counts, mirtop_folder_gff_file, hairpinFasta, miRNA_gff, species, logfile)
-        code_miRTop_counts = functions.system_call_functions.sytem_call(cmd_stats)
+        code_miRTop_counts = functions.system_call_functions.system_call(cmd_stats)
         
         if code_miRTop_counts:
             functions.time_functions.time_functions.print_time_stamp(filename_stamp_counts)
@@ -540,7 +540,7 @@ def miRTop(results_folder, sample_folder, name, threads, format, miRNA_gff, hair
         print ('Creating isomiRs export information for sample %s' %name)
         ## if both succeeded
         cmd_export = miRTop_exe + ' export -o %s --hairpin %s --gtf %s --sps %s --format isomir %s 2> %s' %(mirtop_folder_export, hairpinFasta, miRNA_gff, species, mirtop_folder_gff_file, logfile)
-        code_miRTop_export = functions.system_call_functions.sytem_call(cmd_export)
+        code_miRTop_export = functions.system_call_functions.system_call(cmd_export)
         
         if code_miRTop_export:
             functions.time_functions.time_functions.print_time_stamp(filename_stamp_export)

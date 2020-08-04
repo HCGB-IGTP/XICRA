@@ -59,11 +59,11 @@ def multiQC_call(pathFile, name, folder, option):
     :type folder: string 
     :type option: string
     
-    :returns: :func:`XICRA.scripts.functions.system_call_functions.sytem_call` output (OK/FALSE)
+    :returns: :func:`XICRA.scripts.functions.system_call_functions.system_call` output (OK/FALSE)
         
     .. seealso:: This function depends on other XICRA functions called:
     
-        - :func:`XICRA.scripts.functions.system_call_functions.sytem_call`
+        - :func:`XICRA.scripts.functions.system_call_functions.system_call`
     
     """
     multiqc_bin = set_config.get_exe("multiqc")
@@ -72,4 +72,4 @@ def multiQC_call(pathFile, name, folder, option):
     
     ## if a report was previously generated in the folder 
     ## force to delete and generate a new one
-    return(functions.system_call_functions.sytem_call(cmd))
+    return(functions.system_call_functions.system_call(cmd))
