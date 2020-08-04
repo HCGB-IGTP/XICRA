@@ -462,7 +462,7 @@ def miRTop(results_folder, sample_folder, name, threads, format, miRNA_gff, hair
             
     elif format == "optimir":
         ## get optimir info
-        gff3_file = functions.main_functions.retrieve_matching_files(os.path.join(results_folder, "OptimiR_Results"), "gff3")[0]
+        gff3_file = functions.main_functions.retrieve_matching_files(os.path.join(results_folder, "OptimiR_Results"), "gff3", Debug)[0]
         results_folder = gff3_file
         
         ## check non zero
