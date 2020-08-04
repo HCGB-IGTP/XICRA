@@ -115,7 +115,7 @@ def run_trimm(options):
     if not options.project:
         functions.files_functions.create_folder(outdir)
     ## for samples
-    outdir_dict = functions.file_functions.outdir_project(outdir, options.project, pd_samples_retrieved, "trimm")
+    outdir_dict = functions.files_functions.outdir_project(outdir, options.project, pd_samples_retrieved, "trimm")
     
     ## optimize threads
     name_list = set(pd_samples_retrieved["new_name"].tolist())
