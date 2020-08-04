@@ -17,7 +17,7 @@ from termcolor import colored
 import shutil
 import concurrent.futures
 
-from XICRA.scripts import functions
+from HCGB import functions
 
 ###############
 def get_fields(file_name_list, pair, Debug, include_all):
@@ -368,7 +368,7 @@ def get_files(options, input_dir, mode, extension):
 	## get list of input files
 	files = []
 	print ()
-	functions.print_sepLine("-",50, False)
+	functions.aesthetics_functions.print_sepLine("-",50, False)
 	print ('+ Getting files from input folder... ')
 	print ('+ Mode: ', mode,'. Extension:', extension)
 	if (options.project):
@@ -399,7 +399,7 @@ def get_files(options, input_dir, mode, extension):
 						files_tmp = functions.get_fullpath_list(input_dir)
 						files = [s for s in files_tmp if ext in s]
 					else:
-						files_tmp = functions.retrieve_matching_files(input_dir, ext)				
+						files_tmp = functions.main_functions.retrieve_matching_files(input_dir, ext)				
 						files = files + files_tmp
 	
 				files = set(files)

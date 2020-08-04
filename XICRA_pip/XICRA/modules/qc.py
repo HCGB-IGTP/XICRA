@@ -19,11 +19,11 @@ import cutadapt
 
 ## import my modules
 from XICRA.scripts import multiQC_report
-from XICRA.scripts import sampleParser
-from XICRA.scripts import functions
 from XICRA.scripts import fastqc_caller
 from XICRA.config import set_config
 from XICRA.modules import help_XICRA
+from HCGB import sampleParser
+from HCGB import functions
 
 ##############################################
 def run_QC(options):
@@ -60,10 +60,10 @@ def run_QC(options):
         options.pair = True
     
     ## set main header
-    functions.pipeline_header()
-    functions.boxymcboxface("Quality check")
+    functions.aesthetics_functions.pipeline_header()
+    functions.aesthetics_functions.boxymcboxface("Quality check")
     print ("--------- Starting Process ---------")
-    functions.print_time()
+    functions.time_functions.print_time()
 
     ## absolute path for in & out
     input_dir = os.path.abspath(options.input)
@@ -78,10 +78,10 @@ def run_QC(options):
         outdir = input_dir        
     
     #fastqc(input_dir, outdir, options, start_time_total)
-    functions.boxymcboxface("FASTQC Quality check for samples")
+    functions.aesthetics_functions.boxymcboxface("FASTQC Quality check for samples")
     
     ## get files
-    pd_samples_retrieved = sampleParser.get_files(options, input_dir, "fastq", ("fastq", "fq", "fastq.gz", "fq.gz"))
+    pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ("fastq", "fq", "fastq.gz", "fq.gz"))
 
     ## debug message
     if (Debug):
@@ -95,8 +95,8 @@ def run_QC(options):
     ## if not project, outdir contains the dir to put output
     ## in this case, in some other cases might not occur    
     if not options.project:
-        functions.create_folder(outdir)
-    outdir_dict = functions.outdir_project(outdir, options.project, pd_samples_retrieved, "fastqc")
+        functions.files_functions.create_folder(outdir)
+    outdir_dict = functions.file_functions.outdir_project(outdir, options.project, pd_samples_retrieved, "fastqc")
     
     print ("+ Checking quality for each sample retrieved...")
     start_time_partial = start_time_total
@@ -106,7 +106,7 @@ def run_QC(options):
 
     ## optimize threads
     name_list = set(pd_samples_retrieved["name"].tolist())
-    threads_job = functions.optimize_threads(options.threads, len(name_list)) ## threads optimization
+    threads_job = functions.main_functions.optimize_threads(options.threads, len(name_list)) ## threads optimization
     max_workers_int = int(options.threads/threads_job)
 
     ## debug message
@@ -131,14 +131,14 @@ def run_QC(options):
 
     print ("+ FASTQC for samples has finished...")    
     
-    ## functions.timestamp
-    start_time_partial = functions.timestamp(start_time_partial)
+    ## functions.time_functions.timestamp
+    start_time_partial = functions.time_functions.timestamp(start_time_partial)
 
     if (options.skip_report):
         print ("+ No report generation...")
     else:
         print ("\n+ Generating a report using MultiQC module.")
-        outdir_report = functions.create_subfolder("report", outdir)
+        outdir_report = functions.files_functions.create_subfolder("report", outdir)
 
         ## get subdirs generated and call multiQC report module
         givenList = []
@@ -154,12 +154,12 @@ def run_QC(options):
             print (my_outdir_list)
             print ("\n")
         
-        fastqc_report = functions.create_subfolder("FASTQC", outdir_report)
+        fastqc_report = functions.files_functions.create_subfolder("FASTQC", outdir_report)
         multiQC_report.multiQC_module_call(my_outdir_list, "FASTQC", fastqc_report,"")
         print ('\n+ A summary HTML report of each sample is generated in folder: %s' %fastqc_report)
 
     print ("\n*************** Finish *******************")
-    start_time_partial = functions.timestamp(start_time_total)
+    start_time_partial = functions.time_functions.timestamp(start_time_total)
 
     print ("+ Exiting qc module.")
     exit()

@@ -19,7 +19,7 @@ import random
 import argparse
 
 ## import my modules
-from XICRA.scripts import functions
+from HCGB import functions
 from XICRA.scripts import reads2tabular
 
 ## get frequencies
@@ -56,7 +56,7 @@ args = parser.parse_args()
 
 ## original counts
 print ("# Read original frequency table")
-original_counts = functions.get_data(args.freq, ',', 'index_col=0')
+original_counts = functions.main_functions.get_data(args.freq, ',', 'index_col=0')
 col_list = list(original_counts) ## get columns
 
 ## drop NAs

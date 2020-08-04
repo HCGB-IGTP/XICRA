@@ -26,7 +26,7 @@ from distutils.version import LooseVersion
 import pkg_resources
 
 ## import my modules
-from XICRA.scripts import functions
+from HCGB import functions
 from XICRA.config import set_config
 
 ####################################################################
@@ -59,12 +59,12 @@ def read_dependencies():
 
 	It uses :func:`XICRA.config.extern_progs.file_list` to retrieve absolute path
 	for file :file:`XICRA/config/software/dependencies.csv`. It then reads csv into pandas
-	dataframe using :func:`XICRA.scripts.functions.get_data` and returns it.	
+	dataframe using :func:`XICRA.scripts.functions.main_functions.get_data` and returns it.	
 	"""
 
 	## read from file: prog2default.csv
 	dependencies_file = file_list("dependencies")
-	return(functions.get_data(dependencies_file, ',', 'index_col=0'))
+	return(functions.main_functions.get_data(dependencies_file, ',', 'index_col=0'))
 
 #######################
 def return_defatult_soft(soft):

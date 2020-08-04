@@ -13,7 +13,7 @@ from termcolor import colored
 from distutils.version import LooseVersion
 
 ## import my modules
-from XICRA.scripts import functions
+from HCGB import functions
 from XICRA.config import extern_progs
 from XICRA.config import set_config
 
@@ -29,17 +29,17 @@ def run_config(options):
     else:
         Debug = False
 
-    functions.pipeline_header()
-    functions.boxymcboxface("Pipeline Configuration")
+    functions.aesthetics_functions.pipeline_header()
+    functions.aesthetics_functions.boxymcboxface("Pipeline Configuration")
     print ("--------- Starting Process ---------")
-    functions.print_time()
+    functions.time_functions.print_time()
 
     print ("\nCheck dependencies, modules or third party software and print report...")
 
     ## python version
-    functions.print_sepLine("+", 20, False)
+    functions.aesthetics_functions.print_sepLine("+", 20, False)
     print ('Python:')
-    functions.print_sepLine("+", 20, False)
+    functions.aesthetics_functions.print_sepLine("+", 20, False)
 
     this_python_version = str(sys.version)
     python_min_version = extern_progs.return_min_version_soft('python')
@@ -51,32 +51,32 @@ def run_config(options):
         
     ## third-party software
     print ('\n')
-    functions.print_sepLine("+", 20, False)
+    functions.aesthetics_functions.print_sepLine("+", 20, False)
     print ('External dependencies:')
-    functions.print_sepLine("+", 20, False)
+    functions.aesthetics_functions.print_sepLine("+", 20, False)
     
     set_config.check_dependencies(Debug)
     print ('\n')    
 
     ## python packages
     print ('\n')
-    functions.print_sepLine("+", 20, False)
+    functions.aesthetics_functions.print_sepLine("+", 20, False)
     print ('Python packages:')
-    functions.print_sepLine("+", 20, False)
+    functions.aesthetics_functions.print_sepLine("+", 20, False)
 
     set_config.check_python_packages(Debug)
-    functions.print_sepLine("+", 20, False)
+    functions.aesthetics_functions.print_sepLine("+", 20, False)
     print ('\n')
 
 
     ## R packages
     print ('\n')
-    functions.print_sepLine("+", 20, False)
+    functions.aesthetics_functions.print_sepLine("+", 20, False)
     print ('R packages:')
-    functions.print_sepLine("+", 20, False)
+    functions.aesthetics_functions.print_sepLine("+", 20, False)
 
     set_config.check_R_packages(Debug)
-    functions.print_sepLine("+", 20, False)
+    functions.aesthetics_functions.print_sepLine("+", 20, False)
     print ('\n')
 
     

@@ -16,7 +16,7 @@ from sys import argv
 from io import open
 
 ## import my modules
-from XICRA.scripts import functions
+from HCGB import functions
 from XICRA.config import set_config
 
 ############
@@ -26,18 +26,18 @@ def call_fastqc(path, file1, file2, sample, fastqc_bin, threads):
     ## check if previously done and succeeded
     filename_stamp = path + '/.success'
     if os.path.isfile(filename_stamp):
-        stamp = functions.read_time_stamp(filename_stamp)
+        stamp = functions.time_functions.read_time_stamp(filename_stamp)
         print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'fastqc'), 'yellow'))
     else:
-        #name = functions.create_subfolder(sample, path)
+        #name = functions.files_functions.create_subfolder(sample, path)
         logFile = path + '/' + sample + '.log'
         
         ##print ("+ Calling fastqc for samples...")    
         cmd_fastqc = '%s --extract -t %s -o %s %s %s > %s 2> %s' %(fastqc_bin, threads, path, file1, file2, logFile, logFile)
-        fastq_code = functions.system_call( cmd_fastqc )
+        fastq_code = functions.system_call_functions.sytem_call( cmd_fastqc )
         
         if fastq_code:
-            functions.print_time_stamp(filename_stamp)
+            functions.time_functions.print_time_stamp(filename_stamp)
         else:
             print ('** Sample %s failed...' %sample)
 

@@ -100,7 +100,7 @@ def run_trimm(options):
         adapters_dict['adapter_A'] = options.adapters_A
     
     ## get files
-    pd_samples_retrieved = sampleParser.get_files(options, input_dir, "fastq", ("fastq", "fq", "fastq.gz", "fq.gz"))
+    pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ("fastq", "fq", "fastq.gz", "fq.gz"))
     
     ## debug message
     if (Debug):
@@ -113,13 +113,13 @@ def run_trimm(options):
     ## generate output folder, if necessary
     print ("\n+ Create output folder(s):")
     if not options.project:
-        functions.create_folder(outdir)
+        functions.files_functions.create_folder(outdir)
     ## for samples
-    outdir_dict = functions.outdir_project(outdir, options.project, pd_samples_retrieved, "trimm")
+    outdir_dict = functions.file_functions.outdir_project(outdir, options.project, pd_samples_retrieved, "trimm")
     
     ## optimize threads
     name_list = set(pd_samples_retrieved["new_name"].tolist())
-    threads_job = functions.optimize_threads(options.threads, len(name_list)) ## threads optimization
+    threads_job = functions.main_functions.optimize_threads(options.threads, len(name_list)) ## threads optimization
     max_workers_int = int(options.threads/threads_job)
 
     ## debug message
@@ -149,12 +149,12 @@ def run_trimm(options):
                 print('%r generated an exception: %s' % (details, exc))
 
     print ("\n\n+ Trimming samples has finished...")
-    ## functions.timestamp
-    start_time_partial = functions.timestamp(start_time_total)
+    ## functions.time_functions.timestamp
+    start_time_partial = functions.time_functions.timestamp(start_time_total)
 
     ## get files generated and generate symbolic link
     if not options.project:
-        dir_symlinks = functions.create_subfolder('link_files', outdir)
+        dir_symlinks = functions.files_functions.create_subfolder('link_files', outdir)
         files2symbolic = []
         folders = os.listdir(outdir)
 
@@ -173,13 +173,13 @@ def run_trimm(options):
                     if files_search:
                         files2symbolic.append(this_folder + '/' + files)
     
-        functions.get_symbolic_link(files2symbolic, dir_symlinks)
+        functions.files_functions.get_symbolic_link(files2symbolic, dir_symlinks)
 
     if (options.skip_report):
         print ("+ No report generation...")
     else:
         print ("\n+ Generating a report using MultiQC module.")
-        outdir_report = functions.create_subfolder("report", outdir)
+        outdir_report = functions.files_functions.create_subfolder("report", outdir)
     
         ## call multiQC report module
         givenList = [ v for v in outdir_dict.values() ]
@@ -191,12 +191,12 @@ def run_trimm(options):
             print (my_outdir_list)
             print ("\n")
 
-        trimm_report = functions.create_subfolder("trimm", outdir_report)
+        trimm_report = functions.files_functions.create_subfolder("trimm", outdir_report)
         multiQC_report.multiQC_module_call(my_outdir_list, "Cutadapt", trimm_report,"")
         print ('\n+ A summary HTML report of each sample is generated in folder: %s' %trimm_report)
         
     print ("\n*************** Finish *******************")
-    start_time_partial = functions.timestamp(start_time_total)
+    start_time_partial = functions.time_functions.timestamp(start_time_total)
     print ("\n+ Exiting trimm module.")
     exit()
     
@@ -206,14 +206,14 @@ def cutadapt_caller(list_reads, sample_folder, name, threads, Debug, adapters, e
     ## check if previously trimmed and succeeded
     filename_stamp = sample_folder + '/.success'
     if os.path.isfile(filename_stamp):
-        stamp =    functions.read_time_stamp(filename_stamp)
+        stamp = functions.time_functions.read_time_stamp(filename_stamp)
         print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'cutadapt'), 'yellow'))
     else:
         # Call cutadapt
         cutadapt_exe = set_config.get_exe('cutadapt')
         code_returned = cutadapt(cutadapt_exe, list_reads, sample_folder, name, threads, Debug, adapters, extra)
         if code_returned:
-            functions.print_time_stamp(filename_stamp)
+            functions.time_functions.print_time_stamp(filename_stamp)
         else:
             print ('** Sample %s failed...' %name)
 
@@ -279,7 +279,7 @@ def cutadapt (cutadapt_exe, reads, path, sample_name, num_threads, Debug, adapte
         return(False)
 
     ##
-    code = functions.system_call(cmd)
+    code = functions.system_call_functions.sytem_call(cmd)
 
     ## if additional options, run a second cutadapt command
     ## to ensure this options take effect.
@@ -299,7 +299,7 @@ def cutadapt (cutadapt_exe, reads, path, sample_name, num_threads, Debug, adapte
             extra_cmd = '%s %s -j %s -a %s -o %s %s >> %s' %(cutadapt_exe, extra, num_threads, adapters['adapter_a'], 
                                                    o_param2, o_param, logfile)    
         
-        code2 = functions.system_call(extra_cmd)
+        code2 = functions.system_call_functions.sytem_call(extra_cmd)
         
         ## remove: o_param p_param
         if (len(reads) == 2):        

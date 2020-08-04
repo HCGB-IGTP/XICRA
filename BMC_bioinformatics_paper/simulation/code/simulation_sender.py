@@ -19,7 +19,7 @@ import numpy as np
 from termcolor import colored
 
 ## import my modules
-from XICRA.scripts import functions
+from HCGB import functions
 from XICRA.scripts import reads2tabular
 from XICRA.modules import prep
 from XICRA.modules import join
@@ -40,7 +40,7 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta,
             profile_path = abs_folder
         else:
             ## create folder
-            profile_path = functions.create_subfolder(profile, abs_folder)
+            profile_path = functions.files_functions.create_subfolder(profile, abs_folder)
 
         for reads in type_reads:
             print ("  + Reads type: " + reads)
@@ -48,7 +48,7 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta,
             if len(type_reads) == 1:
                 reads_path = profile_path
             else:
-                reads_path = functions.create_subfolder(reads, profile_path)
+                reads_path = functions.files_functions.create_subfolder(reads, profile_path)
 
             for fcov in fcov_list:
                 print ("   + Coverage x" + fcov)
@@ -56,7 +56,7 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta,
                 if len(fcov_list) == 1:
                     coverage_path = reads_path
                 else:
-                    coverage_path = functions.create_subfolder("x" + fcov, reads_path)
+                    coverage_path = functions.files_functions.create_subfolder("x" + fcov, reads_path)
 
                 ## simulate
                 print ("    ***** Simulate NGS reads *****")
@@ -67,8 +67,8 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta,
                 print ("\n")
                 
                 ##
-                tmp_path = functions.create_subfolder('tmp_fasta', coverage_path)
-                tmp_fastq = functions.create_subfolder('tmp_fastq', coverage_path)
+                tmp_path = functions.files_functions.create_subfolder('tmp_fasta', coverage_path)
+                tmp_fastq = functions.files_functions.create_subfolder('tmp_fastq', coverage_path)
                 
                 # split isomiRs by length into multiple fasta files
                 fasta_dict = process_fasta_length(fasta, tmp_path, debug)
@@ -92,7 +92,7 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta,
                         art_illumina_cmd = art_illumina_cmd + " -p -m 50 -s 5"
                     
                     
-                    code = functions.system_call(art_illumina_cmd)
+                    code = functions.system_call_functions.sytem_call(art_illumina_cmd)
                     if not code:
                         print ("** ERROR: Some error happened during ART simulation")
                         exit()
@@ -117,19 +117,19 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta,
                                               outfh.write("%s\n%s\n%s\n%s\n" % (record['name'], record['sequence'], record['optional'], record['quality']))
                                                 
                 ## merge reads all lengths
-                reads_path = functions.create_subfolder('reads', coverage_path)
+                reads_path = functions.files_functions.create_subfolder('reads', coverage_path)
                 if (reads == 'PE'):
-                    R1_all_reads = functions.retrieve_matching_files(tmp_fastq, "filter_R1.fq")
+                    R1_all_reads = functions.main_functions.retrieve_matching_files(tmp_fastq, "filter_R1.fq")
                     R1_reads = os.path.join(reads_path, name + '_R1.fq')
                 else:
-                    R1_all_reads = functions.retrieve_matching_files(tmp_fastq, "filter.fq")
+                    R1_all_reads = functions.main_functions.retrieve_matching_files(tmp_fastq, "filter.fq")
                     R1_reads = os.path.join(reads_path, name + '.fq')
                     
                 functions.merge_files(R1_reads, R1_all_reads)
                 
                 if (reads == 'PE'):
                     ## concat all reads 
-                    R2_all_reads_tmp = functions.retrieve_matching_files(tmp_fastq, "filter_R2.fq")
+                    R2_all_reads_tmp = functions.main_functions.retrieve_matching_files(tmp_fastq, "filter_R2.fq")
                     R2_reads = os.path.join(reads_path, name + '_R2.fq')
                     functions.merge_files(R2_reads, R2_all_reads_tmp)
 
@@ -139,12 +139,12 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta,
                         call_XICRA_PE(coverage_path, reads_path, name, threads_given, debug, database_folder, seqtk_bin, R2_reads)
                         ## print time stamp
                         filename_stamp = coverage_path + '/.success'
-                        functions.print_time_stamp(filename_stamp)
+                        functions.time_functions.print_time_stamp(filename_stamp)
                     else:
                         call_XICRA_SE(coverage_path, reads_path, name, threads_given, debug, database_folder)
                         ## print time stamp
                         filename_stamp = coverage_path + '/.success'
-                        functions.print_time_stamp(filename_stamp)
+                        functions.time_functions.print_time_stamp(filename_stamp)
                 else:
                     print ("+ Simulation for is ready in folder: ")
                     print (coverage_path)
@@ -314,7 +314,7 @@ def call_XICRA_PE(folder_path, reads_path, name, threads_given, debug_bool, data
     R2_reads_revComp = R2_reads.split("R2.fq")[0] + "revComp.fq" 
     seqtk_cmd = "%s seq -r %s > %s" %(seqtk_bin, R2_reads, R2_reads_revComp)
     print ("+ Reverse complement reads")
-    code = functions.system_call(seqtk_cmd)
+    code = functions.system_call_functions.sytem_call(seqtk_cmd)
     if not code:
         print ("** ERROR: Some error occurred when using seqtk for reverse complement")
         exit()
@@ -441,7 +441,7 @@ print ("########################################################################
 
 ## create main folder
 args.folder = os.path.abspath(args.folder)
-functions.create_folder(args.folder)
+functions.files_functions.create_folder(args.folder)
 
 ## main script path
 dirnamePath=os.path.dirname(sys.argv[0])
@@ -458,11 +458,11 @@ if (args.freqs):
         str_rep = "rep_" + str(i + 1)
         print ("****************************************************************************")
         print ("+ Replicate: " + str_rep)
-        replicate_path = functions.create_subfolder(str_rep, args.folder)
+        replicate_path = functions.files_functions.create_subfolder(str_rep, args.folder)
         
         filename_stamp = replicate_path + '/.success'
         if os.path.isfile(filename_stamp):
-            stamp =    functions.read_time_stamp(filename_stamp)
+            stamp =    functions.time_functions.read_time_stamp(filename_stamp)
             print (colored("\tA previous command generated results on: %s [%s]" %(stamp, str_rep), 'yellow'))
         else:
             ## subset freqs table
@@ -473,7 +473,7 @@ if (args.freqs):
             
             ## function system command
             print ("+ Create random subset of miRNA freqs")
-            code= functions.system_call(mod_freq_python_cmd)
+            code= functions.system_call_functions.sytem_call(mod_freq_python_cmd)
             if not (code):
                 print ("** ERROR: Something happened and the script failed...")
                 exit()
@@ -485,7 +485,7 @@ if (args.freqs):
                 get_isomiRs_script, mod_freqs_file + '.csv', mod_freqs_file_isomiRs, args.fasta)
             
             print ("+ Select miRNA sequences")
-            code2 = functions.system_call(get_isomiRs_python_cmd)
+            code2 = functions.system_call_functions.sytem_call(get_isomiRs_python_cmd)
             if not (code2):
                 print ("** ERROR: Something happened and the script failed...")
                 exit()

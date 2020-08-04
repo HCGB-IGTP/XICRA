@@ -20,14 +20,14 @@ from collections import defaultdict
 import collections
 
 ## import my modules
-from XICRA.scripts import functions
+from HCGB import functions
 from XICRA.scripts import reads2tabular
 
 #####################################
 def observed_data_analysis(observed_freqs):
         
     print ("# Read observed raw data")
-    observed_counts = functions.get_data(observed_freqs, ',', '')
+    observed_counts = functions.main_functions.get_data(observed_freqs, ',', '')
     observed_counts[['miRNA','variant', 'UID']] = observed_counts.ID.str.split("&",expand=True,)
     
     ## debugging messages
@@ -41,7 +41,7 @@ def observed_data_analysis(observed_freqs):
     ## read sequence isomiRs identified
     print ("# Read sequence data observed")
     observed_seqs_file = observed_freqs.split('.csv')[0] + '_seq.csv'
-    observed_seqs = functions.get_data(observed_seqs_file, ',', 'index_col=0')
+    observed_seqs = functions.main_functions.get_data(observed_seqs_file, ',', 'index_col=0')
     
     ## debugging messages
     if args.debug:
@@ -561,7 +561,7 @@ for folder_rep in folder_rep_list:
     print ("# Read expected frequency table")
     isomiRs_freqs = os.path.join(folder_rep, rep_ID + '.freqs.isomiRs.csv')
     isomiRs_fasta = os.path.join(folder_rep, rep_ID + '.freqs.isomiRs.fasta')
-    expected_counts = functions.get_data(isomiRs_freqs, ',', 'index_col=0')
+    expected_counts = functions.main_functions.get_data(isomiRs_freqs, ',', 'index_col=0')
     
     ## debugging messages
     if args.debug:
@@ -671,7 +671,7 @@ for folder_rep in folder_rep_list:
             ## PE
             PE_analysis_folder=os.path.join(type_read_folder, 'analysis', 'report', 'miRNA')
             if os.path.isdir(PE_analysis_folder):
-                files_PE_analysis = functions.retrieve_matching_files(PE_analysis_folder, ".csv")
+                files_PE_analysis = functions.main_functions.retrieve_matching_files(PE_analysis_folder, ".csv")
                 files_PE_analysis = [s for s in files_PE_analysis if '_seq' not in s]
                 files_PE_analysis = [s for s in files_PE_analysis if '_dup' not in s]
                 for f in files_PE_analysis:
@@ -682,7 +682,7 @@ for folder_rep in folder_rep_list:
             ## R1
             R1_analysis_folder=os.path.join(type_read_folder, 'analysis_R1', 'report', 'miRNA')
             if os.path.isdir(R1_analysis_folder):
-                files_R1_analysis = functions.retrieve_matching_files(R1_analysis_folder, ".csv")
+                files_R1_analysis = functions.main_functions.retrieve_matching_files(R1_analysis_folder, ".csv")
                 files_R1_analysis = [s for s in files_R1_analysis if '_seq' not in s]
                 files_R1_analysis = [s for s in files_R1_analysis if '_dup' not in s]
                 for f in files_R1_analysis:
@@ -695,7 +695,7 @@ for folder_rep in folder_rep_list:
             ## R2
             R2_analysis_folder=os.path.join(type_read_folder, 'analysis_R2', 'report', 'miRNA')
             if os.path.isdir(R2_analysis_folder):
-                files_R2_analysis = functions.retrieve_matching_files(R2_analysis_folder, ".csv")
+                files_R2_analysis = functions.main_functions.retrieve_matching_files(R2_analysis_folder, ".csv")
                 files_R2_analysis = [s for s in files_R2_analysis if '_seq' not in s]
                 files_R2_analysis = [s for s in files_R2_analysis if '_dup' not in s]
                 for f in files_R2_analysis:

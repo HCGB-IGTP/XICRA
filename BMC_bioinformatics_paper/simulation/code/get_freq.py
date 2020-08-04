@@ -16,7 +16,7 @@ import pandas as pd
 from collections import defaultdict
 
 ## import my modules
-from XICRA.scripts import functions
+from HCGB import functions
 from XICRA.scripts import reads2tabular
 
 ## dictionary

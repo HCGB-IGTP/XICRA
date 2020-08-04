@@ -18,7 +18,7 @@ import argparse
 import numpy as np
 
 ## import my modules
-from XICRA.scripts import functions
+from HCGB import functions
 from XICRA.scripts import reads2tabular
 
 #####################################################
@@ -42,7 +42,7 @@ args = parser.parse_args()
 #####################################################
 
 print ("# Read frequency table")
-frequencies_miRNA = functions.get_data(args.freq, ',', 'index_col=0')
+frequencies_miRNA = functions.main_functions.get_data(args.freq, ',', 'index_col=0')
 col_list = list(frequencies_miRNA) ## get columns
 
 print ("# Selecting variants from file:" + args.fasta)

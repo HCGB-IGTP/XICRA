@@ -12,11 +12,8 @@ import sys
 import re
 import time
 from io import open
-import pandas as pd
-from collections import defaultdict
 
 ## import my modules
-from XICRA.scripts import functions
 from XICRA.scripts import reads2tabular
 
 ## ARGV
@@ -25,9 +22,6 @@ if len (sys.argv) < 2:
     print ("python %s fasta_file out_file\n" %os.path.realpath(__file__))
     exit()
     
-## dictionary
-#freq_fasta = defaultdict(int)
-
 ## read fastq    
 n = 2
 with open(sys.argv[1], 'r') as fh:

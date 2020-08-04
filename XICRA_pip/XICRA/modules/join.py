@@ -19,7 +19,6 @@ from termcolor import colored
 ## import my modules
 from XICRA.modules import help_XICRA
 from XICRA.config import set_config
-from XICRA.modules import help_XICRA
 from HCGB import functions
 from HCGB import sampleParser
 
@@ -191,5 +190,5 @@ def fastqjoin (fastqjoin_exe, reads, path, sample_name, num_threads, perc_diff, 
         print ('** Wrong number of files provided for sample: %s...' %sample_name)
         return(False)
 
-    return(functions.system_call_functions.system_call(cmd))
+    return(functions.system_call_functions.sytem_call(cmd))
     

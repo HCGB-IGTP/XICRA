@@ -20,7 +20,7 @@ from distutils.version import LooseVersion
 import pkg_resources
 
 ## import my modules
-from XICRA.scripts import functions
+from HCGB import functions
 from XICRA.config import extern_progs
 
 ################
@@ -343,7 +343,7 @@ def get_python_packages(Debug):
 	Retrieves the version of the python packages installed in the system.
 
 	It retrieves the dependencies name conversion from file :file:`XICRA/config/python/module_dependencies.csv`
-	using function :func:`XICRA.config.extern_progs.file_list` and :func:`XICRA.scripts.functions.get_data`.
+	using function :func:`XICRA.config.extern_progs.file_list` and :func:`XICRA.scripts.functions.main_functions.get_data`.
 	For each module it retrieves the package version installed in the system using 
 	:func:`XICRA.config.set_config.check_package_version`.	
 
@@ -470,7 +470,7 @@ def check_package_version(package, Debug):
 ################
 def get_R_packages():
 	dep_file = os.path.abspath(os.path.join(os.path.dirname( __file__ ), 'R', 'R_dependencies.csv'))
-	dep_file_data = functions.get_data(dep_file, ',', 'index_col=0')
+	dep_file_data = functions.main_functions.get_data(dep_file, ',', 'index_col=0')
 	return (dep_file_data)
 
 ################
@@ -487,7 +487,7 @@ def check_R_packages(Debug):
 			print('+ Source: ', row['source'])
 		
 		cmd_check = R_script_exe + ' ' + check_install_system + ' -l ' + index
-		code = functions.system_call(cmd_check, message=False, returned=False)
+		code = functions.system_call_functions.sytem_call(cmd_check, message=False, returned=False)
 		if (code=='OK'):
 			check_install_module('1', index, '0', 'package')
 		else:
@@ -495,7 +495,7 @@ def check_R_packages(Debug):
 
 			## check if installed in path
 			cmd_check_path = R_script_exe + ' ' + check_install_path + ' -l ' + index + ' -p ' + install_path
-			code2 = functions.system_call(cmd_check_path, message=False, returned=False)
+			code2 = functions.system_call_functions.sytem_call(cmd_check_path, message=False, returned=False)
 
 			if (code2):
 				check_install_module('1', index, '0', 'Install path package')

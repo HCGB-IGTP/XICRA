@@ -13,7 +13,7 @@ from sys import argv
 import pandas as pd
 import csv
 
-from XICRA.scripts import functions
+from HCGB import functions
 from XICRA.scripts.functions import is_non_zero_file
 
 ####################

@@ -6,7 +6,7 @@ import io
 import os
 
 ## import functions
-from XICRA.scripts import functions
+from HCGB import functions
 
 ################
 def run(options):

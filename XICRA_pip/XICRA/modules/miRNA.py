@@ -18,8 +18,8 @@ import pandas as pd
 from termcolor import colored
 
 ## import my modules
-from XICRA.scripts import sampleParser
-from XICRA.scripts import functions
+from HCGB import sampleParser
+from HCGB import functions
 from XICRA.config import set_config
 from XICRA.modules import help_XICRA
 from XICRA.scripts import generate_DE
@@ -59,10 +59,10 @@ def run_miRNA(options):
     else:
         options.pair = True
     
-    functions.pipeline_header()
-    functions.boxymcboxface("miRNA analysis")
+    functions.aesthetics_functions.pipeline_header()
+    functions.aesthetics_functions.boxymcboxface("miRNA analysis")
     print ("--------- Starting Process ---------")
-    functions.print_time()
+    functions.time_functions.print_time()
 
     ## absolute path for in & out
     input_dir = os.path.abspath(options.input)
@@ -84,14 +84,14 @@ def run_miRNA(options):
     if options.pair:
         options.pair = False ## set paired-end to false for further prepocessing
         if options.noTrim:
-            pd_samples_retrieved = sampleParser.get_files(options, input_dir, "fastq", ("fastq", "fq", "fastq.gz", "fq.gz"))
+            pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ("fastq", "fq", "fastq.gz", "fq.gz"))
         else:
-            pd_samples_retrieved = sampleParser.get_files(options, input_dir, "join", ['_joined.fastq'])
+            pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "join", ['_joined.fastq'])
     else:
         if options.noTrim:
-            pd_samples_retrieved = sampleParser.get_files(options, input_dir, "fastq", ("fastq", "fq", "fastq.gz", "fq.gz"))
+            pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ("fastq", "fq", "fastq.gz", "fq.gz"))
         else:
-            pd_samples_retrieved = sampleParser.get_files(options, input_dir, "trim", ['_trim'])
+            pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "trim", ['_trim'])
     
     ## debug message
     if (Debug):
@@ -113,7 +113,7 @@ def run_miRNA(options):
         options.database = os.path.abspath(options.database)
     
     print ("+ Create folder to store results: ", options.database)
-    functions.create_folder(options.database)
+    functions.files_functions.create_folder(options.database)
     
     ## miRNA_gff: can be set as automatic to download from miRBase
     if not options.miRNA_gff:
@@ -123,7 +123,7 @@ def run_miRNA(options):
         print (colored("\t** Download it form miRBase", 'green'))
         file_name = options.species + ".gff3"
         ftp_site = "ftp://mirbase.org/pub/mirbase/CURRENT/genomes/" + file_name 
-        options.miRNA_gff = functions.urllib_request(options.database, ftp_site, file_name, Debug)
+        options.miRNA_gff = functions.main_functions.urllib_request(options.database, ftp_site, file_name, Debug)
         
     else:
         print ("+ miRNA gff file provided")
@@ -136,7 +136,7 @@ def run_miRNA(options):
             print (colored("\t** ATTENTION: No hairpin fasta file provided", 'yellow'))        
         print (colored("\t** Download it form miRBase", 'green'))
         ftp_site = "ftp://mirbase.org/pub/mirbase/CURRENT/hairpin.fa.gz"
-        options.hairpinFasta = functions.urllib_request(options.database, ftp_site, "hairpin.fa.gz", Debug)
+        options.hairpinFasta = functions.main_functions.urllib_request(options.database, ftp_site, "hairpin.fa.gz", Debug)
         
     else:
         print ("+ hairpin fasta file provided")
@@ -149,7 +149,7 @@ def run_miRNA(options):
             print (colored("\t** ATTENTION: No mature miRNA fasta file provided", 'yellow'))        
         print (colored("\t** Download it form miRBase", 'green'))
         ftp_site = "ftp://mirbase.org/pub/mirbase/CURRENT/mature.fa.gz"
-        options.matureFasta = functions.urllib_request(options.database, ftp_site, "mature.fa.gz", Debug)
+        options.matureFasta = functions.main_functions.urllib_request(options.database, ftp_site, "mature.fa.gz", Debug)
 
     else:
         print ("+ mature fasta file provided")
@@ -162,7 +162,7 @@ def run_miRNA(options):
             print (colored("\t** ATTENTION: No miRBase_str file provided", 'yellow'))        
         print (colored("\t** Download it form miRBase", 'green'))
         ftp_site = "ftp://mirbase.org/pub/mirbase/CURRENT/miRNA.str.gz"
-        options.miRBase_str = functions.urllib_request(options.database, ftp_site, "miRNA.str.gz", Debug)
+        options.miRBase_str = functions.main_functions.urllib_request(options.database, ftp_site, "miRNA.str.gz", Debug)
         ## extract
         
     else:
@@ -173,14 +173,14 @@ def run_miRNA(options):
     ## generate output folder, if necessary
     if not options.project:
         print ("\n+ Create output folder(s):")
-        functions.create_folder(outdir)
+        functions.files_functions.create_folder(outdir)
     
     ## for samples
-    outdir_dict = functions.outdir_project(outdir, options.project, pd_samples_retrieved, "miRNA")
+    outdir_dict = functions.file_functions.outdir_project(outdir, options.project, pd_samples_retrieved, "miRNA")
     
     ## optimize threads
     name_list = set(pd_samples_retrieved["new_name"].tolist())
-    threads_job = functions.optimize_threads(options.threads, len(name_list)) ## threads optimization
+    threads_job = functions.main_functions.optimize_threads(options.threads, len(name_list)) ## threads optimization
     max_workers_int = int(options.threads/threads_job)
 
     ## debug message
@@ -222,8 +222,8 @@ def run_miRNA(options):
     print ("+ Let's summarize all results...")
     
     ## outdir
-    outdir_report = functions.create_subfolder("report", outdir)
-    expression_folder = functions.create_subfolder("miRNA", outdir_report)
+    outdir_report = functions.files_functions.create_subfolder("report", outdir)
+    expression_folder = functions.files_functions.create_subfolder("miRNA", outdir_report)
 
     ## debugging messages
     if options.debug:
@@ -234,7 +234,7 @@ def run_miRNA(options):
     generate_DE.generate_DE(results_df, options.debug, expression_folder)
 
     print ("\n*************** Finish *******************")
-    start_time_partial = functions.timestamp(start_time_total)
+    start_time_partial = functions.time_functions.timestamp(start_time_total)
     print ("\n+ Exiting miRNA module.")
     return()
 
@@ -245,7 +245,7 @@ def miRNA_analysis(reads, folder, name, threads, miRNA_gff, soft_list,
     for soft in soft_list:
         if (soft == "sRNAbench"):
             ## create sRNAbench
-            sRNAbench_folder = functions.create_subfolder('sRNAbench', folder)
+            sRNAbench_folder = functions.files_functions.create_subfolder('sRNAbench', folder)
             code_success = sRNAbench_caller(reads, sRNAbench_folder, name, threads, species, Debug) ## Any additional sRNAbench parameter?
                 
             if not code_success:
@@ -253,7 +253,7 @@ def miRNA_analysis(reads, folder, name, threads, miRNA_gff, soft_list,
                 return ()
             
             ## create folder for sRNAbench results
-            miRTop_folder = functions.create_subfolder("sRNAbench_miRTop", folder)
+            miRTop_folder = functions.files_functions.create_subfolder("sRNAbench_miRTop", folder)
             miRTop_caller(sRNAbench_folder, miRTop_folder, name, threads, miRNA_gff, hairpinFasta, 'sRNAbench', species, Debug)
             
             ## save results in dataframe
@@ -263,11 +263,11 @@ def miRNA_analysis(reads, folder, name, threads, miRNA_gff, soft_list,
         ###
         if (soft == "optimir"):
             ## create OptimiR analysis
-            optimir_folder = functions.create_subfolder('OptimiR', folder)
+            optimir_folder = functions.files_functions.create_subfolder('OptimiR', folder)
             code_success = optimir_caller(reads, optimir_folder, name, threads, matureFasta, hairpinFasta, miRNA_gff, species, Debug) ## Any additional sRNAbench parameter?
             
             ## create folder for Optimir results
-            miRTop_folder = functions.create_subfolder("OptimiR_miRTop", folder)
+            miRTop_folder = functions.files_functions.create_subfolder("OptimiR_miRTop", folder)
             miRTop_caller(optimir_folder, miRTop_folder, name, threads, miRNA_gff, hairpinFasta, 'optimir', species, Debug)
             
             ## save results in dataframe
@@ -277,11 +277,11 @@ def miRNA_analysis(reads, folder, name, threads, miRNA_gff, soft_list,
         ###
         if (soft == "miraligner"):
             ## create OptimiR analysis
-            miraligner_folder = functions.create_subfolder('miraligner', folder)
+            miraligner_folder = functions.files_functions.create_subfolder('miraligner', folder)
             code_success = miraligner_caller(reads, miraligner_folder, name, threads, database, species, Debug) 
             
             ## create folder for Optimir results
-            miRTop_folder = functions.create_subfolder("miraligner_miRTop", folder)
+            miRTop_folder = functions.files_functions.create_subfolder("miraligner_miRTop", folder)
             miRTop_caller(miraligner_folder, miRTop_folder, name, threads, miRNA_gff, hairpinFasta, 'seqbuster', species, Debug)
             
             ## save results in dataframe
@@ -293,13 +293,13 @@ def sRNAbench_caller(reads, sample_folder, name, threads, species, Debug):
     # check if previously generated and succeeded
     filename_stamp = sample_folder + '/.success'
     if os.path.isfile(filename_stamp):
-        stamp = functions.read_time_stamp(filename_stamp)
+        stamp = functions.time_functions.read_time_stamp(filename_stamp)
         print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'sRNAbench'), 'yellow'))
     else:
         # Call sRNAbench
         code_returned = sRNAbench(reads, sample_folder, name, threads, species, Debug)
         if code_returned:
-            functions.print_time_stamp(filename_stamp)
+            functions.time_functions.time_functions.print_time_stamp(filename_stamp)
         else:
             print ('** Sample %s failed...' %name)
             return(False)
@@ -324,21 +324,21 @@ def sRNAbench (reads, outpath, file_name, num_threads, species, Debug):
     cmd = cmd + ' plotMiR=true bedGraphMode=true writeGenomeDist=true'
     cmd = cmd + ' chromosomeLevel=true chrMappingByLength=true > ' + logfile 
     
-    return(functions.system_call(cmd))
+    return(functions.system_call_functions.sytem_call(cmd))
 
 ###############       
 def optimir_caller(reads, sample_folder, name, threads, matureFasta, hairpinFasta, miRNA_gff, species, Debug):
     # check if previously generated and succeeded
     filename_stamp = sample_folder + '/.success'
     if os.path.isfile(filename_stamp):
-        stamp = functions.read_time_stamp(filename_stamp)
+        stamp = functions.time_functions.read_time_stamp(filename_stamp)
         print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'OptimiR'), 'yellow'))
     else:
         # Call sRNAbench
 	## no species option for OptimiR
         code_returned = optimir(reads, sample_folder, name, threads, matureFasta, hairpinFasta, miRNA_gff,  Debug)
         if code_returned:
-            functions.print_time_stamp(filename_stamp)
+            functions.time_functions.time_functions.print_time_stamp(filename_stamp)
         else:
             print ('** Sample %s failed...' %name)
             return(False)
@@ -360,20 +360,20 @@ def optimir (reads, outpath, file_name, num_threads, matureFasta, hairpinFasta, 
     ## create command  
     cmd = "%s process --fq %s --gff_out -o %s --maturesFasta %s --hairpinsFasta %s --gff3 %s > %s 2> %s" %(
         optimir_exe, reads[0], outpath, matureFasta, hairpinFasta, miRNA_gff, logfile, errfile)
-    return(functions.system_call(cmd))
+    return(functions.system_call_functions.sytem_call(cmd))
 
 ###############       
 def miraligner_caller(reads, sample_folder, name, threads, database, species, Debug):
     # check if previously generated and succeeded
     filename_stamp = sample_folder + '/.success'
     if os.path.isfile(filename_stamp):
-        stamp = functions.read_time_stamp(filename_stamp)
+        stamp = functions.time_functions.read_time_stamp(filename_stamp)
         print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'sRNAbench'), 'yellow'))
     else:
         # Call miralinger
         code_returned = miraligner(reads, sample_folder, name, database, species, Debug)
         if code_returned:
-            functions.print_time_stamp(filename_stamp)
+            functions.time_functions.time_functions.print_time_stamp(filename_stamp)
         else:
             print ('** Sample %s failed...' %name)
             return(False)
@@ -402,27 +402,27 @@ def miraligner (reads, outpath, file_name, database, species, Debug):
     cmd = '%s -jar %s -db %s -sub 1 -add 3 -trim 3 -s %s -i %s -o %s 2> %s' %(
         java_exe, miraligner_exe, database, species, tabular_info, outpath_file, logfile)
     
-    return(functions.system_call(cmd))
+    return(functions.system_call_functions.sytem_call(cmd))
 
 
 ###############       
 def miRTop_caller(results_folder, mirtop_folder, name, threads, miRNA_gff, hairpinFasta, format, species, Debug):
     
     # check if previously generated and succeeded
-    mirtop_folder_gff = functions.create_subfolder('gff', mirtop_folder)
-    mirtop_folder_stats = functions.create_subfolder('stats', mirtop_folder)
-    mirtop_folder_counts = functions.create_subfolder('counts', mirtop_folder)
-    mirtop_folder_counts = functions.create_subfolder('export', mirtop_folder)
+    mirtop_folder_gff = functions.files_functions.create_subfolder('gff', mirtop_folder)
+    mirtop_folder_stats = functions.files_functions.create_subfolder('stats', mirtop_folder)
+    mirtop_folder_counts = functions.files_functions.create_subfolder('counts', mirtop_folder)
+    mirtop_folder_counts = functions.files_functions.create_subfolder('export', mirtop_folder)
 
     filename_stamp = mirtop_folder_counts + '/.success'
     if os.path.isfile(filename_stamp):
-        stamp = functions.read_time_stamp(filename_stamp)
+        stamp = functions.time_functions.read_time_stamp(filename_stamp)
         print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'miRTop'), 'yellow'))
     else:
         # Call miRTop
         code_returned = miRTop(results_folder, mirtop_folder, name, threads, format.lower(), miRNA_gff, hairpinFasta, species, Debug)
         if code_returned:
-            functions.print_time_stamp(filename_stamp)
+            functions.time_functions.time_functions.print_time_stamp(filename_stamp)
         else:
             print ('** Sample %s failed...' %name)
             return(False)
@@ -447,27 +447,27 @@ def miRTop(results_folder, sample_folder, name, threads, format, miRNA_gff, hair
         reads_annot = os.path.join(results_folder, "reads.annotation")
         
         ## check non zero
-        if not functions.is_non_zero_file(reads_annot):
+        if not functions.files_functions.is_non_zero_file(reads_annot):
             print (colored("\tNo isomiRs detected for sample [%s -- %s]" %(name, 'sRNAbench'), 'yellow'))
             return (False)
             
     elif format == "optimir":
         ## get optimir info
-        gff3_file = functions.retrieve_matching_files(os.path.join(results_folder, "OptimiR_Results"), "gff3")[0]
+        gff3_file = functions.main_functions.retrieve_matching_files(os.path.join(results_folder, "OptimiR_Results"), "gff3")[0]
         results_folder = gff3_file
         
         ## check non zero
-        if not functions.is_non_zero_file(gff3_file):
+        if not functions.files_functions.is_non_zero_file(gff3_file):
             print (colored("\tNo isomiRs detected for sample [%s -- %s]" %(name, 'optimir'), 'yellow'))
             return (False)
     
     elif format == "seqbuster":
         ## get miraligner info
-        mirna_file = functions.retrieve_matching_files(results_folder, ".mirna")[0]
+        mirna_file = functions.main_functions.retrieve_matching_files(results_folder, ".mirna")[0]
         results_folder = mirna_file
         
         ## check non zero
-        if not functions.is_non_zero_file(mirna_file):
+        if not functions.files_functions.is_non_zero_file(mirna_file):
             print (colored("\tNo isomiRs detected for sample [%s -- %s]" %(name, 'miraligner'), 'yellow'))
             return (False)
     
@@ -475,7 +475,7 @@ def miRTop(results_folder, sample_folder, name, threads, format, miRNA_gff, hair
     ## miRTop analysis gff
     filename_stamp_gff = mirtop_folder_gff + '/.success'
     if os.path.isfile(filename_stamp_gff):
-        stamp = functions.read_time_stamp(filename_stamp_gff)
+        stamp = functions.time_functions.read_time_stamp(filename_stamp_gff)
         print (colored("\tA previous command generated results on: %s [%s -- %s - gff]" %(stamp, name, 'miRTop'), 'yellow'))
     else:
         print ('Creating isomiRs gtf file for sample %s' %name)
@@ -484,9 +484,9 @@ def miRTop(results_folder, sample_folder, name, threads, format, miRNA_gff, hair
                                                     mirtop_folder_gff, results_folder, logfile)
         
         ## execute
-        code_miRTop = functions.system_call(cmd)
+        code_miRTop = functions.system_call_functions.sytem_call(cmd)
         if code_miRTop:
-            functions.print_time_stamp(filename_stamp_gff)
+            functions.time_functions.time_functions.print_time_stamp(filename_stamp_gff)
         else:
             return(False)
         
@@ -495,46 +495,46 @@ def miRTop(results_folder, sample_folder, name, threads, format, miRNA_gff, hair
 
     #filename_stamp_stats = mirtop_folder_stats + '/.success'
     #if os.path.isfile(filename_stamp_stats):
-    #    stamp = functions.read_time_stamp(filename_stamp_stats)
+    #    stamp = functions.time_functions.read_time_stamp(filename_stamp_stats)
     #    print (colored("\tA previous command generated results on: %s [%s -- %s - stats]" %(stamp, name, 'miRTop'), 'yellow'))
     #else:
     #    print ('Creating isomiRs stats for sample %s' %name)
     #    cmd_stats = miRTop_exe + ' stats -o %s %s 2>> %s' %(mirtop_folder_stats, mirtop_folder_gff_file, logfile)
-    #    code_miRTop_stats = functions.system_call(cmd_stats)
+    #    code_miRTop_stats = functions.system_call_functions.sytem_call(cmd_stats)
     #    if code_miRTop_stats:
-    #        functions.print_time_stamp(filename_stamp_stats)
+    #        functions.time_functions.time_functions.print_time_stamp(filename_stamp_stats)
     #    else:
     #        return(False)
             
     ## miRTop counts
     filename_stamp_counts = mirtop_folder_counts + '/.success'
     if os.path.isfile(filename_stamp_counts):
-        stamp = functions.read_time_stamp(filename_stamp_counts)
+        stamp = functions.time_functions.read_time_stamp(filename_stamp_counts)
         print (colored("\tA previous command generated results on: %s [%s -- %s - counts]" %(stamp, name, 'miRTop'), 'yellow'))
     else:
         print ('Creating isomiRs counts for sample %s' %name)
         ## if both succeeded
         cmd_stats = miRTop_exe + ' counts -o %s --gff %s --hairpin %s --gtf %s --sps %s 2>> %s' %(mirtop_folder_counts, mirtop_folder_gff_file, hairpinFasta, miRNA_gff, species, logfile)
-        code_miRTop_counts = functions.system_call(cmd_stats)
+        code_miRTop_counts = functions.system_call_functions.sytem_call(cmd_stats)
         
         if code_miRTop_counts:
-            functions.print_time_stamp(filename_stamp_counts)
+            functions.time_functions.time_functions.print_time_stamp(filename_stamp_counts)
         else:
             return(False)
     
     ## miRTop export
     filename_stamp_export = mirtop_folder_export + '/.success'
     if os.path.isfile(filename_stamp_export):
-        stamp = functions.read_time_stamp(filename_stamp_export)
+        stamp = functions.time_functions.read_time_stamp(filename_stamp_export)
         print (colored("\tA previous command generated results on: %s [%s -- %s - export]" %(stamp, name, 'miRTop'), 'yellow'))
     else:
         print ('Creating isomiRs export information for sample %s' %name)
         ## if both succeeded
         cmd_export = miRTop_exe + ' export -o %s --hairpin %s --gtf %s --sps %s --format isomir %s 2> %s' %(mirtop_folder_export, hairpinFasta, miRNA_gff, species, mirtop_folder_gff_file, logfile)
-        code_miRTop_export = functions.system_call(cmd_export)
+        code_miRTop_export = functions.system_call_functions.sytem_call(cmd_export)
         
         if code_miRTop_export:
-            functions.print_time_stamp(filename_stamp_export)
+            functions.time_functions.time_functions.print_time_stamp(filename_stamp_export)
         else:
             return(False)
     
