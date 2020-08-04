@@ -308,7 +308,7 @@ def sRNAbench_caller(reads, sample_folder, name, threads, species, Debug):
         # Call sRNAbench
         code_returned = sRNAbench(reads, sample_folder, name, threads, species, Debug)
         if code_returned:
-            functions.time_functions.time_functions.print_time_stamp(filename_stamp)
+            functions.time_functions.print_time_stamp(filename_stamp)
         else:
             print ('** Sample %s failed...' %name)
             return(False)
@@ -347,7 +347,7 @@ def optimir_caller(reads, sample_folder, name, threads, matureFasta, hairpinFast
 	## no species option for OptimiR
         code_returned = optimir(reads, sample_folder, name, threads, matureFasta, hairpinFasta, miRNA_gff,  Debug)
         if code_returned:
-            functions.time_functions.time_functions.print_time_stamp(filename_stamp)
+            functions.time_functions.print_time_stamp(filename_stamp)
         else:
             print ('** Sample %s failed...' %name)
             return(False)
@@ -382,7 +382,7 @@ def miraligner_caller(reads, sample_folder, name, threads, database, species, De
         # Call miralinger
         code_returned = miraligner(reads, sample_folder, name, database, species, Debug)
         if code_returned:
-            functions.time_functions.time_functions.print_time_stamp(filename_stamp)
+            functions.time_functions.print_time_stamp(filename_stamp)
         else:
             print ('** Sample %s failed...' %name)
             return(False)
@@ -431,7 +431,7 @@ def miRTop_caller(results_folder, mirtop_folder, name, threads, miRNA_gff, hairp
         # Call miRTop
         code_returned = miRTop(results_folder, mirtop_folder, name, threads, format.lower(), miRNA_gff, hairpinFasta, species, Debug)
         if code_returned:
-            functions.time_functions.time_functions.print_time_stamp(filename_stamp)
+            functions.time_functions.print_time_stamp(filename_stamp)
         else:
             print ('** Sample %s failed...' %name)
             return(False)
@@ -495,7 +495,7 @@ def miRTop(results_folder, sample_folder, name, threads, format, miRNA_gff, hair
         ## execute
         code_miRTop = functions.system_call_functions.system_call(cmd)
         if code_miRTop:
-            functions.time_functions.time_functions.print_time_stamp(filename_stamp_gff)
+            functions.time_functions.print_time_stamp(filename_stamp_gff)
         else:
             return(False)
         
@@ -511,7 +511,7 @@ def miRTop(results_folder, sample_folder, name, threads, format, miRNA_gff, hair
     #    cmd_stats = miRTop_exe + ' stats -o %s %s 2>> %s' %(mirtop_folder_stats, mirtop_folder_gff_file, logfile)
     #    code_miRTop_stats = functions.system_call_functions.system_call(cmd_stats)
     #    if code_miRTop_stats:
-    #        functions.time_functions.time_functions.print_time_stamp(filename_stamp_stats)
+    #        functions.time_functions.print_time_stamp(filename_stamp_stats)
     #    else:
     #        return(False)
             
@@ -527,7 +527,7 @@ def miRTop(results_folder, sample_folder, name, threads, format, miRNA_gff, hair
         code_miRTop_counts = functions.system_call_functions.system_call(cmd_stats)
         
         if code_miRTop_counts:
-            functions.time_functions.time_functions.print_time_stamp(filename_stamp_counts)
+            functions.time_functions.print_time_stamp(filename_stamp_counts)
         else:
             return(False)
     
@@ -543,7 +543,7 @@ def miRTop(results_folder, sample_folder, name, threads, format, miRNA_gff, hair
         code_miRTop_export = functions.system_call_functions.system_call(cmd_export)
         
         if code_miRTop_export:
-            functions.time_functions.time_functions.print_time_stamp(filename_stamp_export)
+            functions.time_functions.print_time_stamp(filename_stamp_export)
         else:
             return(False)
     
