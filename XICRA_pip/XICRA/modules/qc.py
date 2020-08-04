@@ -81,6 +81,9 @@ def run_QC(options):
     functions.aesthetics_functions.boxymcboxface("FASTQC Quality check for samples")
     
     ## get files
+    print ('+ Getting files from input folder... ')
+    print ('+ Mode: fastq.\n+ Extension: ')
+    print ("[ fastq, fq, fastq.gz, fq.gz ]\n")
     pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ("fastq", "fq", "fastq.gz", "fq.gz"), options.debug)
 
     ## debug message
