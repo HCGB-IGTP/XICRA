@@ -14,7 +14,6 @@ import pandas as pd
 import csv
 
 from HCGB import functions
-from XICRA.scripts.functions import is_non_zero_file
 
 ####################
 def generate_DE(dataframe_results, Debug, outfolder):
@@ -124,7 +123,7 @@ def generate_matrix(dict_files, soft_name, Debug):
 		print ('+ Reading information from sample: ', sample)	
 		
 		## 
-		if is_non_zero_file(this_file):
+		if functions.files_functions.is_non_zero_file(this_file):
 			data = pd.read_csv(this_file, sep='\t')
 		else:
 			print ('\t - Information not available for sample: ', sample)	
@@ -197,7 +196,7 @@ def main():
         print ("Provide file containing sample,file")
         exit()        
 
-    dictionary_info = functions.file2dictionary(sys.argv[1], ",")
+    dictionary_info = functions.main_functions.file2dictionary(sys.argv[1], ",")
     print (dictionary_info)
 
     ## get data

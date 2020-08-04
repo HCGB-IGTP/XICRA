@@ -41,7 +41,7 @@ def multiQC_module_call(givenList, name, path, option):
     
     """
     pathFile = path + '/' + 'samples.txt'
-    functions.printList2file(pathFile, givenList)
+    functions.main_functions.printList2file(pathFile, givenList)
     multiQC_call(pathFile, name, path, option)    
     
 ############

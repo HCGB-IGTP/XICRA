@@ -267,7 +267,7 @@ def get_version(prog, path, Debug=False):
 		cmd_output = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
 
 	## decode command
-	cmd_output = functions.decode(cmd_output[0]).split('\n')[:-1] + functions.decode(cmd_output[1]).split('\n')[:-1]
+	cmd_output = functions.main_functions.decode(cmd_output[0]).split('\n')[:-1] + functions.main_functions.decode(cmd_output[1]).split('\n')[:-1]
 
 	## debug messages
 	if (Debug):
@@ -353,7 +353,7 @@ def get_python_packages(Debug):
 	## get import names for packages:
 	## some modules do not have the same name when install from pip and called from import
 	file_module_dependecies = extern_progs.file_list("python_requirements")
-	module_dependencies = functions.file2dictionary(file_module_dependecies, ',')
+	module_dependencies = functions.main_functions.file2dictionary(file_module_dependecies, ',')
 
 	my_packages_installed = {}
 	for each in module_dependencies:

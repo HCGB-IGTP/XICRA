@@ -44,7 +44,7 @@ def file_list(wanted_data):
 
 	"""
 	config_folder = os.path.dirname(os.path.realpath(__file__))
-	listOffiles = functions.get_fullpath_list(config_folder)
+	listOffiles = functions.main_functions.get_fullpath_list(config_folder)
 	
 	for f in listOffiles:
 		name = os.path.splitext(os.path.basename(f))[0]
@@ -140,7 +140,7 @@ def min_python_module_version():
 	"""
 	## read from file: prog2default.csv
 	python_modules = file_list("python_requirements")
-	package_min_versions = functions.file2dictionary(python_modules, ",")
+	package_min_versions = functions.main_functions.file2dictionary(python_modules, ",")
 
 	return(package_min_versions)
 ##################
