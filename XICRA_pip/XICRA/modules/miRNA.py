@@ -23,7 +23,7 @@ from HCGB import functions
 from XICRA.config import set_config
 from XICRA.modules import help_XICRA
 from XICRA.scripts import generate_DE
-from XICRA.scripts import reads2tabular
+from HCGB.functions import fasta_functions
 
 ##############################################
 def run_miRNA(options):
@@ -404,7 +404,7 @@ def miraligner (reads, outpath, file_name, database, species, Debug):
     
     ## create tabular information of reads
     tabular_info = os.path.join(outpath, file_name + '-tab.freq.txt')
-    reads2tabular.reads2tabular(reads[0], tabular_info)
+    fasta_functions.reads2tabular(reads[0], tabular_info)
     
     ## create command 
     java_exe = set_config.get_exe('java', Debug=Debug)

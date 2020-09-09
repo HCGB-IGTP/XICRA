@@ -20,7 +20,7 @@ import argparse
 
 ## import my modules
 from HCGB import functions
-from XICRA.scripts import reads2tabular
+from HCGB.functions import fasta_functions
 
 ## get frequencies
 def get_freq(given_df, col_list):

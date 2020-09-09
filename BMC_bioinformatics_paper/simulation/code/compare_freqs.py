@@ -21,7 +21,7 @@ import collections
 
 ## import my modules
 from HCGB import functions
-from XICRA.scripts import reads2tabular
+from HCGB.functions import fasta_functions
 
 #####################################
 def observed_data_analysis(observed_freqs):
@@ -61,7 +61,7 @@ def count_miRNA_fastq (fastq_file):
         for line in fh:
             lines.append(line.rstrip())
             if len(lines) == 4:
-                record = reads2tabular.process_fastq(lines)
+                record = fasta_functions.process_fastq(lines)
                 #sys.stderr.write("Record: %s\n" % (str(record)))
                 lines = []
                 fastq_ID = record['name'].split('::')[0].replace('@', '')
@@ -229,8 +229,7 @@ def analysis_observed_expected(name, given_tag, counts_observed, count_R1_reads,
                     
             ### debugging messages
             if args.debug:  
-                print ("+ ---------------------------------------------------- +\n")
-    
+                print ("+ ---------------------------------------------------- +\n")    
     
     ## debugging messages
     if args.debug:  
@@ -592,7 +591,7 @@ for folder_rep in folder_rep_list:
         for line in fh:
             lines.append(line.rstrip())
             if len(lines) == 2:
-                record = reads2tabular.process_fasta(lines)
+                record = fasta_functions.process_fasta(lines)
                 #sys.stderr.write("Record: %s\n" % (str(record)))
                 lines = []
                 fasta_ID = record['name'].replace('>', '')

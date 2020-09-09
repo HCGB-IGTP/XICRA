@@ -19,7 +19,7 @@ import numpy as np
 
 ## import my modules
 from HCGB import functions
-from XICRA.scripts import reads2tabular
+from HCGB.functions import fasta_functions
 
 #####################################################
 parser = argparse.ArgumentParser(prog='get_isomiRs.py', formatter_class=argparse.RawDescriptionHelpFormatter, 
@@ -58,7 +58,7 @@ with open(args.out + '.fasta', 'w') as outfh:
         for line in fh:
             lines.append(line.rstrip())
             if len(lines) == 2:
-                record = reads2tabular.process_fasta(lines)
+                record = fasta_functions.process_fasta(lines)
                 # re-init
                 lines = []
                 

@@ -14,7 +14,7 @@ import time
 from io import open
 
 ## import my modules
-from XICRA.scripts import reads2tabular
+from HCGB.functions import fasta_functions
 
 ## ARGV
 if len (sys.argv) < 2:
@@ -31,7 +31,7 @@ with open(sys.argv[1], 'r') as fh:
         for line in fh:
             lines.append(line.rstrip())
             if len(lines) == n:
-                record = reads2tabular.process_fasta(lines)
+                record = fasta_functions.process_fasta(lines)
                 #print ("##")
                 #sys.stderr.write("Record: %s\n" % (str(record)))
                 

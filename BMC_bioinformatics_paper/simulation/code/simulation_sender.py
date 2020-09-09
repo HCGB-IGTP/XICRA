@@ -20,7 +20,7 @@ from termcolor import colored
 
 ## import my modules
 from HCGB import functions
-from XICRA.scripts import reads2tabular
+from HCGB.functions import fasta_functions
 from XICRA.modules import prep
 from XICRA.modules import join
 from XICRA.modules import miRNA
@@ -110,7 +110,7 @@ def NGS_simulator(name, abs_folder, seqSys_list, type_reads, fcov_list, fasta,
                                  for line in fh:
                                      lines.append(line.rstrip())
                                      if len(lines) == 4:
-                                          record = reads2tabular.process_fastq(lines)
+                                          record = fasta_functions.process_fastq(lines)
                                           #sys.stderr.write("Record: %s\n" % (str(record)))
                                           lines = []                                 
                                           if record['name'] in fastq_R2_ids.keys():
@@ -182,7 +182,7 @@ def discard_revcomp(outfile_path, reads):
                     lines.append(line.rstrip())
                                       
             if len(lines) == 2:
-                record = reads2tabular.process_fasta(lines)
+                record = fasta_functions.process_fasta(lines)
                 ##sys.stderr.write("Record: %s\n" % (str(record)))
                 lines = []
                     
@@ -205,7 +205,7 @@ def discard_revcomp(outfile_path, reads):
             for line in fh:
                 lines.append(line.rstrip())
                 if len(lines) == 4:
-                    record = reads2tabular.process_fastq(lines)
+                    record = fasta_functions.process_fastq(lines)
                     #sys.stderr.write("Record: %s\n" % (str(record)))
                     lines = []
                     fastq_ID = record['name'].replace('/1', '/2')
@@ -348,7 +348,7 @@ def process_fasta_length (fasta_file, folder, debug):
         for line in fh:
             lines.append(line.rstrip())
             if len(lines) == 2:
-                record = reads2tabular.process_fasta(lines)
+                record = fasta_functions.process_fasta(lines)
                 # re-init
                 lines = []
                 len_Seq = len(record['sequence'])
