@@ -1,7 +1,9 @@
 __all__ = [
     'fastqc_caller',
     'multiQC_report',
-    'generate_DE'
+    'generate_DE',
+    'RNAbiotype',
+    'mapReads'
     
 ]
 
