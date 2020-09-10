@@ -110,13 +110,13 @@ def run_biotype(options):
     mapping_outdir_dict = files_functions.outdir_project(outdir, options.project, pd_samples_retrieved, "map", options.debug)
     
     ## map Reads
-    mapReads_module(options, pd_samples_retrieved, mapping_outdir_dict)
+    mapReads_module(options, pd_samples_retrieved, mapping_outdir_dict, options.debug)
     
     ## for samples
     biotype_outdir_dict = files_functions.outdir_project(outdir, options.project, pd_samples_retrieved, "biotype", options.debug)
 
     ## get RNAbiotype information
-    RNAbiotype.RNAbiotype_module_call(samples_dict, biotype_outdir_dict, gtf_file, options.threads, Debug)
+    RNAbiotype.RNAbiotype_module_call(samples_dict, biotype_outdir_dict, gtf_file, options.threads, options.debug)
 
     abs_path_folder = os.path.abspath(argv[1])
     abs_csv_outfile = os.path.abspath(argv[2])
@@ -147,7 +147,7 @@ def run_biotype(options):
 
 
 #########################################
-def mapReads_module(options, pd_samples_retrieved, outdir_dict):
+def mapReads_module(options, pd_samples_retrieved, outdir_dict, Debug):
     
     ## optimize threads
     name_list = set(pd_samples_retrieved["new_name"].tolist())
@@ -166,7 +166,7 @@ def mapReads_module(options, pd_samples_retrieved, outdir_dict):
     sample_frame = pd_samples_retrieved.groupby(["new_name"])
     
     ## options
-    STAR_exe = set_config.get_exe("STAR", Debug=True)
+    STAR_exe = set_config.get_exe("STAR", Debug=Debug)
     cwd_folder = os.path.abspath("./")
     folder=files_functions.create_subfolder('STAR_files', cwd_folder)
 
@@ -190,6 +190,9 @@ def mapReads_module(options, pd_samples_retrieved, outdir_dict):
         print ("+ genomeDir provided.")
         options.genomeDir = os.path.abspath(options.genomeDir)
         
+    ## remove previous reference genome from memory
+    mapReads.remove_Genome(STAR_exe, options.genomeDir, folder, options.threads)
+    
     ## load reference genome
     mapReads.load_Genome(folder, STAR_exe, options.genomeDir, threads_job)
     

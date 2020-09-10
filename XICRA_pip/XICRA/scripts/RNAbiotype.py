@@ -18,8 +18,7 @@ from XICRA.config import set_config
 
 ## import HCGB
 from HCGB.functions import system_call_functions, main_functions, time_functions
-from HCGB.functions import files_functions
-from HCGB.functions import math_functions
+from HCGB.functions import files_functions, math_functions
 
 ## plots
 import pandas as pd
@@ -369,7 +368,7 @@ def pie_plot_results(RNAbiotypes_stats_file, name, folder, Debug):
 		## print time stamps
 		time_functions.print_time_stamp(filename_stamp_plot)
 		filename_stamp_all = folder + '/.success_all'
-		time_functions.print_time_stamp(filename_stamp_plot)
+		time_functions.print_time_stamp(filename_stamp_all)
 		
 #######################################################################
 def main():
