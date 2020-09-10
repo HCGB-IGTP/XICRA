@@ -56,7 +56,7 @@ def remove_Genome(STAR_exe, genomeDir, remove_folder, num_threads):
     return (remove_code)
 
 ############################################################
-def mapReads(option, read, folder, name, STAR_exe, genomeDir, limitRAM_option, num_threads):
+def mapReads(option, read, folder, name, STAR_exe, genomeDir, limitRAM_option, num_threads, Debug):
     """
     Map reads using STAR software. Some parameters are set for small RNA Seq.
 

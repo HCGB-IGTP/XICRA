@@ -163,8 +163,8 @@ def mapReads_module(options, pd_samples_retrieved, outdir_dict):
     sample_frame = pd_samples_retrieved.groupby(["new_name"])
     
     ## options
-    STAR_exe = set_config.get_exe("STAR")
-    folder = ""
+    STAR_exe = set_config.get_exe("STAR", Debug=True)
+    folder = os.path.abspath("./")
 
     ## For many samples it will have to load genome index in memory every time.
     ## For a unique sample it will not matter. Take care genome might stay in memory.
