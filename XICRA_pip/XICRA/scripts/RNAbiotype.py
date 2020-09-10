@@ -18,6 +18,7 @@ from XICRA.config import set_config
 ## import HCGB
 from HCGB.functions import system_call_functions
 from HCGB.functions import files_functions
+from HCGB.functions import math_functions
 
 ## plots
 import pandas as pd
@@ -47,10 +48,18 @@ def percentage(percent, whole):
 #####################
 def featureCount_call(featureCount_exe, path, gtf_file, bam_file, name, threads, Debug):
 	
-	## 	
-	print("\tParsing sample: " + name)
+	## folder for results
+	if not os.path.isdir(path):
+		files_functions.create_folder(path)
+
 	out_file = os.path.join(path, 'featureCount.out')
 	logfile = os.path.join(path, name + '_RNAbiotype.log')
+
+	## debugging messages
+	if Debug:
+		print ("** DEBUG:")
+		print ("out_file: " + out_file)
+		print ("logfile: " + logfile)
 
 	## send command for feature count
 	cmd_featureCount = ('%s --largestOverlap -T %s -p -t exon -g transcript_biotype -a %s -o %s %s 2> %s' %(
@@ -60,13 +69,21 @@ def featureCount_call(featureCount_exe, path, gtf_file, bam_file, name, threads,
 	#Before: cmd_featureCount = ('%s -M -O -T %s -p -t exon -g transcript_biotype -a %s -o %s %s 2> %s' %(featureCount_exe, threads, gtf_file, out_file, bam_file, logfile))
 		
 	## system call
-	cmd_featureCount_code = system_call_functions.system_call(cmd_featureCount, False, False)
+	cmd_featureCount_code = system_call_functions.system_call(cmd_featureCount, False, True)
 	if not cmd_featureCount_code:
 		print("** ERROR: featureCount failed for sample " + name)
 		exit()
 	
 	(extended_Stats, RNAbiotypes_stats) = parse_featureCount(out_file, path, name, bam_file, Debug)
-	
+
+	## debugging messages
+	if Debug:
+		print ("** DEBUG:")
+		print ("extended_Stats")
+		print (extended_Stats)
+		print ("RNAbiotypes_stats")
+		print (RNAbiotypes_stats)
+		
 	return (extended_Stats, RNAbiotypes_stats)
 
 #######################################################################
@@ -80,9 +97,16 @@ def parse_featureCount(out_file, path, name, bam_file, Debug):
 	
 	
 	"""
+	
+	## debugging messages
+	if Debug:
+		print ("** DEBUG:")
+		print ("Parse results for sample: " + name)
+		
+		
 	## parse results
 	out_tsv_file = open(out_file + '.tsv', 'w')
-	RNA_biotypes_file_name = os.path.join(path, name + '_RNAbiotypes.tsv')
+	RNA_biotypes_file_name = os.path.join(path, name + '_RNAbiotype.tsv')
 	RNA_biotypes_file = open(RNA_biotypes_file_name, 'w')
 	tRNA_count = 0
 	
@@ -151,6 +175,12 @@ def parse_featureCount(out_file, path, name, bam_file, Debug):
 	### STAR mapping		
 	## -------------------------------- ##
 	if files_functions.is_non_zero_file(mapping_stats):
+		## debugging messages
+		if Debug:
+			print ("** DEBUG:")
+			print ("STAR mapping for sample: " + name)
+			print ("mapping_folder: " + mapping_folder)
+
 		mapping_stats_file = open(mapping_stats)
 		mapping_stats_file_text = mapping_stats_file.read()
 		mapping_stats_file_lines = mapping_stats_file_text.splitlines()	
@@ -170,17 +200,25 @@ def parse_featureCount(out_file, path, name, bam_file, Debug):
 			elif unmap_search:
 				perc_tmp = line.split('\t')[-1]
 				count_reads = percentage(perc_tmp, total_input_reads)
+				#count_reads = math_functions.percentage(perc_tmp, total_input_reads)
 				count_unmap = count_unmap + count_reads
 	else:
+
 		## -------------------------------- ##
 		## tophat
 		## -------------------------------- ##
-		
+
 		mapping_stats = mapping_folder + '/align_summary.txt' 
 		count_map = 0
 		total_input_reads = 0
 		
 		if files_functions.is_non_zero_file(mapping_stats):
+			## debugging messages
+			if Debug:
+				print ("** DEBUG:")
+				print ("tophat mapping for sample: " + name)
+				print ("mapping_folder: " + mapping_folder)
+			
 			mapping_stats_file = open(mapping_stats)
 			mapping_stats_file_text = mapping_stats_file.read()
 			mapping_stats_file_lines = mapping_stats_file_text.splitlines()	
@@ -263,12 +301,10 @@ def generate_matrix(dict_files):
 #######################################################################
 def pie_plot_results(RNAbiotypes_stats, Debug):
 	# PLOT and SHOW results
-	## parse results	
-	df_genetype = RNAbiotypes_stats #pd.read_csv(RNA_biotypes, sep="\t", header=None)	
 
 	# create plot
 	plt.figure(figsize=(16,8))
-	df_genetype_2 = pd.DataFrame({'Type':df_genetype[0], 'Read_Count':df_genetype[1]}).sort_values(by=['Read_Count'])
+	df_genetype_2 = pd.DataFrame({'Type':RNAbiotypes_stats[0], 'Read_Count':RNAbiotypes_stats[1]}).sort_values(by=['Read_Count'])
 
 	## get total count
 	df_genetype_ReadCount_sum = df_genetype_2['Read_Count'].sum()
@@ -303,15 +339,15 @@ def main():
 	## ARGV
 	if len (sys.argv) < 6:
 		print ("\nUsage:")
-		print ("python3 %s bam_file folder gtf_file featureCount_bin logFile threads\n" %os.path.realpath(__file__))
+		print ("python3 %s bam_file folder gtf_file threads name featureCount_bin\n" %os.path.realpath(__file__))
 		exit()
 	
-	bam_file = os.path.abspath(argv[2])
-	folder = argv[3]
-	gtf_file = argv[4]
-	threads = argv[5]
-	name = argv[6]
-	featureCount_exe = argv[7]
+	bam_file = os.path.abspath(argv[1])
+	folder = os.path.abspath(argv[2])
+	gtf_file = os.path.abspath(argv[3])
+	threads = argv[4]
+	name = argv[5]
+	featureCount_exe = argv[6]
 
 	## Debug
 	Debug=True
