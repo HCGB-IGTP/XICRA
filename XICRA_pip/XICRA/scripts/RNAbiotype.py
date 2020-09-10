@@ -11,6 +11,7 @@ import re
 import sys
 from sys import argv
 import subprocess
+from termcolor import colored
 
 ## import my modules
 from XICRA.config import set_config
@@ -87,12 +88,12 @@ def biotype_all(featureCount_exe, path, gtf_file, bam_file, name, threads, Debug
 		if Debug:
 			print ("** DEBUG:")
 			print ("extended_Stats: " + extended_Stats_file)
-			print (main_functions.get_data(extended_Stats_file, ',', 'header=None'))
+			print (main_functions.get_data(extended_Stats_file, '\t', 'header=None'))
 			print ("RNAbiotypes_stats: " + RNAbiotypes_stats_file)
-			print (main_functions.get_data(RNAbiotypes_stats_file, ',', 'header=None'))
+			print (main_functions.get_data(RNAbiotypes_stats_file, '\t', 'header=None'))
 
 		## plot results
-		pie_plot_results(RNAbiotypes_stats_file, name, folder, Debug)
+		pie_plot_results(RNAbiotypes_stats_file, name, path, Debug)
 		
 	return ()
 
