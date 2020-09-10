@@ -16,7 +16,7 @@ import subprocess
 from XICRA.config import set_config
 
 ## import HCGB
-from HCGB.functions import system_call_functions, main_functions
+from HCGB.functions import system_call_functions, main_functions, time_functions
 from HCGB.functions import files_functions
 ##from HCGB.functions import math_functions
 
@@ -46,7 +46,7 @@ def percentage(percent, whole):
 	return int(value)
 
 #####################
-def featureCount_call(featureCount_exe, path, gtf_file, bam_file, name, threads, Debug):
+def biotype_all(featureCount_exe, path, gtf_file, bam_file, name, threads, Debug):
 	
 	## folder for results
 	if not os.path.isdir(path):
@@ -55,35 +55,55 @@ def featureCount_call(featureCount_exe, path, gtf_file, bam_file, name, threads,
 	out_file = os.path.join(path, 'featureCount.out')
 	logfile = os.path.join(path, name + '_RNAbiotype.log')
 
-	## debugging messages
-	if Debug:
-		print ("** DEBUG:")
-		print ("featureCounts system call for sample: " + name)
-		print ("out_file: " + out_file)
-		print ("logfile: " + logfile)
+	filename_stamp_all = path + '/.success_all'
+	if os.path.isfile(filename_stamp_all):
+		stamp = time_functions.read_time_stamp(filename_stamp_all)
+		print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'RNAbiotype'), 'yellow'))
+		return()
 
-	## send command for feature count
-	cmd_featureCount = ('%s --largestOverlap -T %s -p -t exon -g transcript_biotype -a %s -o %s %s 2> %s' %(
-		featureCount_exe, threads, gtf_file, out_file, bam_file, logfile)
-	)
-	## do not count multi mapping, assign only to one feature and in case of ambiguity assign to longest overlap
-	#Before: cmd_featureCount = ('%s -M -O -T %s -p -t exon -g transcript_biotype -a %s -o %s %s 2> %s' %(featureCount_exe, threads, gtf_file, out_file, bam_file, logfile))
-		
-	## system call
-	cmd_featureCount_code = system_call_functions.system_call(cmd_featureCount, False, True)
-	if not cmd_featureCount_code:
-		print("** ERROR: featureCount failed for sample " + name)
-		exit()
-	
-	(extended_Stats, RNAbiotypes_stats) = parse_featureCount(out_file, path, name, bam_file, Debug)
+	else:
+		filename_stamp_featureCounts = path + '/.success_featureCounts'
+		if os.path.isfile(filename_stamp_featureCounts):
+			stamp = time_functions.read_time_stamp(filename_stamp_featureCounts)
+			print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'featureCounts'), 'yellow'))
+		else:
 
-	## debugging messages
-	if Debug:
-		print ("** DEBUG:")
-		print ("extended_Stats: " + extended_Stats)
-		print ("RNAbiotypes_stats: " + RNAbiotypes_stats)
+			## debugging messages
+			if Debug:
+				print ("** DEBUG:")
+				print ("featureCounts system call for sample: " + name)
+				print ("out_file: " + out_file)
+				print ("logfile: " + logfile)
 		
-	return (extended_Stats, RNAbiotypes_stats)
+			## send command for feature count
+			cmd_featureCount = ('%s --largestOverlap -T %s -p -t exon -g transcript_biotype -a %s -o %s %s 2> %s' %(
+				featureCount_exe, threads, gtf_file, out_file, bam_file, logfile)
+			)
+			## do not count multi mapping, assign only to one feature and in case of ambiguity assign to longest overlap
+			#Before: cmd_featureCount = ('%s -M -O -T %s -p -t exon -g transcript_biotype -a %s -o %s %s 2> %s' %(featureCount_exe, threads, gtf_file, out_file, bam_file, logfile))
+				
+			## system call
+			cmd_featureCount_code = system_call_functions.system_call(cmd_featureCount, False, True)
+			if not cmd_featureCount_code:
+				print("** ERROR: featureCount failed for sample " + name)
+				exit()
+				
+			## print time stamp
+			time_functions.print_time_stamp(filename_stamp_featureCounts)
+		
+		## parse results
+		(extended_Stats, RNAbiotypes_stats) = parse_featureCount(out_file, path, name, bam_file, Debug)
+		
+		## debugging messages
+		if Debug:
+			print ("** DEBUG:")
+			print ("extended_Stats: " + extended_Stats)
+			print ("RNAbiotypes_stats: " + RNAbiotypes_stats)
+			
+		## plot results
+		pie_plot_results(RNAbiotypes_stats_file, name, folder, Debug)
+		
+	return ()
 
 #######################################################################
 def parse_featureCount(out_file, path, name, bam_file, Debug):
@@ -96,154 +116,165 @@ def parse_featureCount(out_file, path, name, bam_file, Debug):
 	
 	
 	"""
-	
-	## debugging messages
-	if Debug:
-		print ("** DEBUG:")
-		print ("Parse results for sample: " + name)
-		
-		
-	## parse results
+
+	## file names
 	out_tsv_file_name = out_file + '.tsv'
-	out_tsv_file = open(out_tsv_file_name, 'w')
 	RNA_biotypes_file_name = os.path.join(path, name + '_RNAbiotype.tsv')
-	RNA_biotypes_file = open(RNA_biotypes_file_name, 'w')
-	tRNA_count = 0
+
+	##
+	filename_stamp_parse = path + '/.success_parse'
+	if os.path.isfile(filename_stamp_parse):
+		stamp = time_functions.read_time_stamp(filename_stamp_parse)
+		print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'parse results'), 'yellow'))
+	else:
 	
-	##########################################
-	### read count file
-	##########################################
-	count_file = open(out_file)
-	count_file_text = count_file.read()
-	count_file_lines = count_file_text.splitlines()	
-
-	for line in count_file_lines:
-		if line.startswith('#'):
-			continue
-		elif line.startswith('Geneid'):
-			continue
-		else:
-			ID = line.split('\t')[0]
-			count = int(line.split('\t')[-1])
-			string2write_raw = "%s\t%s\n" %(ID, count)
-			out_tsv_file.write(string2write_raw)
-
-			tRNA_search = re.search(r".*tRNA", ID)
-			if tRNA_search:
-				tRNA_count = int(tRNA_count) + int(count)				
-			elif (count > 0):
-				RNA_biotypes_file.write(string2write_raw)
-	
-	## count and summary tRNA
-	string2write = "tRNA\t%s\n" %tRNA_count
-	RNA_biotypes_file.write(string2write)
-	RNA_biotypes_file.close()
-			
-	##########################################
-	### read summary count file
-	##########################################
-	summary_count_file = open(out_file + '.summary')
-	summary_count_file_text = summary_count_file.read()
-	summary_count_file_lines = summary_count_file_text.splitlines()	
-
-	for line in summary_count_file_lines:
-		if line.startswith('Status'):
-			continue
-		elif line.startswith('Assigned'):
-			continue
-		else:
-			## adds Unassigned_Ambiguity
-			## adds Unassigned_NoFeatures
-			ID = line.split('\t')[0]
-			count = int(line.split('\t')[-1])
-
-			## skip empty entries
-			if count == 0:
-				continue
-			string2write_raw = "%s\t%s\n" %(ID, count)
-			out_tsv_file.write(string2write_raw)
-
-	##########################################
-	## get mapping statistics according to mapping software
-	##########################################
-	count_multi = 0
-	count_unmap = 0
-	mapping_folder = os.path.dirname(bam_file)
-	mapping_stats = mapping_folder + '/Log.final.out'
-	
-	## -------------------------------- ##
-	### STAR mapping		
-	## -------------------------------- ##
-	if files_functions.is_non_zero_file(mapping_stats):
 		## debugging messages
 		if Debug:
 			print ("** DEBUG:")
-			print ("STAR mapping available for sample: " + name)
-			print ("mapping_folder: " + mapping_folder)
-
-		mapping_stats_file = open(mapping_stats)
-		mapping_stats_file_text = mapping_stats_file.read()
-		mapping_stats_file_lines = mapping_stats_file_text.splitlines()	
-
-		for line in mapping_stats_file_lines:
-			multi_search = re.search(r".*Number of reads mapped to", line)
-			unmap_search = re.search(r".*unmapped.*", line)
-			input_search = re.search(r".*input reads.*", line)
+			print ("Parse results for sample: " + name)
+			
+		## parse results
+		out_tsv_file = open(out_tsv_file_name, 'w')
+		RNA_biotypes_file = open(RNA_biotypes_file_name, 'w')
+		tRNA_count = 0
 		
-			if input_search:
-				total_input_reads = int(line.split('\t')[-1])
-
-			if multi_search:
-				count_tmp = int(line.split('\t')[-1])
-				count_multi = count_multi + count_tmp
-
-			elif unmap_search:
-				perc_tmp = line.split('\t')[-1]
-				count_reads = percentage(perc_tmp, total_input_reads)
-				#count_reads = math_functions.percentage(perc_tmp, total_input_reads)
-				count_unmap = count_unmap + count_reads
-	else:
-
-		## -------------------------------- ##
-		## tophat
-		## -------------------------------- ##
-
-		mapping_stats = mapping_folder + '/align_summary.txt' 
-		count_map = 0
-		total_input_reads = 0
+		##########################################
+		### read count file
+		##########################################
+		count_file = open(out_file)
+		count_file_text = count_file.read()
+		count_file_lines = count_file_text.splitlines()	
+	
+		for line in count_file_lines:
+			if line.startswith('#'):
+				continue
+			elif line.startswith('Geneid'):
+				continue
+			else:
+				ID = line.split('\t')[0]
+				count = int(line.split('\t')[-1])
+				string2write_raw = "%s\t%s\n" %(ID, count)
+				out_tsv_file.write(string2write_raw)
+	
+				tRNA_search = re.search(r".*tRNA", ID)
+				if tRNA_search:
+					tRNA_count = int(tRNA_count) + int(count)				
+				elif (count > 0):
+					RNA_biotypes_file.write(string2write_raw)
 		
+		## count and summary tRNA
+		string2write = "tRNA\t%s\n" %tRNA_count
+		RNA_biotypes_file.write(string2write)
+		RNA_biotypes_file.close()
+				
+		##########################################
+		### read summary count file
+		##########################################
+		summary_count_file = open(out_file + '.summary')
+		summary_count_file_text = summary_count_file.read()
+		summary_count_file_lines = summary_count_file_text.splitlines()	
+	
+		for line in summary_count_file_lines:
+			if line.startswith('Status'):
+				continue
+			elif line.startswith('Assigned'):
+				continue
+			else:
+				## adds Unassigned_Ambiguity
+				## adds Unassigned_NoFeatures
+				ID = line.split('\t')[0]
+				count = int(line.split('\t')[-1])
+	
+				## skip empty entries
+				if count == 0:
+					continue
+				string2write_raw = "%s\t%s\n" %(ID, count)
+				out_tsv_file.write(string2write_raw)
+	
+		##########################################
+		## get mapping statistics according to mapping software
+		##########################################
+		count_multi = 0
+		count_unmap = 0
+		mapping_folder = os.path.dirname(bam_file)
+		mapping_stats = mapping_folder + '/Log.final.out'
+		
+		## -------------------------------- ##
+		### STAR mapping		
+		## -------------------------------- ##
 		if files_functions.is_non_zero_file(mapping_stats):
 			## debugging messages
 			if Debug:
 				print ("** DEBUG:")
-				print ("tophat mapping available for sample: " + name)
+				print ("STAR mapping available for sample: " + name)
 				print ("mapping_folder: " + mapping_folder)
-			
+	
 			mapping_stats_file = open(mapping_stats)
 			mapping_stats_file_text = mapping_stats_file.read()
 			mapping_stats_file_lines = mapping_stats_file_text.splitlines()	
-
+	
 			for line in mapping_stats_file_lines:
-				map_search2 = re.search(r"Aligned.*\:\s+(\d+).*", line)
-				input_search2 = re.search(r".*Input.*\:\s+(\d+).*", line)
-				if input_search2:
-					total_input_reads = input_search2.group(1)
-				if map_search2:
-					count_map = map_search2.group(1)
+				multi_search = re.search(r".*Number of reads mapped to", line)
+				unmap_search = re.search(r".*unmapped.*", line)
+				input_search = re.search(r".*input reads.*", line)
+			
+				if input_search:
+					total_input_reads = int(line.split('\t')[-1])
 	
-			####
-			count_unmap = int(total_input_reads) - int(count_map)
-
+				if multi_search:
+					count_tmp = int(line.split('\t')[-1])
+					count_multi = count_multi + count_tmp
+	
+				elif unmap_search:
+					perc_tmp = line.split('\t')[-1]
+					count_reads = percentage(perc_tmp, total_input_reads)
+					#count_reads = math_functions.percentage(perc_tmp, total_input_reads)
+					count_unmap = count_unmap + count_reads
 		else:
-			## other
-			print ("Neither tophat or STAR..., no mapping statistics")
-
-	### print mapping stats
-	string2write_unmap = "unmapped\t%s\n" %count_unmap
-	out_tsv_file.write(string2write_unmap)
 	
-	## close files
-	out_tsv_file.close()
+			## -------------------------------- ##
+			## tophat
+			## -------------------------------- ##
+	
+			mapping_stats = mapping_folder + '/align_summary.txt' 
+			count_map = 0
+			total_input_reads = 0
+			
+			if files_functions.is_non_zero_file(mapping_stats):
+				## debugging messages
+				if Debug:
+					print ("** DEBUG:")
+					print ("tophat mapping available for sample: " + name)
+					print ("mapping_folder: " + mapping_folder)
+				
+				mapping_stats_file = open(mapping_stats)
+				mapping_stats_file_text = mapping_stats_file.read()
+				mapping_stats_file_lines = mapping_stats_file_text.splitlines()	
+	
+				for line in mapping_stats_file_lines:
+					map_search2 = re.search(r"Aligned.*\:\s+(\d+).*", line)
+					input_search2 = re.search(r".*Input.*\:\s+(\d+).*", line)
+					if input_search2:
+						total_input_reads = input_search2.group(1)
+					if map_search2:
+						count_map = map_search2.group(1)
+		
+				####
+				count_unmap = int(total_input_reads) - int(count_map)
+	
+			else:
+				## other
+				print ("Neither tophat or STAR..., no mapping statistics")
+	
+		### print mapping stats
+		string2write_unmap = "unmapped\t%s\n" %count_unmap
+		out_tsv_file.write(string2write_unmap)
+		
+		## close files
+		out_tsv_file.close()
+
+		## print timestamp
+		time_functions.print_time_stamp(filename_stamp_parse)
 
 	return(out_tsv_file_name, RNA_biotypes_file_name)
 
@@ -266,9 +297,7 @@ def RNAbiotype_module_call(samples_dict, output_dict, gtf_file, threads, Debug):
 		print (samples_dict[sample])
 		print (output_dict[sample])
 		
-		#(extended_Stats, RNAbiotypes_stats) = featureCount_call(featureCount_exe, folder, gtf_file, bam_file, name, threads, Debug)
-		#pie_plot_results(RNAbiotypes_stats, Debug)
-
+		## biotype_all(featureCount_exe, folder, gtf_file, bam_file, name, threads, Debug)
 
 	return()
 
@@ -299,41 +328,57 @@ def generate_matrix(dict_files):
 	##
 
 #######################################################################
-def pie_plot_results(RNAbiotypes_stats_file, Debug):
-	# PLOT and SHOW results
-	RNAbiotypes_stats = main_functions.get_data(RNAbiotypes_stats_file, '\t', 'index_col=0')
+def pie_plot_results(RNAbiotypes_stats_file, name, folder, Debug):
+	
+	##
+	filename_stamp_plot = folder + '/.success_plot'
+	if os.path.isfile(filename_stamp_plot):
+		stamp = time_functions.read_time_stamp(filename_stamp_plot)
+		print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'plot results'), 'yellow'))
+	else:
+	
+		# PLOT and SHOW results
+		RNAbiotypes_stats = main_functions.get_data(RNAbiotypes_stats_file, '\t', 'header=None')
+	
+		# create plot
+		plt.figure(figsize=(16,8))
+		df_genetype_2 = pd.DataFrame({'Type':RNAbiotypes_stats[0], 'Read_Count':RNAbiotypes_stats[1]}).sort_values(by=['Read_Count'])
+	
+		## get total count
+		df_genetype_ReadCount_sum = df_genetype_2['Read_Count'].sum()
+	
+		## filter 1% values
+		minimun = df_genetype_ReadCount_sum * 0.01
+		df_genetype_filter_greater = df_genetype_2[ df_genetype_2['Read_Count'] >= minimun ]
+		df_genetype_filter_smaller = df_genetype_2[ df_genetype_2['Read_Count'] < minimun ]
+	
+		## merge and generate Other class
+		df_genetype_filter_smaller_sum = df_genetype_filter_smaller['Read_Count'].sum() ## total filter smaller
+		df_genetype_filter_greater2 = df_genetype_filter_greater.append({'Read_Count':df_genetype_filter_smaller_sum, 'Type':'Other'}, ignore_index=True)
+	
+		## Create Plot
+		ax1 = plt.subplot(121, aspect='equal')
+		df_genetype_filter_greater2.plot.pie(y = 'Read_Count', ax=ax1, autopct='%1.2f%%', shadow=False, labels=df_genetype_filter_greater2['Type'], legend = False)
+	
+		# plot table
+		ax2 = plt.subplot(122)
+		plt.axis('off')
+		tbl = ax2.table(cellText=df_genetype_2.values, colLabels=df_genetype_2.columns, 
+					loc='center', rowLoc='left', cellLoc='center', colWidths=[0.15, 0.5])
+		tbl.auto_set_font_size(True)
+		tbl.scale(1.1,1.1)
+	
+		## set PDF name
+		name_figure = os.path.join(folder, name + '-RNAbiotypes.pdf')
+	
+		## generate image
+		plt.savefig(name_figure)
 
-	# create plot
-	plt.figure(figsize=(16,8))
-	df_genetype_2 = pd.DataFrame({'Type':RNAbiotypes_stats[0], 'Read_Count':RNAbiotypes_stats[1]}).sort_values(by=['Read_Count'])
-
-	## get total count
-	df_genetype_ReadCount_sum = df_genetype_2['Read_Count'].sum()
-
-	## filter 1% values
-	minimun = df_genetype_ReadCount_sum * 0.01
-	df_genetype_filter_greater = df_genetype_2[ df_genetype_2['Read_Count'] >= minimun ]
-	df_genetype_filter_smaller = df_genetype_2[ df_genetype_2['Read_Count'] < minimun ]
-
-	## merge and generate Other class
-	df_genetype_filter_smaller_sum = df_genetype_filter_smaller['Read_Count'].sum() ## total filter smaller
-	df_genetype_filter_greater2 = df_genetype_filter_greater.append({'Read_Count':df_genetype_filter_smaller_sum, 'Type':'Other'}, ignore_index=True)
-
-	## Create Plot
-	ax1 = plt.subplot(121, aspect='equal')
-	df_genetype_filter_greater2.plot.pie(y = 'Read_Count', ax=ax1, autopct='%1.2f%%', shadow=False, labels=df_genetype_filter_greater2['Type'], legend = False)
-
-	# plot table
-	ax2 = plt.subplot(122)
-	plt.axis('off')
-	tbl = ax2.table(cellText=df_genetype_2.values, colLabels=df_genetype_2.columns, loc='center', rowLoc='left', cellLoc='center', colWidths=[0.15, 0.5])
-	tbl.auto_set_font_size(True)
-	tbl.scale(1.1,1.1)
-
-	## generate image
-	plt.savefig(name_figure)
-
-
+		## print time stamps
+		time_functions.print_time_stamp(filename_stamp_plot)
+		filename_stamp_all = folder + '/.success_all'
+		time_functions.print_time_stamp(filename_stamp_plot)
+		
 #######################################################################
 def main():
 	
@@ -354,8 +399,7 @@ def main():
 	Debug=True
 	
 	## variables
-	(extended_Stats_file, RNAbiotypes_stats_file) = featureCount_call(featureCount_exe, folder, gtf_file, bam_file, name, threads, Debug)
-	pie_plot_results(RNAbiotypes_stats_file, Debug)
+	biotype_all(featureCount_exe, folder, gtf_file, bam_file, name, threads, Debug)
 	
 	
 ######
