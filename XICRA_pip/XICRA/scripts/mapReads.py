@@ -32,8 +32,7 @@ def create_genomeDir(folder, STAR_exe, num_threads, fasta_file, limitGenomeGener
 def load_Genome(folder, STAR_exe, genomeDir, num_threads):
     
     ## --genomeLoad LoadAndExit
-    LoadDir = 'LoadMem'
-    Load_folder = files_functions.create_subfolder(LoadDir, folder)
+    Load_folder = files_functions.create_subfolder('LoadMem', folder)
     cmd_LD = "%s --genomeDir %s --runThreadN %s --outFileNamePrefix %s --genomeLoad LoadAndExit" %(
         STAR_exe, genomeDir, num_threads, Load_folder)
     
@@ -42,13 +41,12 @@ def load_Genome(folder, STAR_exe, genomeDir, num_threads):
     return (load_code)
 
 ############################################################
-def remove_Genome(STAR_exe, genomeDir, remove_folder, num_threads):
+def remove_Genome(STAR_exe, genomeDir, folder, num_threads):
     
     ## --genomeLoad Remove
-    removeDir = 'RemoveMem'
-    remove_folder = files_functions.create_subfolder(removeDir, folder)
+    remove_folder = files_functions.create_subfolder('RemoveMem', folder)
     cmd_RM = "%s --genomeDir %s --outFileNamePrefix %s --runThreadN %s --genomeLoad Remove" %(
-        STAR_exe, genomeDir, folder, num_threads)
+        STAR_exe, genomeDir, remove_folder, num_threads)
     
     ## send command    
     print ('\t+ Removing memory loaded for STAR mapping')

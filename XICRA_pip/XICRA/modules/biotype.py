@@ -93,6 +93,9 @@ def run_biotype(options):
         print ('+ Mode: trim.\n+ Extension: ')
         print ("[ _trim_ ]\n")
         pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "trim", ['_trim_'], options.debug)
+        
+        ## Discard if joined reads: use trimmed single-end or paired-end
+        pd_samples_retrieved = pd_samples_retrieved[pd_samples_retrieved['ext'] != '_joined']   
     
     ## debug message
     if (Debug):
