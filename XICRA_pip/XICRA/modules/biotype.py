@@ -28,6 +28,7 @@ from HCGB.functions import fasta_functions
 from HCGB.functions import time_functions
 from HCGB.functions import aesthetics_functions
 from HCGB.functions import files_functions
+from HCGB.functions import main_functions
 
 ##############################################
 def run_biotype(options):
@@ -63,10 +64,10 @@ def run_biotype(options):
     else:
         options.pair = True
     
-    functions.aesthetics_functions.pipeline_header()
-    functions.aesthetics_functions.boxymcboxface("RNA biotype analysis")
+    aesthetics_functions.pipeline_header()
+    aesthetics_functions.boxymcboxface("RNA biotype analysis")
     print ("--------- Starting Process ---------")
-    functions.time_functions.print_time()
+    time_functions.print_time()
 
     ## absolute path for in & out
     input_dir = os.path.abspath(options.input)
@@ -101,7 +102,7 @@ def run_biotype(options):
     ## generate output folder, if necessary
     print ("\n+ Create output folder(s):")
     if not options.project:
-        functions.files_functions.create_folder(outdir)
+        files_functions.create_folder(outdir)
     ## for samples
     mapping_outdir_dict = files_functions.outdir_project(outdir, options.project, pd_samples_retrieved, "map", options.debug)
     
@@ -137,7 +138,7 @@ def run_biotype(options):
 
     
     print ("\n*************** Finish *******************")
-    start_time_partial = functions.time_functions.timestamp(start_time_total)
+    start_time_partial = time_functions.timestamp(start_time_total)
     print ("\n+ Exiting join module.")
     return()
 
@@ -147,7 +148,7 @@ def mapReads_module(options, pd_samples_retrieved, outdir_dict):
     
     ## optimize threads
     name_list = set(pd_samples_retrieved["new_name"].tolist())
-    threads_job = functions.main_functions.optimize_threads(options.threads, len(name_list)) ## threads optimization
+    threads_job = main_functions.optimize_threads(options.threads, len(name_list)) ## threads optimization
     max_workers_int = int(options.threads/threads_job)
 
     ## debug message

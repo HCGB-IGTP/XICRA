@@ -207,8 +207,8 @@ options_group_RNAbiotype.add_argument("--limitRAM", type=int, help="limitRAM par
 
 options_reference_RNAbiotype_group = subparser_RNAbiotype.add_argument_group("Reference genome")
 exclusive_reference_group = options_reference_RNAbiotype_group.add_mutually_exclusive_group()
-exclusive_reference_group.add_argument("--fasta", type=int, help="Reference genome to map reads.", default=2)
-exclusive_reference_group.add_argument("--genomeDir", type=int, help="STAR genomeDir for reference genome.", default=2)
+exclusive_reference_group.add_argument("--fasta", help="Reference genome to map reads.")
+exclusive_reference_group.add_argument("--genomeDir", help="STAR genomeDir for reference genome.")
 
 info_group_RNAbiotype = subparser_RNAbiotype.add_argument_group("Additional information")
 info_group_RNAbiotype.add_argument("--help_format", action="store_true", help="Show additional help on name format for files.")

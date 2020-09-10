@@ -14,7 +14,6 @@ import subprocess
 
 from HCGB.functions import system_call_functions
 from HCGB.functions import files_functions
-from macpath import join
 
 ############################################################
 def create_genomeDir(folder, STAR_exe, num_threads, fasta_file, limitGenomeGenerateRAM):
@@ -137,7 +136,9 @@ if __name__== "__main__":
 #######
 # Usage: STAR  [options]... --genomeDir /path/to/genome/index/   --readFilesIn R1.fq R2.fq
 # Spliced Transcripts Alignment to a Reference (c) Alexander Dobin, 2009-2019
-# 
+########
+
+#######
 # For more details see:
 # <https://github.com/alexdobin/STAR>
 # <https://github.com/alexdobin/STAR/blob/master/doc/STARmanual.pdf>
@@ -909,4 +910,4 @@ if __name__== "__main__":
 #                             TopCells        ... only report top cells by UMI count, followed by the excat number of cells
 #                             None            ... do not output filtered cells
 # 
-
+#######
