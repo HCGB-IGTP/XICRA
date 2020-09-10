@@ -16,9 +16,9 @@ import subprocess
 from XICRA.config import set_config
 
 ## import HCGB
-from HCGB.functions import system_call_functions
+from HCGB.functions import system_call_functions, main_functions
 from HCGB.functions import files_functions
-from HCGB.functions import math_functions
+##from HCGB.functions import math_functions
 
 ## plots
 import pandas as pd
@@ -58,6 +58,7 @@ def featureCount_call(featureCount_exe, path, gtf_file, bam_file, name, threads,
 	## debugging messages
 	if Debug:
 		print ("** DEBUG:")
+		print ("featureCounts system call for sample: " + name)
 		print ("out_file: " + out_file)
 		print ("logfile: " + logfile)
 
@@ -79,10 +80,8 @@ def featureCount_call(featureCount_exe, path, gtf_file, bam_file, name, threads,
 	## debugging messages
 	if Debug:
 		print ("** DEBUG:")
-		print ("extended_Stats")
-		print (extended_Stats)
-		print ("RNAbiotypes_stats")
-		print (RNAbiotypes_stats)
+		print ("extended_Stats: " + extended_Stats)
+		print ("RNAbiotypes_stats: " + RNAbiotypes_stats)
 		
 	return (extended_Stats, RNAbiotypes_stats)
 
@@ -105,7 +104,8 @@ def parse_featureCount(out_file, path, name, bam_file, Debug):
 		
 		
 	## parse results
-	out_tsv_file = open(out_file + '.tsv', 'w')
+	out_tsv_file_name = out_file + '.tsv'
+	out_tsv_file = open(out_tsv_file_name, 'w')
 	RNA_biotypes_file_name = os.path.join(path, name + '_RNAbiotype.tsv')
 	RNA_biotypes_file = open(RNA_biotypes_file_name, 'w')
 	tRNA_count = 0
@@ -178,7 +178,7 @@ def parse_featureCount(out_file, path, name, bam_file, Debug):
 		## debugging messages
 		if Debug:
 			print ("** DEBUG:")
-			print ("STAR mapping for sample: " + name)
+			print ("STAR mapping available for sample: " + name)
 			print ("mapping_folder: " + mapping_folder)
 
 		mapping_stats_file = open(mapping_stats)
@@ -216,7 +216,7 @@ def parse_featureCount(out_file, path, name, bam_file, Debug):
 			## debugging messages
 			if Debug:
 				print ("** DEBUG:")
-				print ("tophat mapping for sample: " + name)
+				print ("tophat mapping available for sample: " + name)
 				print ("mapping_folder: " + mapping_folder)
 			
 			mapping_stats_file = open(mapping_stats)
@@ -245,7 +245,7 @@ def parse_featureCount(out_file, path, name, bam_file, Debug):
 	## close files
 	out_tsv_file.close()
 
-	return(out_tsv_file, RNA_biotypes_file)
+	return(out_tsv_file_name, RNA_biotypes_file_name)
 
 #######################################################################
 def RNAbiotype_module_call(samples_dict, output_dict, gtf_file, threads, Debug):
@@ -299,8 +299,9 @@ def generate_matrix(dict_files):
 	##
 
 #######################################################################
-def pie_plot_results(RNAbiotypes_stats, Debug):
+def pie_plot_results(RNAbiotypes_stats_file, Debug):
 	# PLOT and SHOW results
+	RNAbiotypes_stats = main_functions.get_data(RNAbiotypes_stats_file, '\t', 'index_col=0')
 
 	# create plot
 	plt.figure(figsize=(16,8))
@@ -353,8 +354,8 @@ def main():
 	Debug=True
 	
 	## variables
-	(extended_Stats, RNAbiotypes_stats) = featureCount_call(featureCount_exe, folder, gtf_file, bam_file, name, threads, Debug)
-	pie_plot_results(RNAbiotypes_stats, Debug)
+	(extended_Stats_file, RNAbiotypes_stats_file) = featureCount_call(featureCount_exe, folder, gtf_file, bam_file, name, threads, Debug)
+	pie_plot_results(RNAbiotypes_stats_file, Debug)
 	
 	
 ######
