@@ -18,7 +18,7 @@ from XICRA.config import set_config
 ## import HCGB
 from HCGB.functions import system_call_functions, main_functions, time_functions
 from HCGB.functions import files_functions
-##from HCGB.functions import math_functions
+from HCGB.functions import math_functions
 
 ## plots
 import pandas as pd
@@ -33,17 +33,6 @@ def help_info():
 	'''Provide information on RNA biotype analysis'''
 	print ("** TODO: Add description on RNAbiotype analysis and details")
 	exit()
-
-#####################
-def percentage(percent, whole):
-	if (percent == "0.00%"):
-		return 0
-
-	percent_search = re.search(r"(.*)%", percent)
-	if percent_search:
-		percent_int = float(percent_search.group(1))
-	value = (percent_int * whole) / 100.0
-	return int(value)
 
 #####################
 def biotype_all(featureCount_exe, path, gtf_file, bam_file, name, threads, Debug):
@@ -92,14 +81,16 @@ def biotype_all(featureCount_exe, path, gtf_file, bam_file, name, threads, Debug
 			time_functions.print_time_stamp(filename_stamp_featureCounts)
 		
 		## parse results
-		(extended_Stats, RNAbiotypes_stats) = parse_featureCount(out_file, path, name, bam_file, Debug)
+		(extended_Stats_file, RNAbiotypes_stats_file) = parse_featureCount(out_file, path, name, bam_file, Debug)
 		
 		## debugging messages
 		if Debug:
 			print ("** DEBUG:")
-			print ("extended_Stats: " + extended_Stats)
-			print ("RNAbiotypes_stats: " + RNAbiotypes_stats)
-			
+			print ("extended_Stats: " + extended_Stats_file)
+			print (main_functions.get_data(extended_Stats_file, ',', 'header=None'))
+			print ("RNAbiotypes_stats: " + RNAbiotypes_stats_file)
+			print (main_functions.get_data(RNAbiotypes_stats_file, ',', 'header=None'))
+
 		## plot results
 		pie_plot_results(RNAbiotypes_stats_file, name, folder, Debug)
 		
