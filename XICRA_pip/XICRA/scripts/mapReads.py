@@ -19,7 +19,7 @@ from HCGB.functions import files_functions
 def create_genomeDir(folder, STAR_exe, num_threads, fasta_file, limitGenomeGenerateRAM):
     
     ##
-    genomeDir = os.path.join(folder, "STAR_index")
+    genomeDir = files_functions.create_subfolder("STAR_index", folder)
     
     cmd_create = "%s --runMode genomeGenerate --limitGenomeGenerateRAM %s --runThreadN %s --genomeDir %s --genomeFastaFiles %s" %(
         STAR_exe, limitGenomeGenerateRAM, num_threads, genomeDir, fasta_file)

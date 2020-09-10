@@ -116,7 +116,7 @@ def run_biotype(options):
     biotype_outdir_dict = files_functions.outdir_project(outdir, options.project, pd_samples_retrieved, "biotype", options.debug)
 
     ## get RNAbiotype information
-    RNAbiotype.RNAbiotype_module_call(samples_dict, biotype_outdir_dict, gtf_file, threads, Debug)
+    RNAbiotype.RNAbiotype_module_call(samples_dict, biotype_outdir_dict, gtf_file, options.threads, Debug)
 
     abs_path_folder = os.path.abspath(argv[1])
     abs_csv_outfile = os.path.abspath(argv[2])
@@ -167,7 +167,8 @@ def mapReads_module(options, pd_samples_retrieved, outdir_dict):
     
     ## options
     STAR_exe = set_config.get_exe("STAR", Debug=True)
-    folder = os.path.abspath("./")
+    cwd_folder = os.path.abspath("./")
+    folder=files_functions.create_subfolder('STAR_files', cwd_folder)
 
     ## For many samples it will have to load genome index in memory every time.
     ## For a unique sample it will not matter. Take care genome might stay in memory.
@@ -183,7 +184,7 @@ def mapReads_module(options, pd_samples_retrieved, outdir_dict):
         options.fasta = os.path.abspath(options.fasta)
         
         ## create genomeDir
-        create_genomeDir(folder, STAR_exe, options.threads, options.fasta, options.limitRAM)
+        mapReads.create_genomeDir(folder, STAR_exe, options.threads, options.fasta, options.limitRAM)
         
     elif (options.genomeDir):
         print ("+ genomeDir provided.")
@@ -210,7 +211,7 @@ def mapReads_module(options, pd_samples_retrieved, outdir_dict):
     print ("\n\n+ Mapping reads has finished...")
     
     ## remove reference genome from memory
-    mapReads.remove_Genome(STAR_exe, options.genomeDir, remove_folder, num_threads)
+    mapReads.remove_Genome(STAR_exe, options.genomeDir, folder, options.threads)
     
     ## TODO: create statistics on mapped reads
 
