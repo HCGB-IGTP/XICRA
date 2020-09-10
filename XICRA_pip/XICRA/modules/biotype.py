@@ -156,24 +156,35 @@ def mapReads_module(options, pd_samples_retrieved, outdir_dict):
         print (colored("**DEBUG: max_workers " +  str(max_workers_int) + " **", 'yellow'))
         print (colored("**DEBUG: cpu_here " +  str(threads_job) + " **", 'yellow'))
 
-    print ("+ Mapping sequencing reads for each sample retrieved...")    
+    print ("+ Mapping sequencing reads for each sample retrieved...")
     
     # Group dataframe by sample name
     sample_frame = pd_samples_retrieved.groupby(["new_name"])
     
-        
+    ## options
+    STAR_exe = set_config.get_exe("STAR")
+    folder = ""
+
     ## For many samples it will have to load genome index in memory every time.
     ## For a unique sample it will not matter. Take care genome might stay in memory.
     ## Use before loop option LoadAndExit and then:
         ## in loop
         ## Use option LoadAndKeep, set shared memory > 30 Gb
     ## when finished loop Remove memory        
-    ## Send a process for each sample
     
-    ## options
-    STAR_exe = set_config.get_exe("STAR")
-    folder = ""
-    
+    ## check reference
+    if (options.fasta):
+        print ("+ Genome fasta file provided")
+        print ("+ Create genomeDir for later usage...")
+        options.fasta = os.path.abspath(options.fasta)
+        
+        ## create genomeDir
+        create_genomeDir(folder, STAR_exe, options.threads, options.fasta, options.limitRAM)
+        
+    elif (options.genomeDir):
+        print ("+ genomeDir provided.")
+        options.genomeDir = os.path.abspath(options.genomeDir)
+        
     ## load reference genome
     mapReads.load_Genome(folder, STAR_exe, options.genomeDir, threads_job)
     
