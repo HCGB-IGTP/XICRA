@@ -30,6 +30,10 @@ from HCGB.functions import aesthetics_functions
 from HCGB.functions import files_functions
 from HCGB.functions import main_functions
 
+global mapping_results
+mapping_results = {}
+
+
 ##############################################
 def run_biotype(options):
 
@@ -106,21 +110,44 @@ def run_biotype(options):
     print ("\n+ Create output folder(s):")
     if not options.project:
         files_functions.create_folder(outdir)
+
     ## for samples
     mapping_outdir_dict = files_functions.outdir_project(outdir, options.project, pd_samples_retrieved, "map", options.debug)
     
+    ## debug message
+    if (Debug):
+        print (colored("**DEBUG: mapping_outdir_dict **", 'yellow'))
+        print (mapping_outdir_dict)
+
+    # time stamp
+    start_time_partial = functions.time_functions.timestamp(start_time_total)
+
     ## map Reads
     mapReads_module(options, pd_samples_retrieved, mapping_outdir_dict, options.debug)
+
+    ## debug message
+    if (Debug):
+        print (colored("**DEBUG: mapping_results **", 'yellow'))
+        print (mapping_results)
     
+    # time stamp
+    start_time_partial = functions.time_functions.timestamp(start_time_partial)
+
     ## for samples
     biotype_outdir_dict = files_functions.outdir_project(outdir, options.project, pd_samples_retrieved, "biotype", options.debug)
 
+    ## debug message
+    if (Debug):
+        print (colored("**DEBUG: biotype_outdir_dict **", 'yellow'))
+        print (biotype_outdir_dict)
+        
     ## get RNAbiotype information
-    RNAbiotype.RNAbiotype_module_call(samples_dict, biotype_outdir_dict, gtf_file, options.threads, options.debug)
+    RNAbiotype.RNAbiotype_module_call(mapping_results, biotype_outdir_dict, gtf_file, options.threads, options.debug)
 
-    abs_path_folder = os.path.abspath(argv[1])
-    abs_csv_outfile = os.path.abspath(argv[2])
-    list_files = os.listdir(abs_path_folder)
+    # time stamp
+    start_time_partial = functions.time_functions.timestamp(start_time_partial)
+    
+    ###
     dict_files = {}
     
     for samples in biotype_outdir_dict.items:
@@ -136,15 +163,12 @@ def run_biotype(options):
     all_data.to_csv(abs_csv_outfile, quoting=csv.QUOTE_NONNUMERIC)
     
     ## create plot
-
-
-
+    ##
     
     print ("\n*************** Finish *******************")
     start_time_partial = time_functions.timestamp(start_time_total)
     print ("\n+ Exiting join module.")
     return()
-
 
 #########################################
 def mapReads_module(options, pd_samples_retrieved, outdir_dict, Debug):
@@ -184,7 +208,7 @@ def mapReads_module(options, pd_samples_retrieved, outdir_dict, Debug):
         options.fasta = os.path.abspath(options.fasta)
         
         ## create genomeDir
-        mapReads.create_genomeDir(folder, STAR_exe, options.threads, options.fasta, options.limitRAM)
+        options.genomeDir = mapReads.create_genomeDir(folder, STAR_exe, options.threads, options.fasta, options.limitRAM)
         
     elif (options.genomeDir):
         print ("+ genomeDir provided.")
@@ -216,9 +240,7 @@ def mapReads_module(options, pd_samples_retrieved, outdir_dict, Debug):
     ## remove reference genome from memory
     mapReads.remove_Genome(STAR_exe, options.genomeDir, folder, options.threads)
     
-    ## TODO: create statistics on mapped reads
-
-    
+    ## TODO: create statistics on mapped reads    
     return()
 
 #################################
@@ -233,7 +255,10 @@ def mapReads_caller(files, folder, name, threads, STAR_exe, genomeDir, limitRAM_
         code_returned = mapReads.mapReads("LoadAndKeep", files, folder, name, STAR_exe, genomeDir, limitRAM_option, threads, Debug)
         
         if (code_returned):
-             time_functions.print_time_stamp(filename_stamp)
+            time_functions.print_time_stamp(filename_stamp)
+            bam_file = os.path.join(folder, 'Aligned.sortedByCoord.out.bam')
+            mapping_results[name] = bam_file
+            
         else:
             print ("+ Mapping sample %s failed..." %name)
 

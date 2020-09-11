@@ -274,7 +274,8 @@ def RNAbiotype_module_call(samples_dict, output_dict, gtf_file, threads, Debug):
 	"""
 	Create RNAbiotype analysis for each sample and create summary plots
 	
-	:param samples_dict: Dictionary containing sample IDs as keys and bam files and folder for results as values
+	:param samples_dict: Dictionary containing sample IDs as keys and bam files as values
+	:param output_dict: Dictionary containing sample IDs as keys and output folder as values
 	:param gtf_file: Gene annotation file for the reference genome used.
 	:param threads: Number of threads to use.
 	:param Debug: True/False for debugging messages

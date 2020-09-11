@@ -26,7 +26,12 @@ def create_genomeDir(folder, STAR_exe, num_threads, fasta_file, limitGenomeGener
 
     print ('\t+ genomeDir generation for STAR mapping')
     create_code = system_call_functions.system_call(cmd_create, False, True)
-    return (create_code)
+    
+    if not create_code:
+        print ("** ERROR: Some error ocurred during genomeDir creation... **")
+        exit()
+    
+    return (genomeDir)
 
 ############################################################
 def load_Genome(folder, STAR_exe, genomeDir, num_threads):
@@ -87,17 +92,15 @@ def mapReads(option, read, folder, name, STAR_exe, genomeDir, limitRAM_option, n
     ## open file
     print("\t + Mapping sample %s using STAR" %name)
     
-    out_folder = files_functions.create_subfolder(name, folder)
-    logfile = os.path.join(out_folder, 'STAR.log')
-    errfile = os.path.join(out_folder, 'STAR.err')
-    bam_file = os.path.join(out_folder, 'Aligned.sortedByCoord.out.bam')
-
+    if not os.path.isdir(folder):
+        folder = files_functions.create_folder(folder)
+    
     ## read is a list with 1 or 2 read fastq files
     jread = " ".join(sort(read))
 
     ## prepare command
     cmd = "%s --genomeDir %s --runThreadN %s --readFilesIn %s " %(STAR_exe, genomeDir, num_threads, jread)
-    cmd = cmd + "--limitBAMsortRAM %s --outFileNamePrefix %s" %(limitRAM_option, sample_folder)
+    cmd = cmd + "--limitBAMsortRAM %s --outFileNamePrefix %s" %(limitRAM_option, folder)
 
     ## some common options
     cmd = cmd + "--alignSJDBoverhangMin 1000 --outFilterMultimapNmax 1 --outFilterMismatchNoverLmax 0.03 "
@@ -111,6 +114,8 @@ def mapReads(option, read, folder, name, STAR_exe, genomeDir, limitRAM_option, n
         cmd = cmd + "--genomeLoad NoSharedMemory"
 
     ## logfile & errfile
+    logfile = os.path.join(folder, 'STAR.log')
+    errfile = os.path.join(folder, 'STAR.err')
     cmd = cmd + ' > ' + logfile + ' 2> ' + errfile
     
     ## sent command
