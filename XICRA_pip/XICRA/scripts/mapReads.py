@@ -111,7 +111,7 @@ def mapReads(option, reads, folder, name, STAR_exe, genomeDir, limitRAM_option, 
         
     ## prepare command
     cmd = "%s --genomeDir %s --runThreadN %s " %(STAR_exe, genomeDir, num_threads)
-    cmd = cmd + "--limitBAMsortRAM %s --outFileNamePrefix %s " %(limitRAM_option, folder)
+    cmd = cmd + "--limitBAMsortRAM %s --outFileNamePrefix %s " %(limitRAM_option, folder + '/')
 
     ## some common options
     cmd = cmd + "--alignSJDBoverhangMin 1000 --outFilterMultimapNmax 1 --outFilterMismatchNoverLmax 0.03 "
@@ -125,7 +125,7 @@ def mapReads(option, reads, folder, name, STAR_exe, genomeDir, limitRAM_option, 
         cmd = cmd + "--genomeLoad NoSharedMemory"
     
     ## ReadFiles
-    cmd = cmd + "--readFilesIn %s " %jread
+    cmd = cmd + " --readFilesIn %s " %jread
 
     ## logfile & errfile
     logfile = os.path.join(folder, 'STAR.log')
