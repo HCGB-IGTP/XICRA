@@ -29,7 +29,7 @@ def run_config(options):
     else:
         Debug = False
 
-    functions.aesthetics_functions.pipeline_header()
+    functions.aesthetics_functions.pipeline_header('XICRA')
     functions.aesthetics_functions.boxymcboxface("Pipeline Configuration")
     print ("--------- Starting Process ---------")
     functions.time_functions.print_time()

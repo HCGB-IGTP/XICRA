@@ -59,7 +59,7 @@ def run_miRNA(options):
     else:
         options.pair = True
     
-    functions.aesthetics_functions.pipeline_header()
+    functions.aesthetics_functions.pipeline_header('XICRA')
     functions.aesthetics_functions.boxymcboxface("miRNA analysis")
     print ("--------- Starting Process ---------")
     functions.time_functions.print_time()

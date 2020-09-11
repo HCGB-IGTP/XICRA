@@ -64,7 +64,7 @@ def run_biotype(options):
     else:
         options.pair = True
     
-    aesthetics_functions.pipeline_header()
+    aesthetics_functions.pipeline_header('XICRA')
     aesthetics_functions.boxymcboxface("RNA biotype analysis")
     print ("--------- Starting Process ---------")
     time_functions.print_time()

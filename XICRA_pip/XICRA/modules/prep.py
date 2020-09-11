@@ -39,7 +39,7 @@ def run_prep(options):
         help_XICRA.help_fastq_format()
         exit()
         
-    functions.aesthetics_functions.pipeline_header()
+    functions.aesthetics_functions.pipeline_header('XICRA')
     functions.aesthetics_functions.boxymcboxface("Preparing samples")
     print ("--------- Starting Process ---------")
     functions.time_functions.print_time()

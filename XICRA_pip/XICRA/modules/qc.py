@@ -60,7 +60,7 @@ def run_QC(options):
         options.pair = True
     
     ## set main header
-    functions.aesthetics_functions.pipeline_header()
+    functions.aesthetics_functions.pipeline_header('XICRA')
     functions.aesthetics_functions.boxymcboxface("Quality check")
     print ("--------- Starting Process ---------")
     functions.time_functions.print_time()
