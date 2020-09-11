@@ -96,7 +96,7 @@ def mapReads(option, read, folder, name, STAR_exe, genomeDir, limitRAM_option, n
         folder = files_functions.create_folder(folder)
     
     ## read is a list with 1 or 2 read fastq files
-    jread = " ".join(sort(read))
+    jread = " ".join(read.sort())
 
     ## prepare command
     cmd = "%s --genomeDir %s --runThreadN %s --readFilesIn %s " %(STAR_exe, genomeDir, num_threads, jread)

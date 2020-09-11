@@ -24,15 +24,11 @@ from XICRA.scripts import RNAbiotype
 from XICRA.scripts import mapReads
 
 from HCGB import sampleParser
-from HCGB.functions import fasta_functions
-from HCGB.functions import time_functions
-from HCGB.functions import aesthetics_functions
-from HCGB.functions import files_functions
-from HCGB.functions import main_functions
+from HCGB.functions import fasta_functions, time_functions, aesthetics_functions
+from HCGB.functions import files_functions, main_functions
 
 global mapping_results
 mapping_results = {}
-
 
 ##############################################
 def run_biotype(options):
@@ -120,7 +116,7 @@ def run_biotype(options):
         print (mapping_outdir_dict)
 
     # time stamp
-    start_time_partial = functions.time_functions.timestamp(start_time_total)
+    start_time_partial = time_functions.timestamp(start_time_total)
 
     ## map Reads
     mapReads_module(options, pd_samples_retrieved, mapping_outdir_dict, options.debug)
@@ -131,7 +127,7 @@ def run_biotype(options):
         print (mapping_results)
     
     # time stamp
-    start_time_partial = functions.time_functions.timestamp(start_time_partial)
+    start_time_partial = time_functions.timestamp(start_time_partial)
 
     ## for samples
     biotype_outdir_dict = files_functions.outdir_project(outdir, options.project, pd_samples_retrieved, "biotype", options.debug)
@@ -142,10 +138,10 @@ def run_biotype(options):
         print (biotype_outdir_dict)
         
     ## get RNAbiotype information
-    RNAbiotype.RNAbiotype_module_call(mapping_results, biotype_outdir_dict, gtf_file, options.threads, options.debug)
+    RNAbiotype.RNAbiotype_module_call(mapping_results, biotype_outdir_dict, options.gtf_file, options.threads, options.debug)
 
     # time stamp
-    start_time_partial = functions.time_functions.timestamp(start_time_partial)
+    start_time_partial = time_functions.timestamp(start_time_partial)
     
     ###
     dict_files = {}
