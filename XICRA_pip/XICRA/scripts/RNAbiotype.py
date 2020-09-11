@@ -12,6 +12,7 @@ import sys
 from sys import argv
 import subprocess
 from termcolor import colored
+import concurrent.futures
 
 ## import my modules
 from XICRA.config import set_config

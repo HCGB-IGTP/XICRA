@@ -162,13 +162,22 @@ def run_biotype(options):
     for samples in biotype_outdir_dict:
         featurecount_file = os.path.join(biotype_outdir_dict[samples], 'featureCount.out.tsv')
         if files_functions.is_non_zero_file(featurecount_file):
-            dict_files[l] = featurecount_file
+            dict_files[samples] = featurecount_file
     
     ## collapse all information
     all_data = RNAbiotype.generate_matrix(dict_files)
 
     ## print into excel/csv
     print ('+ Table contains: ', len(all_data), ' entries\n')
+    
+    ## debugging messages
+    if Debug:
+        print ("** DEBUG: all_data")
+        print (all_data)
+    
+    ## set abs_csv_outfile to be in report folder
+    ## copy or link files for each sample analyzed
+    
     all_data.to_csv(abs_csv_outfile, quoting=csv.QUOTE_NONNUMERIC)
     
     ## create plot
@@ -211,7 +220,7 @@ def mapReads_module(options, pd_samples_retrieved, outdir_dict, Debug, max_worke
         options.genomeDir = os.path.abspath(options.genomeDir)
         
     ## remove previous reference genome from memory
-    print ("+ Remove genome in memory from previous call... (if any)c")
+    print ("+ Remove genome in memory from previous call... (if any)")
     mapReads.remove_Genome(STAR_exe, options.genomeDir, folder, options.threads)
     
     ## load reference genome
