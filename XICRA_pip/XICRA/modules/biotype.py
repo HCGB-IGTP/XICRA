@@ -88,11 +88,14 @@ def run_biotype(options):
     if options.noTrim:
         print ('+ Mode: fastq.\n+ Extension: ')
         print ("[ fastq, fq, fastq.gz, fq.gz ]\n")
-        pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ("fastq", "fq", "fastq.gz", "fq.gz"), options.debug)
+        #pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ("fastq", "fq", "fastq.gz", "fq.gz"), options.debug)
+        pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ("fastq", "fq", "fastq.gz", "fq.gz"), False)
+
     else:
         print ('+ Mode: trim.\n+ Extension: ')
         print ("[ _trim_ ]\n")
-        pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "trim", ['_trim_'], options.debug)
+        #pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "trim", ['_trim_'], options.debug)
+        pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "trim", ['_trim_'], False)
         
         ## Discard if joined reads: use trimmed single-end or paired-end
         pd_samples_retrieved = pd_samples_retrieved[pd_samples_retrieved['ext'] != '_joined']   
@@ -138,7 +141,7 @@ def run_biotype(options):
         print (biotype_outdir_dict)
         
     ## get RNAbiotype information
-    RNAbiotype.RNAbiotype_module_call(mapping_results, biotype_outdir_dict, options.gtf_file, options.threads, options.debug)
+    RNAbiotype.RNAbiotype_module_call(mapping_results, biotype_outdir_dict, options.annotation, options.threads, options.debug)
 
     # time stamp
     start_time_partial = time_functions.timestamp(start_time_partial)

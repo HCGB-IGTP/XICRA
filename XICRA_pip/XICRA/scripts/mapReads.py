@@ -59,7 +59,7 @@ def remove_Genome(STAR_exe, genomeDir, folder, num_threads):
     return (remove_code)
 
 ############################################################
-def mapReads(option, read, folder, name, STAR_exe, genomeDir, limitRAM_option, num_threads, Debug):
+def mapReads(option, reads, folder, name, STAR_exe, genomeDir, limitRAM_option, num_threads, Debug):
     """
     Map reads using STAR software. Some parameters are set for small RNA Seq.
 
@@ -67,7 +67,7 @@ def mapReads(option, read, folder, name, STAR_exe, genomeDir, limitRAM_option, n
     https://www.encodeproject.org/rna-seq/small-rnas/
     
     :param option: If multiple files to map, use loaded genome (LoadAndKeep) if only one map, anything else.
-    :param read: List containing absolute path to reads (SE or PE)
+    :param reads: List containing absolute path to reads (SE or PE)
     :param folder: Path for output results
     :param name: Sample name
     :param STAR_exe: Executable path for STAR binary
@@ -76,7 +76,7 @@ def mapReads(option, read, folder, name, STAR_exe, genomeDir, limitRAM_option, n
     :param num_threads:
     
     :type option: string
-    :type read: list
+    :type reads: list
     :type folder: string 
     :type name: string 
     :type STAR_exe: string
@@ -90,14 +90,22 @@ def mapReads(option, read, folder, name, STAR_exe, genomeDir, limitRAM_option, n
     ## all this
 
     ## open file
-    print("\t + Mapping sample %s using STAR" %name)
+    print("\t+ Mapping sample %s using STAR" %name)
     
     if not os.path.isdir(folder):
         folder = files_functions.create_folder(folder)
     
     ## read is a list with 1 or 2 read fastq files
-    jread = " ".join(read.sort())
-
+    jread = " ".join(reads.sort())
+    
+    ##
+    if Debug:
+        print ("** DEBUG:")
+        print ("reads")
+        print (reads)
+        print ("jread")
+        print (jread)
+        
     ## prepare command
     cmd = "%s --genomeDir %s --runThreadN %s --readFilesIn %s " %(STAR_exe, genomeDir, num_threads, jread)
     cmd = cmd + "--limitBAMsortRAM %s --outFileNamePrefix %s" %(limitRAM_option, folder)
