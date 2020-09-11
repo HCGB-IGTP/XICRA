@@ -258,13 +258,14 @@ def mapReads_caller(files, folder, name, threads, STAR_exe, genomeDir, limitRAM_
         ##
         if Debug:
             print ("** DEBUG: mapReads_caller options **")
-            print ("files: " + files)
             print ("folder: " + folder) 
             print ("name: " + name)
             print ("threads: " + str(threads))
             print ("STAR_exe: " + STAR_exe) 
             print ("genomeDir: " + genomeDir) 
             print ("limitRAM_option: " + str(limitRAM_option))
+            print ("files: ")
+            print (files)
             
         # Call STAR
         code_returned = mapReads.mapReads("LoadAndKeep", files, folder, name, STAR_exe, genomeDir, limitRAM_option, threads, Debug)
