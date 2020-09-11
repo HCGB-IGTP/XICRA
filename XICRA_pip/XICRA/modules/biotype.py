@@ -84,21 +84,25 @@ def run_biotype(options):
     ## get files
     print ('+ Getting files from input folder... ')
 
+    ## TEST
+    options.debug = False
+       
     ## get files
     if options.noTrim:
         print ('+ Mode: fastq.\n+ Extension: ')
         print ("[ fastq, fq, fastq.gz, fq.gz ]\n")
-        #pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ("fastq", "fq", "fastq.gz", "fq.gz"), options.debug)
-        pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ("fastq", "fq", "fastq.gz", "fq.gz"), False)
-
+        pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ("fastq", "fq", "fastq.gz", "fq.gz"), options.debug)
+        
     else:
         print ('+ Mode: trim.\n+ Extension: ')
         print ("[ _trim_ ]\n")
-        #pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "trim", ['_trim_'], options.debug)
-        pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "trim", ['_trim_'], False)
+        pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "trim", ['_trim_'], options.debug)
         
         ## Discard if joined reads: use trimmed single-end or paired-end
         pd_samples_retrieved = pd_samples_retrieved[pd_samples_retrieved['ext'] != '_joined']   
+    
+    ## TEST
+    options.debug = True
     
     ## debug message
     if (Debug):
