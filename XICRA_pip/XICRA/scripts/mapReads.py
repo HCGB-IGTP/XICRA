@@ -86,29 +86,17 @@ def mapReads(option, reads, folder, name, STAR_exe, genomeDir, limitRAM_option, 
     
     
     """
-    
-    ## all this
-
     ## open file
     print("\t+ Mapping sample %s using STAR" %name)
     
     if not os.path.isdir(folder):
         folder = files_functions.create_folder(folder)
-    
     ##
     bam_file_name = os.path.join(folder, 'Aligned.sortedByCoord.out.bam')
         
     ## read is a list with 1 or 2 read fastq files
     jread = " ".join(reads)
-    
-    ##
-    if Debug:
-        print ("** DEBUG:")
-        print ("reads")
-        print (reads)
-        print ("jread")
-        print (jread)
-        
+
     ## prepare command
     cmd = "%s --genomeDir %s --runThreadN %s " %(STAR_exe, genomeDir, num_threads)
     cmd = cmd + "--limitBAMsortRAM %s --outFileNamePrefix %s " %(limitRAM_option, folder + '/')

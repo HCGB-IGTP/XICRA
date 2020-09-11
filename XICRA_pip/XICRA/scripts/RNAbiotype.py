@@ -285,11 +285,8 @@ def RNAbiotype_module_call(samples_dict, output_dict, gtf_file, threads, Debug):
 	featureCount_exe = set_config.get_exe('featureCounts')
 
 	## loop dictionary
-	for sample in samples_dict.items():
-		print (samples_dict[sample])
-		print (output_dict[sample])
-		
-		## biotype_all(featureCount_exe, folder, gtf_file, bam_file, name, threads, Debug)
+	for sample, bam_files in samples_dict.items():
+		biotype_all(featureCount_exe, output_dict[sample], gtf_file, bam_files, sample, threads, Debug)
 
 	return()
 

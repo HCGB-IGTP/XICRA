@@ -83,9 +83,6 @@ def run_biotype(options):
     
     ## get files
     print ('+ Getting files from input folder... ')
-
-    ## TEST
-    options.debug = False
        
     ## get files
     if options.noTrim:
@@ -100,9 +97,6 @@ def run_biotype(options):
         
         ## Discard if joined reads: use trimmed single-end or paired-end
         pd_samples_retrieved = pd_samples_retrieved[pd_samples_retrieved['ext'] != '_joined']   
-    
-    ## TEST
-    options.debug = True
     
     ## debug message
     if (Debug):
@@ -153,7 +147,7 @@ def run_biotype(options):
     ###
     dict_files = {}
     
-    for samples in biotype_outdir_dict.items:
+    for samples in biotype_outdir_dict:
         featurecount_file = os.path.join(biotype_outdir_dict[samples], 'featureCount.out.tsv')
         if files_functions.is_non_zero_file(featurecount_file):
             dict_files[l] = featurecount_file
@@ -187,8 +181,6 @@ def mapReads_module(options, pd_samples_retrieved, outdir_dict, Debug):
         print (colored("**DEBUG: max_workers " +  str(max_workers_int) + " **", 'yellow'))
         print (colored("**DEBUG: cpu_here " +  str(threads_job) + " **", 'yellow'))
 
-    print ("+ Mapping sequencing reads for each sample retrieved...")
-    
     # Group dataframe by sample name
     sample_frame = pd_samples_retrieved.groupby(["new_name"])
     
@@ -218,11 +210,14 @@ def mapReads_module(options, pd_samples_retrieved, outdir_dict, Debug):
         options.genomeDir = os.path.abspath(options.genomeDir)
         
     ## remove previous reference genome from memory
+    print ("+ Remove genome in memory from previous call... (if any)c")
     mapReads.remove_Genome(STAR_exe, options.genomeDir, folder, options.threads)
     
     ## load reference genome
     mapReads.load_Genome(folder, STAR_exe, options.genomeDir, threads_job)
     
+    print ("+ Mapping sequencing reads for each sample retrieved...")
+
     ## send for each sample
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers_int) as executor:
         commandsSent = { executor.submit(mapReads_caller, sorted(cluster["sample"].tolist()), 
@@ -254,7 +249,6 @@ def mapReads_caller(files, folder, name, threads, STAR_exe, genomeDir, limitRAM_
         stamp = time_functions.read_time_stamp(filename_stamp)
         print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'STAR'), 'yellow'))
     else:
-
         ##
         if Debug:
             print ("\n** DEBUG: mapReads_caller options **\n")
