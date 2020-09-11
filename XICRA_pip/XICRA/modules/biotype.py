@@ -96,7 +96,7 @@ def run_biotype(options):
     else:
         print ('+ Mode: trim.\n+ Extension: ')
         print ("[ _trim_ ]\n")
-        pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "trim", ['_trim_'], options.debug)
+        pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "trim", ['_trim'], options.debug)
         
         ## Discard if joined reads: use trimmed single-end or paired-end
         pd_samples_retrieved = pd_samples_retrieved[pd_samples_retrieved['ext'] != '_joined']   
@@ -257,7 +257,7 @@ def mapReads_caller(files, folder, name, threads, STAR_exe, genomeDir, limitRAM_
 
         ##
         if Debug:
-            print ("** DEBUG: mapReads_caller options **")
+            print ("\n** DEBUG: mapReads_caller options **\n")
             print ("folder: " + folder) 
             print ("name: " + name)
             print ("threads: " + str(threads))

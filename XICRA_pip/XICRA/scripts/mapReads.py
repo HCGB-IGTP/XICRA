@@ -95,8 +95,11 @@ def mapReads(option, reads, folder, name, STAR_exe, genomeDir, limitRAM_option, 
     if not os.path.isdir(folder):
         folder = files_functions.create_folder(folder)
     
+    ##
+    bam_file_name = os.path.join(folder, 'Aligned.sortedByCoord.out.bam')
+        
     ## read is a list with 1 or 2 read fastq files
-    jread = " ".join(reads.sort())
+    jread = " ".join(reads)
     
     ##
     if Debug:
@@ -107,8 +110,8 @@ def mapReads(option, reads, folder, name, STAR_exe, genomeDir, limitRAM_option, 
         print (jread)
         
     ## prepare command
-    cmd = "%s --genomeDir %s --runThreadN %s --readFilesIn %s " %(STAR_exe, genomeDir, num_threads, jread)
-    cmd = cmd + "--limitBAMsortRAM %s --outFileNamePrefix %s" %(limitRAM_option, folder)
+    cmd = "%s --genomeDir %s --runThreadN %s " %(STAR_exe, genomeDir, num_threads)
+    cmd = cmd + "--limitBAMsortRAM %s --outFileNamePrefix %s " %(limitRAM_option, folder)
 
     ## some common options
     cmd = cmd + "--alignSJDBoverhangMin 1000 --outFilterMultimapNmax 1 --outFilterMismatchNoverLmax 0.03 "
@@ -120,6 +123,9 @@ def mapReads(option, reads, folder, name, STAR_exe, genomeDir, limitRAM_option, 
         cmd = cmd + "--genomeLoad LoadAndKeep"
     else:
         cmd = cmd + "--genomeLoad NoSharedMemory"
+    
+    ## ReadFiles
+    cmd = cmd + "--readFilesIn %s " %jread
 
     ## logfile & errfile
     logfile = os.path.join(folder, 'STAR.log')
