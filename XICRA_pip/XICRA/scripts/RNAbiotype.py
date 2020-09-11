@@ -218,8 +218,7 @@ def parse_featureCount(out_file, path, name, bam_file, Debug):
 	
 				elif unmap_search:
 					perc_tmp = line.split('\t')[-1]
-					count_reads = percentage(perc_tmp, total_input_reads)
-					#count_reads = math_functions.percentage(perc_tmp, total_input_reads)
+					count_reads = math_functions.percentage(perc_tmp, total_input_reads)
 					count_unmap = count_unmap + count_reads
 		else:
 	
@@ -270,7 +269,7 @@ def parse_featureCount(out_file, path, name, bam_file, Debug):
 	return(out_tsv_file_name, RNA_biotypes_file_name)
 
 #######################################################################
-def RNAbiotype_module_call(samples_dict, output_dict, gtf_file, threads, Debug):
+def RNAbiotype_module_call(samples_dict, output_dict, gtf_file, Debug, max_workers_int, threads_job):
 	"""
 	Create RNAbiotype analysis for each sample and create summary plots
 	
@@ -284,9 +283,20 @@ def RNAbiotype_module_call(samples_dict, output_dict, gtf_file, threads, Debug):
 	## get bin
 	featureCount_exe = set_config.get_exe('featureCounts')
 
-	## loop dictionary
-	for sample, bam_files in samples_dict.items():
-		biotype_all(featureCount_exe, output_dict[sample], gtf_file, bam_files, sample, threads, Debug)
+	## send for each sample
+	with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers_int) as executor:
+		commandsSent = { executor.submit(biotype_all, featureCount_exe, 
+										output_dict[sample], gtf_file, bam_files, 
+										sample, threads_job, Debug): sample for sample, bam_files in samples_dict.items() }
+	
+		for cmd2 in concurrent.futures.as_completed(commandsSent):
+			details = commandsSent[cmd2]
+			try:
+				data = cmd2.result()
+			except Exception as exc:
+				print ('***ERROR:')
+				print (cmd2)
+				print('%r generated an exception: %s' % (details, exc))
 
 	return()
 

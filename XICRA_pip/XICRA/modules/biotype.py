@@ -119,8 +119,19 @@ def run_biotype(options):
     # time stamp
     start_time_partial = time_functions.timestamp(start_time_total)
 
+    ## optimize threads
+    name_list = set(pd_samples_retrieved["new_name"].tolist())
+    threads_job = main_functions.optimize_threads(options.threads, len(name_list)) ## threads optimization
+    max_workers_int = int(options.threads/threads_job)
+    
+    ## debug message
+    if (Debug):
+        print (colored("**DEBUG: options.threads " +  str(options.threads) + " **", 'yellow'))
+        print (colored("**DEBUG: max_workers " +  str(max_workers_int) + " **", 'yellow'))
+        print (colored("**DEBUG: cpu_here " +  str(threads_job) + " **", 'yellow'))
+        
     ## map Reads
-    mapReads_module(options, pd_samples_retrieved, mapping_outdir_dict, options.debug)
+    mapReads_module(options, pd_samples_retrieved, mapping_outdir_dict, options.debug, max_workers_int, threads_job)
 
     ## debug message
     if (Debug):
@@ -139,7 +150,8 @@ def run_biotype(options):
         print (biotype_outdir_dict)
         
     ## get RNAbiotype information
-    RNAbiotype.RNAbiotype_module_call(mapping_results, biotype_outdir_dict, options.annotation, options.threads, options.debug)
+    RNAbiotype.RNAbiotype_module_call(mapping_results, biotype_outdir_dict, options.annotation, 
+                                      options.debug, max_workers_int, threads_job)
 
     # time stamp
     start_time_partial = time_functions.timestamp(start_time_partial)
@@ -168,19 +180,8 @@ def run_biotype(options):
     return()
 
 #########################################
-def mapReads_module(options, pd_samples_retrieved, outdir_dict, Debug):
+def mapReads_module(options, pd_samples_retrieved, outdir_dict, Debug, max_workers_int, threads_job):
     
-    ## optimize threads
-    name_list = set(pd_samples_retrieved["new_name"].tolist())
-    threads_job = main_functions.optimize_threads(options.threads, len(name_list)) ## threads optimization
-    max_workers_int = int(options.threads/threads_job)
-
-    ## debug message
-    if (Debug):
-        print (colored("**DEBUG: options.threads " +  str(options.threads) + " **", 'yellow'))
-        print (colored("**DEBUG: max_workers " +  str(max_workers_int) + " **", 'yellow'))
-        print (colored("**DEBUG: cpu_here " +  str(threads_job) + " **", 'yellow'))
-
     # Group dataframe by sample name
     sample_frame = pd_samples_retrieved.groupby(["new_name"])
     
@@ -214,7 +215,7 @@ def mapReads_module(options, pd_samples_retrieved, outdir_dict, Debug):
     mapReads.remove_Genome(STAR_exe, options.genomeDir, folder, options.threads)
     
     ## load reference genome
-    mapReads.load_Genome(folder, STAR_exe, options.genomeDir, threads_job)
+    mapReads.load_Genome(folder, STAR_exe, options.genomeDir, options.threads)
     
     print ("+ Mapping sequencing reads for each sample retrieved...")
 
@@ -266,11 +267,12 @@ def mapReads_caller(files, folder, name, threads, STAR_exe, genomeDir, limitRAM_
         
         if (code_returned):
             time_functions.print_time_stamp(filename_stamp)
-            bam_file = os.path.join(folder, 'Aligned.sortedByCoord.out.bam')
-            mapping_results[name] = bam_file
-            
         else:
             print ("+ Mapping sample %s failed..." %name)
+    
+    ## return results
+    bam_file = os.path.join(folder, 'Aligned.sortedByCoord.out.bam')
+    mapping_results[name] = bam_file
 
     return()
     
