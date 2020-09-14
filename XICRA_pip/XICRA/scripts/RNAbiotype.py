@@ -373,6 +373,7 @@ def pie_plot_results(RNAbiotypes_stats_file, name, folder, Debug):
 	
 		## generate image
 		plt.savefig(name_figure)
+		plt.close(name_figure)
 
 		## print time stamps
 		time_functions.print_time_stamp(filename_stamp_plot)
