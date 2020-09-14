@@ -181,33 +181,40 @@ def run_biotype(options):
         multiQC_report.multiQC_module_call(my_outdir_list, "featureCount", featureCount_report,"")
         print ('\n+ A summary HTML report of each sample is generated in folder: %s' %featureCount_report)
 
+        ### Summarizing RNA biotype information
+        biotype_report = files_functions.create_subfolder("biotype", outdir_report)
+        single_files_biotype = files_functions.create_subfolder("samples", biotype_report)
+        
+        ## results
+        dict_files = {}
+        
+        for samples in biotype_outdir_dict:
+            featurecount_file = os.path.join(biotype_outdir_dict[samples], 'featureCount.out.tsv')
+            if files_functions.is_non_zero_file(featurecount_file):
+                dict_files[samples] = featurecount_file
+            ## copy pdf
+            pdf_plot = main_functions.retrieve_matching_files(biotype_outdir_dict[samples], '.pdf', options.debug)
+            if files_functions.is_non_zero_file(pdf_plot[0]):
+                shutil.copy(pdf_plot[0], single_files_biotype)
+        
+        ## collapse all information
+        all_data = RNAbiotype.generate_matrix(dict_files)
     
-    ### Summarizing RNA biotype information
-    dict_files = {}
-    
-    for samples in biotype_outdir_dict:
-        featurecount_file = os.path.join(biotype_outdir_dict[samples], 'featureCount.out.tsv')
-        if files_functions.is_non_zero_file(featurecount_file):
-            dict_files[samples] = featurecount_file
-    
-    ## collapse all information
-    all_data = RNAbiotype.generate_matrix(dict_files)
-
-    ## print into excel/csv
-    print ('+ Table contains: ', len(all_data), ' entries\n')
-    
-    ## debugging messages
-    if Debug:
-        print ("** DEBUG: all_data")
-        print (all_data)
-    
-    ## set abs_csv_outfile to be in report folder
-    ## copy or link files for each sample analyzed
-    
-    all_data.to_csv(abs_csv_outfile, quoting=csv.QUOTE_NONNUMERIC)
-    
-    ## create plot
-    ##
+        ## print into excel/csv
+        print ('+ Table contains: ', len(all_data), ' entries\n')
+        
+        ## debugging messages
+        if Debug:
+            print ("** DEBUG: all_data")
+            print (all_data)
+        
+        ## set abs_csv_outfile to be in report folder
+        ## copy or link files for each sample analyzed
+        abs_csv_outfile = os.path.join(biotype_report, "summary.csv")
+        all_data.to_csv(abs_csv_outfile, quoting=csv.QUOTE_NONNUMERIC)
+        
+        ## create plot: call R [TODO: implement in python]
+        ##
     
     print ("\n*************** Finish *******************")
     start_time_partial = time_functions.timestamp(start_time_total)
