@@ -204,6 +204,7 @@ options_group_RNAbiotype.add_argument("--threads", type=int, help="Number of CPU
 options_group_RNAbiotype.add_argument("--annotation", help="Reference genome annotation in GTF format.", required=True)
 options_group_RNAbiotype.add_argument("--limitRAM", type=int, help="limitRAM parameter for STAR mapping. Default 20 Gbytes.", default=20000000000)
 options_group_RNAbiotype.add_argument("--noTrim", action='store_true', help="Use non-trimmed reads [or not containing '_trim' in the name].")
+options_group_RNAbiotype.add_argument("--skip_report", action="store_true", help="Do not report statistics using MultiQC report module [Default OFF]. See details in --help_multiqc")
 
 options_reference_RNAbiotype_group = subparser_RNAbiotype.add_argument_group("Reference genome")
 exclusive_reference_group = options_reference_RNAbiotype_group.add_mutually_exclusive_group()

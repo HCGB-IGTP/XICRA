@@ -3,7 +3,6 @@
 ## Jose F. Sanchez                                      ##
 ## Copyright (C) 2019 Lauro Sumoy Lab, IGTP, Spain      ##
 ##########################################################
-from docutils.utils.math.math2html import file
 '''
 Calls FASTQC analysis and parses results generated.
 '''

@@ -131,7 +131,8 @@ def run_biotype(options):
         print (colored("**DEBUG: cpu_here " +  str(threads_job) + " **", 'yellow'))
         
     ## map Reads
-    mapReads_module(options, pd_samples_retrieved, mapping_outdir_dict, options.debug, max_workers_int, threads_job)
+    start_time_partial = mapReads_module(options, pd_samples_retrieved, mapping_outdir_dict, 
+                    options.debug, max_workers_int, threads_job, start_time_partial)
 
     ## debug message
     if (Debug):
@@ -156,7 +157,32 @@ def run_biotype(options):
     # time stamp
     start_time_partial = time_functions.timestamp(start_time_partial)
     
-    ###
+    if (options.skip_report):
+        print ("+ No report generation...")
+    else:
+        print ("\n+ Generating a report using MultiQC module for featureCount analysis.")
+        outdir_report = files_functions.create_subfolder("report", outdir)
+
+        ## get subdirs generated and call multiQC report module
+        givenList = []
+        print ("+ Detail information for each sample could be identified in separate folders:")
+        
+        ## call multiQC report module
+        givenList = [ v for v in biotype_outdir_dict.values() ]
+        my_outdir_list = set(givenList)
+
+        ## debug message
+        if (Debug):
+            print (colored("\n**DEBUG: my_outdir_list for multiqc report **", 'yellow'))
+            print (my_outdir_list)
+            print ("\n")
+        
+        featureCount_report = files_functions.create_subfolder("featureCount", outdir_report)
+        multiQC_report.multiQC_module_call(my_outdir_list, "featureCount", featureCount_report,"")
+        print ('\n+ A summary HTML report of each sample is generated in folder: %s' %featureCount_report)
+
+    
+    ### Summarizing RNA biotype information
     dict_files = {}
     
     for samples in biotype_outdir_dict:
@@ -189,7 +215,7 @@ def run_biotype(options):
     return()
 
 #########################################
-def mapReads_module(options, pd_samples_retrieved, outdir_dict, Debug, max_workers_int, threads_job):
+def mapReads_module(options, pd_samples_retrieved, outdir_dict, Debug, max_workers_int, threads_job, start_time_partial):
     
     # Group dataframe by sample name
     sample_frame = pd_samples_retrieved.groupby(["new_name"])
@@ -225,6 +251,9 @@ def mapReads_module(options, pd_samples_retrieved, outdir_dict, Debug, max_worke
     
     ## load reference genome
     mapReads.load_Genome(folder, STAR_exe, options.genomeDir, options.threads)
+
+    ## functions.time_functions.timestamp
+    start_time_partial = time_functions.timestamp(start_time_partial)
     
     print ("+ Mapping sequencing reads for each sample retrieved...")
 
@@ -245,11 +274,40 @@ def mapReads_module(options, pd_samples_retrieved, outdir_dict, Debug, max_worke
 
     print ("\n\n+ Mapping reads has finished...")
     
+    ## functions.time_functions.timestamp
+    start_time_partial = time_functions.timestamp(start_time_partial)
+
     ## remove reference genome from memory
     mapReads.remove_Genome(STAR_exe, options.genomeDir, folder, options.threads)
     
-    ## TODO: create statistics on mapped reads    
-    return()
+    ## functions.time_functions.timestamp
+    start_time_partial = time_functions.timestamp(start_time_partial)
+
+    if (options.skip_report):
+        print ("+ No report generation...")
+    else:
+        print ("\n+ Generating a report using MultiQC module.")
+        outdir_report = files_functions.create_subfolder("report", outdir)
+
+        ## get subdirs generated and call multiQC report module
+        givenList = []
+        print ("+ Detail information for each sample could be identified in separate folders:")
+        
+        ## call multiQC report module
+        givenList = [ v for v in outdir_dict.values() ]
+        my_outdir_list = set(givenList)
+
+        ## debug message
+        if (Debug):
+            print (colored("\n**DEBUG: my_outdir_list for multiqc report **", 'yellow'))
+            print (my_outdir_list)
+            print ("\n")
+        
+        map_report = files_functions.create_subfolder("STAR", outdir_report)
+        multiQC_report.multiQC_module_call(my_outdir_list, "STAR", map_report,"")
+        print ('\n+ A summary HTML report of each sample is generated in folder: %s' %map_report)
+
+    return(start_time_partial)
 
 #################################
 def mapReads_caller(files, folder, name, threads, STAR_exe, genomeDir, limitRAM_option, Debug):
