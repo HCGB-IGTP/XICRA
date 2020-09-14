@@ -22,6 +22,7 @@ from XICRA.config import set_config
 from XICRA.modules import help_XICRA
 from XICRA.scripts import RNAbiotype
 from XICRA.scripts import mapReads
+from XICRA.scripts import multiQC_report
 
 from HCGB import sampleParser
 from HCGB.functions import fasta_functions, time_functions, aesthetics_functions
