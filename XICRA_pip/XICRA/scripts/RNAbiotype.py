@@ -92,9 +92,6 @@ def biotype_all(featureCount_exe, path, gtf_file, bam_file, name, threads, Debug
 			print ("RNAbiotypes_stats: " + RNAbiotypes_stats_file)
 			print (main_functions.get_data(RNAbiotypes_stats_file, '\t', 'header=None'))
 
-		## plot results
-		pie_plot_results(RNAbiotypes_stats_file, name, path, Debug)
-		
 	return ()
 
 #######################################################################
@@ -299,6 +296,13 @@ def RNAbiotype_module_call(samples_dict, output_dict, gtf_file, Debug, max_worke
 				print (cmd2)
 				print('%r generated an exception: %s' % (details, exc))
 
+	##
+	## plot results
+	for name, folder in output_dict.items():
+		RNAbiotypes_stats_file = os.path.join(folder, name + '_RNAbiotype.tsv')
+		if files_functions.is_non_zero_file(RNAbiotypes_stats_file):
+			pie_plot_results(RNAbiotypes_stats_file, name, folder, Debug)
+			
 	return()
 
 ############################################################
@@ -401,7 +405,11 @@ def main():
 	
 	## variables
 	biotype_all(featureCount_exe, folder, gtf_file, bam_file, name, threads, Debug)
-	
+	## plot results
+	RNAbiotypes_stats_file = os.path.join(folder, name + '_RNAbiotype.tsv')
+	if files_functions.is_non_zero_file(RNAbiotypes_stats_file):
+		pie_plot_results(RNAbiotypes_stats_file, name, folder, Debug)
+			
 	
 ######
 if __name__== "__main__":
