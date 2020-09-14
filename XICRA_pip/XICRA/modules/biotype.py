@@ -130,9 +130,11 @@ def run_biotype(options):
         print (colored("**DEBUG: max_workers " +  str(max_workers_int) + " **", 'yellow'))
         print (colored("**DEBUG: cpu_here " +  str(threads_job) + " **", 'yellow'))
         
+    ##############################################
     ## map Reads
+    ##############################################
     start_time_partial = mapReads_module(options, pd_samples_retrieved, mapping_outdir_dict, 
-                    options.debug, max_workers_int, threads_job, start_time_partial)
+                    options.debug, max_workers_int, threads_job, start_time_partial, outdir)
 
     ## debug message
     if (Debug):
@@ -222,7 +224,8 @@ def run_biotype(options):
     return()
 
 #########################################
-def mapReads_module(options, pd_samples_retrieved, outdir_dict, Debug, max_workers_int, threads_job, start_time_partial):
+def mapReads_module(options, pd_samples_retrieved, outdir_dict, Debug, 
+                    max_workers_int, threads_job, start_time_partial, outdir):
     
     # Group dataframe by sample name
     sample_frame = pd_samples_retrieved.groupby(["new_name"])
