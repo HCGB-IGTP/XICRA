@@ -4,3 +4,5 @@ fastqjoin,,fastqjoin,https://manpages.debian.org/stretch/ea-utils/fastq-join.1.e
 sRNAbench,1.6,sRNAbench.jar,https://bioinfo2.ugr.es/srnatoolbox/standalone/
 optimir,,optimir,https://github.com/FlorianThibord/OptimiR
 miraligner,,miraligner.jar,https://github.com/lpantano/seqbuster
+STAR,2.6.1,STAR,https://github.com/alexdobin/STAR
+featureCounts,1.5.1,featureCounts,http://subread.sourceforge.net/
