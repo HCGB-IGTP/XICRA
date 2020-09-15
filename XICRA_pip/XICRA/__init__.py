@@ -10,7 +10,8 @@
 __all__ = [
 	'modules',
 	'scripts',
-	'config'
+	'config',
+	'other_tools'
 ]
 
 from XICRA import *

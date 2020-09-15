@@ -346,34 +346,50 @@ def pie_plot_results(RNAbiotypes_stats_file, name, folder, Debug):
 	
 		# create plot
 		plt.figure(figsize=(16,8))
-		df_genetype_2 = pd.DataFrame({'Type':RNAbiotypes_stats[0], 'Read_Count':RNAbiotypes_stats[1]}).sort_values(by=['Read_Count'])
+		df_genetype_2 = pd.DataFrame({'Type':RNAbiotypes_stats[0], 
+									'Count':RNAbiotypes_stats[1]}).sort_values(by=['Count'])
 	
 		## get total count
-		df_genetype_ReadCount_sum = df_genetype_2['Read_Count'].sum()
+		df_genetype_ReadCount_sum = df_genetype_2['Count'].sum()
 	
 		## filter 1% values
 		minimun = df_genetype_ReadCount_sum * 0.01
-		df_genetype_filter_greater = df_genetype_2[ df_genetype_2['Read_Count'] >= minimun ]
-		df_genetype_filter_smaller = df_genetype_2[ df_genetype_2['Read_Count'] < minimun ]
+		df_genetype_filter_greater = df_genetype_2[ df_genetype_2['Count'] >= minimun ]
+		df_genetype_filter_smaller = df_genetype_2[ df_genetype_2['Count'] < minimun ]
 	
+		## create %values
+		df_genetype_2['Percentage'] = (df_genetype_2['Count']/df_genetype_ReadCount_sum*100).round(3)
+		
 		## merge and generate Other class
-		df_genetype_filter_smaller_sum = df_genetype_filter_smaller['Read_Count'].sum() ## total filter smaller
-		df_genetype_filter_greater2 = df_genetype_filter_greater.append({'Read_Count':df_genetype_filter_smaller_sum, 'Type':'Other'}, ignore_index=True)
+		df_genetype_filter_smaller_sum = df_genetype_filter_smaller['Count'].sum() ## total filter smaller
+		df_genetype_filter_greater2 = df_genetype_filter_greater.append({
+			'Count':df_genetype_filter_smaller_sum, 
+			'Type':'Other'}, ignore_index=True)
 	
-		## Create Plot
+		## Create Pie Plot
 		ax1 = plt.subplot(121, aspect='equal')
-		df_genetype_filter_greater2.plot.pie(y = 'Read_Count', ax=ax1, autopct='%1.2f%%', shadow=False, labels=df_genetype_filter_greater2['Type'], legend = False)
+		df_genetype_filter_greater2.plot.pie(
+			y = 'Count', 
+			ax=ax1, 
+			autopct='%1.2f%%', 
+			shadow=False, 
+			labels=df_genetype_filter_greater2['Type'], 
+			legend = False)
 	
 		# plot table
 		ax2 = plt.subplot(122)
 		plt.axis('off')
-		tbl = ax2.table(cellText=df_genetype_2.values, colLabels=df_genetype_2.columns, 
-					loc='center', rowLoc='left', cellLoc='center', colWidths=[0.15, 0.5])
+		tbl = ax2.table(
+			cellText=df_genetype_2.values, 
+			colLabels=df_genetype_2.columns,
+			loc='center', rowLoc='left', cellLoc='center', 
+			)
 		tbl.auto_set_font_size(True)
+		#tbl.set_fontsize(12)
 		tbl.scale(1.1,1.1)
 	
 		## set PDF name
-		name_figure = os.path.join(folder, name + '-RNAbiotypes.pdf')
+		name_figure = os.path.join(folder, name + '_RNAbiotypes.pdf')
 	
 		## generate image
 		plt.savefig(name_figure)

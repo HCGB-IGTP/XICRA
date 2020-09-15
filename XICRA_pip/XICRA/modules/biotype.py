@@ -3,6 +3,7 @@
 ## Jose F. Sanchez                                        ##
 ## Copyright (C) 2019-2020 Lauro Sumoy Lab, IGTP, Spain   ##
 ############################################################
+from lxml.html.builder import TR
 """
 Create RNA biotype analysis using STAR and featureCounts
 """
@@ -23,9 +24,11 @@ from XICRA.modules import help_XICRA
 from XICRA.scripts import RNAbiotype
 from XICRA.scripts import mapReads
 from XICRA.scripts import multiQC_report
+from XICRA.other_tools import tools
 
 from HCGB import sampleParser
-from HCGB.functions import fasta_functions, time_functions, aesthetics_functions
+from HCGB.functions import fasta_functions, time_functions
+from HCGB.functions import aesthetics_functions, system_call_functions
 from HCGB.functions import files_functions, main_functions
 
 global mapping_results
@@ -181,7 +184,7 @@ def run_biotype(options):
             print ("\n")
         
         featureCount_report = files_functions.create_subfolder("featureCount", outdir_report)
-        multiQC_report.multiQC_module_call(my_outdir_list, "featureCount", featureCount_report,"")
+        multiQC_report.multiQC_module_call(my_outdir_list, "featureCount", featureCount_report,"-dd 2")
         print ('\n+ A summary HTML report of each sample is generated in folder: %s' %featureCount_report)
 
         ### Summarizing RNA biotype information
@@ -214,11 +217,20 @@ def run_biotype(options):
         ## set abs_csv_outfile to be in report folder
         ## copy or link files for each sample analyzed
         abs_csv_outfile = os.path.join(biotype_report, "summary.csv")
-        all_data.to_csv(abs_csv_outfile, quoting=csv.QUOTE_NONNUMERIC)
-        
+        all_data.to_csv(abs_csv_outfile)
+       
         ## create plot: call R [TODO: implement in python]
+        outfile_pdf = os.path.join(biotype_report, "RNAbiotypes_summary.pdf")
+        
+        ## R scripts
+        biotype_R_script = tools.R_scripts('plot_RNAbiotype_sum', options.debug)
+        rscript = set_config.get_exe("Rscript", options.debug)
+        cmd_R_plot = "%s %s -f %s -o %s" %(rscript, biotype_R_script, abs_csv_outfile, outfile_pdf)
+        
         ##
-    
+        print ("+ Create summary plot for all samples")
+        callCode = system_call_functions.system_call(cmd_R_plot)
+            
     print ("\n*************** Finish *******************")
     start_time_partial = time_functions.timestamp(start_time_total)
     print ("\n+ Exiting join module.")
@@ -315,7 +327,7 @@ def mapReads_module(options, pd_samples_retrieved, outdir_dict, Debug,
             print ("\n")
         
         map_report = files_functions.create_subfolder("STAR", outdir_report)
-        multiQC_report.multiQC_module_call(my_outdir_list, "STAR", map_report,"")
+        multiQC_report.multiQC_module_call(my_outdir_list, "STAR", map_report,"-dd 2")
         print ('\n+ A summary HTML report of each sample is generated in folder: %s' %map_report)
 
     return(start_time_partial)
