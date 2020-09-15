@@ -15,6 +15,7 @@ XICRA_pip/docs/source/_templates
 
 ## environment
 XICRA_pip/env/XICRA_env/
+env/
 
 ## pypi developer
 XICRA_pip/*.egg-info
@@ -25,3 +26,4 @@ XICRA_pip/.pypirc
 
 ## big file to avoid
 BMC_bioinformatics_paper/simulation/data/simulations_results_percDiff-8_XICRA.simulations.csv
+XICRA_pip/XICRA/modules/db_files/
