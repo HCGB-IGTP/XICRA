@@ -7,7 +7,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="XICRA",
-    version="0.9.2.2",
+    version="0.9.2.3",
 
     scripts=glob.glob('main/*'),
     author="Jose F. Sanchez-Herrero",
