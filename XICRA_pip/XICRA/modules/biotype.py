@@ -3,7 +3,6 @@
 ## Jose F. Sanchez                                        ##
 ## Copyright (C) 2019-2020 Lauro Sumoy Lab, IGTP, Spain   ##
 ############################################################
-from lxml.html.builder import TR
 """
 Create RNA biotype analysis using STAR and featureCounts
 """
