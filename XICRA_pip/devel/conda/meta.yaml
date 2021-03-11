@@ -1,0 +1,41 @@
+{% set version ="0.9.2.3" %}
+
+package:
+    name: xicra
+    version: {{ version }} 
+    
+source:
+    path: .
+
+requirements:
+    build:
+        - {{ compiler("c") }}
+        - {{ compiler("cxx") }}
+        - setuptools
+        - pip
+ 
+    host:
+        - python
+        - pip
+        - zlib
+        
+    run:
+        - python >=3.7
+        - make
+        - fastqc
+        - mirtop
+        - optimir
+        - star
+        - fastq-join
+        - subread
+
+about:
+    home: https://github.com/HCGB-IGTP/XICRA
+    license: MIT
+    summary: Small RNAseq pipeline for paired-end reads.
+    description:
+       XICRA is a python pipeline developed in multiple separated modules that 
+       it is designed to take paired end fastq reads, trim adapters and low-quality 
+       base pairs positions, and merge reads (R1 & R2) that overlap. Using joined 
+       reads it describes all major RNA biotypes present in the samples including 
+       miRNA and isomiRs, tRNA fragments (tRFs) and piwi associated RNAs (piRNAs).

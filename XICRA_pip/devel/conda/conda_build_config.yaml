@@ -1,0 +1,14 @@
+# defining jinja variables that can be used in meta.yaml:
+# these variables don't have to be the same as the package name,
+# but we like to keep it that way
+# see usage of this variable in meta.yaml in the build requirements
+python:
+  - 3.7
+
+# the pin_run_as_build is used to configure how dependency versions at run
+# time should relate to versions specified at build time
+# variables here _have_ to be the package names!
+pin_run_as_build:
+  # in this case, python will be required to be 3.6.x, or in other words
+  # >=3.6.0,<3.7
+  python: x.x
