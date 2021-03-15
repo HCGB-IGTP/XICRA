@@ -155,9 +155,15 @@ def run_biotype(options):
         print (colored("**DEBUG: biotype_outdir_dict **", 'yellow'))
         print (biotype_outdir_dict)
         
+    ## multimapping:
+    if options.no_multiMapping:
+        multimapping = False
+    else:
+        multimapping = True    
+    
     ## get RNAbiotype information
     RNAbiotype.RNAbiotype_module_call(mapping_results, biotype_outdir_dict, options.annotation, 
-                                      options.debug, max_workers_int, threads_job)
+                                      options.debug, max_workers_int, threads_job, multimapping, options.stranded)
 
     # time stamp
     start_time_partial = time_functions.timestamp(start_time_partial)

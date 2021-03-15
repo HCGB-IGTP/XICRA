@@ -206,6 +206,10 @@ options_group_RNAbiotype.add_argument("--limitRAM", type=int, help="limitRAM par
 options_group_RNAbiotype.add_argument("--noTrim", action='store_true', help="Use non-trimmed reads [or not containing '_trim' in the name].")
 options_group_RNAbiotype.add_argument("--skip_report", action="store_true", help="Do not report statistics using MultiQC report module [Default OFF]. See details in --help_multiqc")
 
+parameters_group_RNAbiotype = subparser_RNAbiotype.add_argument_group("Parameters")
+options_group_RNAbiotype.add_argument("--no_multiMapping", action='store_true', help="Set NO to counting multimapping in the feature count. By default, multimapping reads are allow. Default: False")
+options_group_RNAbiotype.add_argument("--stranded", type=int, help="Select if reads are stranded [1], reverse stranded [2] or non-stranded [0], Default: 0.", default=0)
+
 options_reference_RNAbiotype_group = subparser_RNAbiotype.add_argument_group("Reference genome")
 exclusive_reference_group = options_reference_RNAbiotype_group.add_mutually_exclusive_group()
 exclusive_reference_group.add_argument("--fasta", help="Reference genome to map reads.")

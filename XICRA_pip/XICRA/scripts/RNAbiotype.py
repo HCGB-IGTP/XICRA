@@ -36,7 +36,7 @@ def help_info():
 	exit()
 
 #####################
-def biotype_all(featureCount_exe, path, gtf_file, bam_file, name, threads, Debug):
+def biotype_all(featureCount_exe, path, gtf_file, bam_file, name, threads, Debug, allow_multimap, stranded):
 	
 	## folder for results
 	if not os.path.isdir(path):
@@ -66,11 +66,16 @@ def biotype_all(featureCount_exe, path, gtf_file, bam_file, name, threads, Debug
 				print ("logfile: " + logfile)
 		
 			## send command for feature count
-			cmd_featureCount = ('%s --largestOverlap -T %s -p -t exon -g transcript_biotype -a %s -o %s %s 2> %s' %(
-				featureCount_exe, threads, gtf_file, out_file, bam_file, logfile)
-			)
-			## do not count multi mapping, assign only to one feature and in case of ambiguity assign to longest overlap
-			#Before: cmd_featureCount = ('%s -M -O -T %s -p -t exon -g transcript_biotype -a %s -o %s %s 2> %s' %(featureCount_exe, threads, gtf_file, out_file, bam_file, logfile))
+			## Allow multimapping
+			if allow_multimap:
+				cmd_featureCount = ('%s -s %s -M -O -T %s -p -t exon -g transcript_biotype -a %s -o %s %s 2> %s' %(
+					featureCount_exe, stranded, threads, gtf_file, out_file, bam_file, logfile)
+				)
+			else:
+				cmd_featureCount = ('%s -s %s --largestOverlap -T %s -p -t exon -g transcript_biotype -a %s -o %s %s 2> %s' %(
+					featureCount_exe, stranded, threads, gtf_file, out_file, bam_file, logfile)
+				)
+				
 				
 			## system call
 			cmd_featureCount_code = system_call_functions.system_call(cmd_featureCount, False, True)
@@ -267,7 +272,7 @@ def parse_featureCount(out_file, path, name, bam_file, Debug):
 	return(out_tsv_file_name, RNA_biotypes_file_name)
 
 #######################################################################
-def RNAbiotype_module_call(samples_dict, output_dict, gtf_file, Debug, max_workers_int, threads_job):
+def RNAbiotype_module_call(samples_dict, output_dict, gtf_file, Debug, max_workers_int, threads_job, multimapping, stranded):
 	"""
 	Create RNAbiotype analysis for each sample and create summary plots
 	
@@ -285,7 +290,7 @@ def RNAbiotype_module_call(samples_dict, output_dict, gtf_file, Debug, max_worke
 	with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers_int) as executor:
 		commandsSent = { executor.submit(biotype_all, featureCount_exe, 
 										output_dict[sample], gtf_file, bam_files, 
-										sample, threads_job, Debug): sample for sample, bam_files in samples_dict.items() }
+										sample, threads_job, Debug, multimapping, stranded): sample for sample, bam_files in samples_dict.items() }
 	
 		for cmd2 in concurrent.futures.as_completed(commandsSent):
 			details = commandsSent[cmd2]
@@ -406,7 +411,7 @@ def main():
 	## ARGV
 	if len (sys.argv) < 6:
 		print ("\nUsage:")
-		print ("python3 %s bam_file folder gtf_file threads name featureCount_bin\n" %os.path.realpath(__file__))
+		print ("python3 %s bam_file folder gtf_file threads name featureCount_bin multimapping[True/False]\n" %os.path.realpath(__file__))
 		exit()
 	
 	bam_file = os.path.abspath(argv[1])
@@ -415,12 +420,13 @@ def main():
 	threads = argv[4]
 	name = argv[5]
 	featureCount_exe = argv[6]
+	multimapping= argv[7]
 
 	## Debug
 	Debug=True
 	
 	## variables
-	biotype_all(featureCount_exe, folder, gtf_file, bam_file, name, threads, Debug)
+	biotype_all(featureCount_exe, folder, gtf_file, bam_file, name, threads, Debug, multimapping)
 	## plot results
 	RNAbiotypes_stats_file = os.path.join(folder, name + '_RNAbiotype.tsv')
 	if files_functions.is_non_zero_file(RNAbiotypes_stats_file):
