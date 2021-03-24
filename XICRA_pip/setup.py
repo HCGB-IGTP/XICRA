@@ -7,7 +7,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="XICRA",
-    version="0.9.2.3",
+    version="0.9.3.1",
 
     scripts=glob.glob('main/*'),
     author="Jose F. Sanchez-Herrero",
@@ -29,6 +29,7 @@ setuptools.setup(
     include_package_data=True,
 
     install_requires=[
-        'pandas', 'patool', 'termcolor', 'cutadapt', 'mirtop', 'pysam', 'pybedtools', 'biopython', 'multiqc', 'HCGB'
+        'pandas', 'patool', 'termcolor', 'cutadapt', 'mirtop',
+        'optimir', 'pysam', 'pybedtools', 'biopython', 'multiqc', 'HCGB'
     ],
 )
