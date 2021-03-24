@@ -27,8 +27,8 @@ To install type:
 XICRA will install it along some python modules dependencies available (pandas, multiqc, pybedtools, mirtop, etc.). XICRA requires python v3.6 and 
 java (we tested in openjdk 14 2020-03-17) to execute additional software for some of analysis. 
 
-Although not all of the software listed here is required for all users, we encourage you to install them and make them available
-within your `$PATH` enviroment. See details in the following [table](https://github.com/HCGB-IGTP/XICRA/blob/master/soft_dependencies.csv).
+We encourage you to install them and make them available within your `$PATH` enviroment. See details in the following [table](https://github.com/HCGB-IGTP/XICRA/blob/master/soft_dependencies.csv).
+
 
 ### Python environment
 

@@ -43,6 +43,7 @@ echo "Moving files"
 echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++ "
 ln -s sRNAtoolboxDB/exec/sRNAbench.jar
 mv sRNAtoolboxDB $dir
+mv sRNAbench.jar $dir
 mv miraligner.jar $dir
 
 

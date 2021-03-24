@@ -30,7 +30,16 @@ The XICRA python pipeline is available in [pip](https://pypi.org/project/XICRA/)
 
 `pip install XICRA`
 
-See additional details for installation and dependencies [here](https://github.com/HCGB-IGTP/XICRA/blob/master/XICRA_pip/README.md#dependencies). We encourage you to create a python environment containing all modules. See as an example the description [here](https://github.com/HCGB-IGTP/XICRA/blob/master/XICRA_pip/README.md#python-environment)
+You will need to satisfy additional dependencies. See details here [here] (https://github.com/HCGB-IGTP/XICRA/blob/master/XICRA_pip/README.md#dependencies). We encourage you to create a python environment containing all modules. See as an example the description [here](https://github.com/HCGB-IGTP/XICRA/blob/master/XICRA_pip/README.md#python-environment)
+
+On the other hand, you can install XICRA using a conda environment available [here](https://github.com/HCGB-IGTP/XICRA/tree/master/XICRA_pip/devel/conda/)
+
+```sh
+git clone https://github.com/HCGB-IGTP/XICRA.git
+conda create -n XICRA python=3.6 -f XICRA_pip/devel/conda/environment.yml
+conda activate XICRA
+pip install XICRA
+```
 
 ### XICRA.stats
 
