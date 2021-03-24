@@ -30,7 +30,11 @@ The XICRA python pipeline is available in `pip` and also available using `conda`
 
 XICRA depends on multiple third party software that we have listed [here](https://github.com/HCGB-IGTP/XICRA/blob/master/XICRA_pip/README.md#dependencies).
 
-We encourage you to install XICRA and all dependencies using the conda environment we created. To do so:
+We encourage you to install XICRA and all dependencies using the `conda` environment we created and following these instructions. 
+
+Unfortunately, a couple of executables are not available neither as a `conda` or `pip` packages. These packages are `miraligner` and `sRNAbench`. We have generated a `shell` script to retrieve and include within your `conda environment`.
+
+To create a new conda environment, install third party software, install XICRA and missing dependencies, do as follows:
 
 ```sh
 ## clone repo
@@ -44,6 +48,14 @@ conda activate XICRA
 
 ## install latest python code
 pip install XICRA
+
+## install missing software
+sh XICRA_pip/XICRA/config/software/installer.sh
+```
+
+To check everything is fine, try executing the `config` module:
+```sh
+XICRA config
 ```
 
 On the other hand, if you might have already installed software and available within your path, you might only need to install it using the [XICRA pip](https://pypi.org/project/XICRA/) module. We encourage you to installed it within a python environment. See as an example the description [here](https://github.com/HCGB-IGTP/XICRA/blob/master/XICRA_pip/README.md#python-environment)
