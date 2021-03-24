@@ -6,3 +6,7 @@ optimir,,optimir,https://github.com/FlorianThibord/OptimiR
 miraligner,,miraligner.jar,https://github.com/lpantano/seqbuster
 STAR,2.6.1,STAR,https://github.com/alexdobin/STAR
 featureCounts,1.5.1,featureCounts,http://subread.sourceforge.net/
+fastqjoin,,fastq-join,https://expressionanalysis.github.io/ea-utils/
+cutadapt,2.10,cutadapt,https://cutadapt.readthedocs.io/en/stable/
+multiqc,1.8,multiqc,https://multiqc.info/
+miRTop,0.4.23,mirtop,https://github.com/miRTop/mirtop
