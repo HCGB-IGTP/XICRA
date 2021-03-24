@@ -16,25 +16,38 @@ paired-end reads, it also accepts single-end reads.
 
 ## Installation
 
-XICRA is available in the Python Package Index ([pip](https://pypi.org/project/XICRA/)).
+XICRA will require python v3.6 and java (we tested in openjdk 14 2020-03-17).
 
-To install type: 
+The XICRA python pipeline is available in `pip` and also available using `conda`.
 
-`pip install XICRA`
+XICRA depends on multiple third party software that we have listed below.
 
 ### Dependencies 
 
-XICRA will install it along some python modules dependencies available (pandas, multiqc, pybedtools, mirtop, etc.). XICRA requires python v3.6 and 
-java (we tested in openjdk 14 2020-03-17) to execute additional software for some of analysis. 
+Python XICRA module will install itself along some python modules dependencies (pandas, multiqc, pybedtools, biopython etc.). 
 
-We encourage you to install them and make them available within your `$PATH` enviroment. See details in the following [table](https://github.com/HCGB-IGTP/XICRA/blob/master/soft_dependencies.csv).
+But additionally, XICRA depends on third party software that we listed in the following [table](https://github.com/HCGB-IGTP/XICRA/blob/master/XICRA_pip/config/software/soft_dependencies.csv).
 
+### Conda installation
 
+We encourage you to install XICRA and all dependencies using the `conda` environment we created. To do so:
+
+```sh
+## clone repo
+git clone https://github.com/HCGB-IGTP/XICRA.git
+
+## create conda environemt
+conda create -n XICRA python=3.6 -f XICRA_pip/devel/conda/environment.yml
+
+## activate
+conda activate XICRA
+
+## install latest python code
+pip install XICRA
+```
 ### Python environment
 
-We encourage you to create a python environment containing all python modules required for XICRA. 
-
-See as an example this code:
+If you are not using a `conda` environment as you might have previously installed all dependencies, we encourage you to create a python environment containing all python modules required for XICRA. See as an example this code:
 
 ```sh
 ## create enviroment
@@ -79,6 +92,7 @@ ls test_XICRA/report/
 
 ## License 
 MIT License
+
 Copyright (c) 2020 HCGB-IGTP
 
 See additional details [here](LICENSE)
