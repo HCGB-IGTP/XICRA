@@ -26,21 +26,28 @@ See additional details on the code [here](https://github.com/HCGB-IGTP/XICRA/tre
 
 XICRA will require python v3.6 and java (we tested in openjdk 14 2020-03-17).
 
-The XICRA python pipeline is available in [pip](https://pypi.org/project/XICRA/). To install type:
+The XICRA python pipeline is available in `pip` and also available using `conda`.
 
-`pip install XICRA`
+XICRA depends on multiple third party software that we have listed [here] (https://github.com/HCGB-IGTP/XICRA/blob/master/XICRA_pip/README.md#dependencies).
 
-You will need to satisfy additional dependencies. See details here [here] (https://github.com/HCGB-IGTP/XICRA/blob/master/XICRA_pip/README.md#dependencies). We encourage you to create a python environment containing all modules. See as an example the description [here](https://github.com/HCGB-IGTP/XICRA/blob/master/XICRA_pip/README.md#python-environment)
-
-On the other hand, you can install XICRA using a conda environment available [here](https://github.com/HCGB-IGTP/XICRA/tree/master/XICRA_pip/devel/conda/)
+We encourage you to install XICRA and all dependencies using the conda environment we created. To do so:
 
 ```sh
+## clone repo
 git clone https://github.com/HCGB-IGTP/XICRA.git
+
+## create conda environemt
 conda create -n XICRA python=3.6 -f XICRA_pip/devel/conda/environment.yml
+
+## activate
 conda activate XICRA
+
+## install latest python code
 pip install XICRA
 ```
 
+On the other hand, if you might have already installed software and available within your path, you might only need to install it using the [XICRA pip](https://pypi.org/project/XICRA/) module. We encourage you to installed it within a python environment. See as an example the description [here](https://github.com/HCGB-IGTP/XICRA/blob/master/XICRA_pip/README.md#python-environment)
+ 
 ### XICRA.stats
 
 We additionally provide a supplementary R package for parsing and plotting some XICRA results. See additional details [here](https://github.com/HCGB-IGTP/XICRA.stats).
@@ -66,7 +73,9 @@ For a full documentation and details visit Read the Docs site [here](https://xic
 See a brief example on how to install and run XICRA [here](https://github.com/HCGB-IGTP/XICRA/tree/master/XICRA_pip#example)
 
 ## License 
+
 MIT License
+
 Copyright (c) 2020 HCGB-IGTP
 
 See additional details [here](XICRA_pip/LICENSE)
