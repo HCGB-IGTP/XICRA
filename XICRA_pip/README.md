@@ -26,7 +26,7 @@ XICRA depends on multiple third party software that we have listed below.
 
 Python XICRA module will install itself along some python modules dependencies (pandas, multiqc, pybedtools, biopython etc.). 
 
-But additionally, XICRA depends on third party software that we listed in the following [table](https://github.com/HCGB-IGTP/XICRA/blob/master/XICRA_pip/XICRA/config/software/dependencies.csv).
+But additionally, XICRA depends on third party software that we listed in the following [table](https://github.com/HCGB-IGTP/XICRA/blob/master/XICRA_pip/XICRA/config/software/soft_dependencies.csv).
 
 ### Conda installation
 
