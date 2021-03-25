@@ -28,6 +28,12 @@ requirements:
         - star
         - fastq-join
         - subread
+        - r-base
+        - r-ggplot2
+        - r-optparse
+        - r-rcolorbrewer2
+        - r-reshape2
+        - r-rstring2
 
 about:
     home: https://github.com/HCGB-IGTP/XICRA
