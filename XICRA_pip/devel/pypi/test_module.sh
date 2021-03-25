@@ -1,1 +1,1 @@
-sh devel/clean_devel.sh; sh devel/create_distro.sh; pip install -e ./
+sh devel/pypi/clean_devel.sh; sh devel/pypi/create_distro.sh; pip install -e ./
