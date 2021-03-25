@@ -31,7 +31,7 @@ requirements:
         - r-base
         - r-ggplot2
         - r-optparse
-        - r-rcolorbrewer2
+        - r-rcolorbrewer
         - r-reshape2
         - r-rstring2
 
