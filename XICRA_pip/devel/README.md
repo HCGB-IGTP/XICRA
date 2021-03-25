@@ -1,8 +1,39 @@
-# Instruction for creating releases
+# Instructions for developers
+
+## Create conda env for developers
+We have included files in the folder `devel/conda` for the build and configuration of the conda package.
+
+To create a new conda environment, install third party software, install XICRA and missing dependencies for XICRA development, do as follows:
+
+```sh
+## clone repo
+git clone https://github.com/HCGB-IGTP/XICRA.git
+
+## create conda environemt
+conda env create -n XICRA -f XICRA_pip/devel/conda/environment.yml
+
+## activate
+conda activate XICRA
+
+## install latest python code
+pip install -r XICRA_pip/devel/pypi/requirements.txt
+pip install -e .
+
+## install missing software
+sh XICRA_pip/XICRA/config/software/installer.sh
+```
+
+To check everything is fine, try executing the `config` module:
+```sh
+XICRA config
+```
+
+
+## Instruction for creating releases
 
 One on hand, we can create a new `pip` package, also, we would create a `conda` release. Ideally, all would be concordant with Github code releases.
 
-## Create pip package
+### Create pip package release
 
 XICRA python code is distributed in pip (https://pypi.org/project/XICRA/). 
 
@@ -10,7 +41,7 @@ Here, we have generated a few scripts in `devel/pypi` including all commands for
 
 Basically, in the main git folder, type:
 
-### clean distribution packages
+#### clean distribution packages
 ```
 sh devel/pypi/clean_devel.sh
 ```
@@ -18,7 +49,7 @@ sh devel/pypi/clean_devel.sh
 This code basically removes old builds in folders: `build`, `dist` and `XICRA.egg-info`:
 
 
-### create distribution files
+#### create distribution files
 Now, we would create a new distribution, type either:
 
 ```
@@ -33,7 +64,7 @@ python setup.py sdist bdist_wheel
 
 Folders `build`, `dist` and `XICRA.egg-info` will be created.
 
-### Upload to pip
+#### Upload to pip
 
 Basically, XICRA pip package is hosted under my user (I might change it in the future to a admin user).
 
@@ -66,13 +97,3 @@ See additional details on this topic in following linkgs:
 
 https://dzone.com/articles/executable-package-pip-install
 https://packaging.python.org/tutorials/packaging-projects/
-
-
-## Create conda distribution
-We have included files in the folder `devel/conda` for the build and configuration of the conda package. See details in `meta.yaml` file [here]()
-
-To create the new build, type the following command in the main git directory:
-
-```
-conda build -c bioconda devel/conda
-```
