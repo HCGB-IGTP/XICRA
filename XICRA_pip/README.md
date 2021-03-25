@@ -41,7 +41,7 @@ To create a new conda environment, install third party software, install XICRA a
 git clone https://github.com/HCGB-IGTP/XICRA.git
 
 ## create conda environemt
-conda create -n XICRA python=3.6 -f XICRA_pip/devel/conda/environment.yml
+conda create -n XICRA -c bioconda -f XICRA_pip/devel/conda/environment.yml
 
 ## activate
 conda activate XICRA
