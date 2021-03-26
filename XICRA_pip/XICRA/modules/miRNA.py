@@ -319,7 +319,14 @@ def sRNAbench_caller(reads, sample_folder, name, threads, species, Debug):
 def sRNAbench (reads, outpath, file_name, num_threads, species, Debug):
     
     sRNAbench_exe = set_config.get_exe("sRNAbench", Debug=Debug)
-    sRNAbench_db = os.path.abspath(os.path.join(os.path.dirname(sRNAbench_exe), '..')) ## sRNAtoolboxDB
+    
+    ## set as option
+    ## sRNAbench.jar in exec/ folder within sRNAtoolboxDB
+    ## sRNAbench_db = os.path.abspath(os.path.join(os.path.dirname(sRNAbench_exe), '..')) ## sRNAtoolboxDB
+    
+    ## sRNAbench.jar linked in bin/. sRNAtoolboxDB in same folder 
+    sRNAbench_db = os.path.abspath(os.path.join(os.path.dirname(sRNAbench_exe), 'sRNAtoolboxDB')) ## sRNAtoolboxDB
+    
     logfile = os.path.join(outpath, 'sRNAbench.log')
     
     if (len(reads) > 1):

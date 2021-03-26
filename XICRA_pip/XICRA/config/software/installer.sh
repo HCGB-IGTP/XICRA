@@ -34,7 +34,7 @@ echo ""
 echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++ "
 echo "## Downloading miraligner.jar"
 echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++ "
-wget https://github.com/lpantano/seqbuster/blob/miraligner/modules/miraligner/miraligner.jar
+wget https://github.com/lpantano/seqbuster/raw/miraligner/modules/miraligner/miraligner.jar
 echo ""
 
 ## mv files to conda enviornment folder

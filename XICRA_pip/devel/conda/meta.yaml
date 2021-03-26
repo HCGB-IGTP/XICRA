@@ -3,24 +3,27 @@
 package:
     name: xicra
     version: {{ version }} 
-    
+
+channels:
+  - r
+  - bioconda
+  - defaults
+
 source:
-    path: .
+    path: ../../
+
+build:
+    number: 1
+    script: {{ PYTHON }} -m pip install . --ignore-installed --no-deps -vv
+    noarch: python
 
 requirements:
-    build:
-        - {{ compiler("c") }}
-        - {{ compiler("cxx") }}
-        - setuptools
-        - pip
- 
     host:
         - python
         - pip
-        - zlib
         
     run:
-        - python >=3.7
+        - python >=3.6
         - make
         - fastqc
         - mirtop
@@ -33,8 +36,16 @@ requirements:
         - r-optparse
         - r-rcolorbrewer
         - r-reshape2
-        - r-rstring2
+        - r-stringr
 
+test:
+  imports:
+    - XICRA.modules
+    - XICRA.scripts
+    
+  commands:
+    - XICRA
+    
 about:
     home: https://github.com/HCGB-IGTP/XICRA
     license: MIT
