@@ -37,6 +37,8 @@ echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++ "
 wget https://github.com/lpantano/seqbuster/raw/miraligner/modules/miraligner/miraligner.jar
 echo ""
 
+
+echo ""
 ## mv files to conda enviornment folder
 echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++ "
 echo "Moving files"
@@ -46,7 +48,8 @@ mv sRNAtoolboxDB $dir
 mv sRNAbench.jar $dir
 mv miraligner.jar $dir
 
-
+echo ""
+echo ""
 echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++ "
 echo "Remove tmp files"
 echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++ "
