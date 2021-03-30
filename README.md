@@ -102,6 +102,6 @@ Developed and maintained by Jose F. Sanchez-Herrero and Lauro Sumoy at HCGB-IGTP
 http://www.germanstrias.org/technology-services/genomica-bioinformatica/
 
 ## Citation
-Sanchez-Herrero et. al .... 2020
+Sanchez-Herrero JF, Pluvinet R, Haro AL, Sumoy L. _Paired-end small RNA sequencing reveals a possible overestimation in the isomiR sequence repertoire previously reported from conventional single read data analysis_. _Research Square; 2021._ DOI: 10.21203/rs.3.rs-351479/v1. https://europepmc.org/article/ppr/ppr302041
 
 
