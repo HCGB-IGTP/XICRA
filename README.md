@@ -79,7 +79,7 @@ devtools::install_github("HCGB-IGTP/XICRA.stats")
 ### Etymology
 XICRA is the name in Catalan for a small cup of coffee or chocoate. Also, it was used as a small measure of milk, oil or wine (125 ml). See additional details here: https://ca.wikipedia.org/wiki/Xicra
 
-_Una xicra tassa petita, més aviat alta i estreta, emprada expressament per a prendre la xocolata desfeta o cafè. També és una unitat de mesura de volum per a líquids que es feia servir a Catalunya per a l'oli, vi, o llet._ 
+_Una xicra és tassa petita, més aviat alta i estreta, emprada expressament per a prendre la xocolata desfeta o cafè. També és una unitat de mesura de volum per a líquids que es feia servir a Catalunya per a l'oli, vi, o llet._ 
 
 ## Supplementary Information
 In this repository we provide supplementary information for the original paper describing the method. See additional details in folder BMC_bioinformatics_paper or [here](BMC_bioinformatics_paper/README.md)
