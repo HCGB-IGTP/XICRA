@@ -164,10 +164,13 @@ calculate_unique_readCounts_plot <- function(PE_0_df, PE_8_df, SE_R1_df, SE_R2_d
   return(UID_longData)
 }
 
-## data
+##############
+## In & OUT ##
+##############
 
 ## set the appopiate path to XICRA git repo or the folder if you downloaded results
-XICRA_git_folder <- "/home/jfsanchez/DATA/XICRA/XICRA/"
+XICRA_git_folder <- ""
+out_folder <- ""
 
 
 #######################################
@@ -221,8 +224,8 @@ unique_UID_plot(miraligner_data$UID_longData, 8)
 #######################################
 
 ## set output folder
-GSE114923_out <- "/home/jfsanchez/DATA/XICRA/results_XICRA/test_plots/out_GSE114923"
-
+GSE114923_out <- file.path(out_folder, "out_GSE114923")
+dir.create(GSE114923_out)
 
 ## files
 PE_0_GSE114923 <- file.path(XICRA_git_folder, "./BMC_bioinformatics_paper/analysis_GSE114923/results/PE_0_DESeq2_table.tsv")
@@ -268,7 +271,9 @@ calculate_unique_readCounts_plot(PE_0_df = PE_0_data_geneSet_GSE114923$geneSet_s
 #######################################
 
 ## set output folder
-GSE155370_out <- "/home/jfsanchez/DATA/XICRA/results_XICRA/test_plots/out"
+## set output folder
+GSE155370_out <- file.path(out_folder, "out_GSE155370")
+dir.create(GSE155370_out)
 
 ## files
 PE_0 <- file.path(XICRA_git_folder, "./BMC_bioinformatics_paper/analysis_GSE155370/results/PE_0_DESeq2_table.tsv")
