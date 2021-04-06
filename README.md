@@ -77,7 +77,9 @@ devtools::install_github("HCGB-IGTP/XICRA.stats")
 
 
 ### Etymology
-XICRA means in Catalan "tassa petita, més aviat alta i estreta, emprada expressament per a prendre la xocolata desfeta o cafè. També és una unitat de mesura de volum per a líquids que es feia servir a Catalunya per a l'oli, vi, o llet. https://ca.wikipedia.org/wiki/Xicra"
+XICRA is the name in Catalan for a small cup of coffee or chocoate. Also, it was used as a small measure of milk, oil or wine (125 ml). See additional details here: https://ca.wikipedia.org/wiki/Xicra
+
+_Una xicra és tassa petita, més aviat alta i estreta, emprada expressament per a prendre la xocolata desfeta o cafè. També és una unitat de mesura de volum per a líquids que es feia servir a Catalunya per a l'oli, vi, o llet._ 
 
 ## Supplementary Information
 In this repository we provide supplementary information for the original paper describing the method. See additional details in folder BMC_bioinformatics_paper or [here](BMC_bioinformatics_paper/README.md)
@@ -100,6 +102,6 @@ Developed and maintained by Jose F. Sanchez-Herrero and Lauro Sumoy at HCGB-IGTP
 http://www.germanstrias.org/technology-services/genomica-bioinformatica/
 
 ## Citation
-Sanchez-Herrero et. al .... 2020
+Sanchez-Herrero JF, Pluvinet R, Haro AL, Sumoy L. _Paired-end small RNA sequencing reveals a possible overestimation in the isomiR sequence repertoire previously reported from conventional single read data analysis_. _Research Square; 2021._ DOI: 10.21203/rs.3.rs-351479/v1. https://europepmc.org/article/ppr/ppr302041
 
 
