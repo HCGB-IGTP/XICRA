@@ -1,6 +1,4 @@
 devtools::install_github("HCGB-IGTP/XICRA.stats")
-tmp_folder <- "/home/jfsanchez/test_gmt"
-setwd("/home/jfsanchez/git_repos/XICRA/BMC_bioinformatics_paper/")
 
 library(XICRA.stats)
 library(reshape2)
@@ -74,7 +72,7 @@ average_read_plot <- function(counts.longData) {
   p <- (ggplot(counts.longData, aes(x = variable, y = iso_types)) + 
           geom_raster(aes(fill=value)) + 
           scale_fill_gradient(low="grey90", high="red") +
-          labs(x="Sequencing mode", y="Isomir types", title="Average counts per isomir type") +
+          labs(x="Sequencing mode", y="isomiR types", title="Average counts per isomiR type") +
           theme_bw() +
           geom_point(aes(size=value)) +
           theme_bw() + 
@@ -90,7 +88,7 @@ unique_UID_plot <-function(UID_longData) {
   print(ggplot(UID_longData, aes(x = variable, y = iso_types)) + 
           geom_raster(aes(fill=value)) + 
           scale_fill_gradient(low="grey90", high="red") +
-          labs(x="Sequencing mode", y="Isomir types", title="Unique isomiRs") +
+          labs(x="Sequencing mode", y="isomiR types", title="Unique isomiRs") +
           theme_bw() +
           geom_point(aes(size=value)) +
           theme_bw() + 
@@ -168,14 +166,21 @@ calculate_unique_readCounts_plot <- function(PE_0_df, PE_8_df, SE_R1_df, SE_R2_d
 
 
 #######################################
-### BST SAMPLES
+### GSE155370 SAMPLES
 #######################################
 
+## set the appopiate path to XICRA git repo or the folder if you downloaded results
+XICRA_git_folder <- "/home/jfsanchez/DATA/XICRA/XICRA/"
+
+## set output folder
+GSE155370_out <- "/home/jfsanchez/DATA/XICRA/results_XICRA/test_plots/out"
+
+
 ## files
-PE_0 <- file.path(tmp_folder, "PE_0_DESeq2_table.tsv")
-PE_8 <- file.path(tmp_folder, "PE_8_DESeq2_table.tsv")
-SE_R1 <- file.path(tmp_folder, "SE_R1_DESeq2_table.tsv")
-SE_R2 <- file.path(tmp_folder, "SE_R2_DESeq2_table.tsv")
+PE_0 <- file.path(XICRA_git_folder, "./BMC_bioinformatics_paper/analysis_GSE155370/results/PE_0_DESeq2_table.tsv")
+PE_8 <- file.path(XICRA_git_folder, "./BMC_bioinformatics_paper/analysis_GSE155370/results/PE_8_DESeq2_table.tsv")
+SE_R1 <- file.path(XICRA_git_folder, "./BMC_bioinformatics_paper/analysis_GSE155370/results/SE_R1_DESeq2_table.tsv")
+SE_R2 <- file.path(XICRA_git_folder, "./BMC_bioinformatics_paper/analysis_GSE155370/results/SE_R2_DESeq2_table.tsv")
 
 ## read data
 PE_0_data <- XICRA.stats::prepare_data(PE_0, "DESeq2")
@@ -184,20 +189,19 @@ SE_R1_data <- XICRA.stats::prepare_data(SE_R1, "DESeq2")
 SE_R2_data <- XICRA.stats::prepare_data(SE_R2, "DESeq2")
 
 ## Prepare genet set data
-PE_0_data_geneSet <- XICRA.stats::build_geneSet_collection_DESeq2(PE_0_data, "PE_0", "./")
-PE_8_data_geneSet <- XICRA.stats::build_geneSet_collection_DESeq2(PE_8_data, "PE_8", "./")
-SE_R1_data_geneSet <- XICRA.stats::build_geneSet_collection_DESeq2(SE_R1_data, "SE_R1", "./")
-SE_R2_data_geneSet <- XICRA.stats::build_geneSet_collection_DESeq2(SE_R2_data, "SE_R2", "./")
+PE_0_data_geneSet <- XICRA.stats::build_geneSet_collection_DESeq2(PE_0_data, "PE_0", GSE155370_out)
+PE_8_data_geneSet <- XICRA.stats::build_geneSet_collection_DESeq2(PE_8_data, "PE_8", GSE155370_out)
+SE_R1_data_geneSet <- XICRA.stats::build_geneSet_collection_DESeq2(SE_R1_data, "SE_R1", GSE155370_out)
+SE_R2_data_geneSet <- XICRA.stats::build_geneSet_collection_DESeq2(SE_R2_data, "SE_R2", GSE155370_out)
 
 ##
-save_preRank_file(data_df = PE_0_data, path2storeResults = "./", tag = "PE_0")
-save_preRank_file(data_df = PE_8_data, path2storeResults = "./", tag = "PE_8")
-save_preRank_file(data_df = SE_R1_data, path2storeResults = "./", tag = "SE_R1")
-save_preRank_file(data_df = SE_R2_data, path2storeResults = "./", tag = "SE_R2")
+save_preRank_file(data_df = PE_0_data, path2storeResults = GSE155370_out, tag = "PE_0")
+save_preRank_file(data_df = PE_8_data, path2storeResults = GSE155370_out, tag = "PE_8")
+save_preRank_file(data_df = SE_R1_data, path2storeResults = GSE155370_out, tag = "SE_R1")
+save_preRank_file(data_df = SE_R2_data, path2storeResults = GSE155370_out, tag = "SE_R2")
 
 ## do gsea analysis
 
-#isotype plots per method
 #isotype plots per method
 calculate_average_readcounts_plot(PE_0_df = PE_0_data_geneSet$geneSet_stats, PE_8_df = PE_8_data_geneSet$geneSet_stats,
                                   SE_R1_df = SE_R1_data_geneSet$geneSet_stats, SE_R2_df = SE_R2_data_geneSet$geneSet_stats,
@@ -210,13 +214,18 @@ calculate_unique_readCounts_plot(PE_0_df = PE_0_data_geneSet$geneSet_stats, PE_8
 #######################################
 
 #######################################
-## GSE114923
+## GSE114923 samples
 #######################################
+
+## set output folder
+GSE114923_out <- "/home/jfsanchez/DATA/XICRA/results_XICRA/test_plots/out_GSE114923"
+
+
 ## files
-PE_0_GSE114923 <- "./analysis_GSE114923/results/PE_0_DESeq2_table.tsv"
-PE_8_GSE114923 <- "./analysis_GSE114923/results/PE_8_DESeq2_table.tsv"
-SE_R1_GSE114923 <- "./analysis_GSE114923/results/SE_R1_DESeq2_table.tsv"
-SE_R2_GSE114923 <- "./analysis_GSE114923/results/SE_R2_DESeq2_table.tsv"
+PE_0_GSE114923 <- file.path(XICRA_git_folder, "./BMC_bioinformatics_paper/analysis_GSE114923/results/PE_0_DESeq2_table.tsv")
+PE_8_GSE114923 <- file.path(XICRA_git_folder, "./BMC_bioinformatics_paper/analysis_GSE114923/results/PE_8_DESeq2_table.tsv")
+SE_R1_GSE114923 <- file.path(XICRA_git_folder, "./BMC_bioinformatics_paper/analysis_GSE114923/results/SE_R1_DESeq2_table.tsv")
+SE_R2_GSE114923 <- file.path(XICRA_git_folder, "./BMC_bioinformatics_paper/analysis_GSE114923/results/SE_R2_DESeq2_table.tsv")
 
 ## read data
 PE_0_GSE114923_data <- XICRA.stats::prepare_data(PE_0_GSE114923, "DESeq2")
@@ -225,16 +234,16 @@ SE_R1_GSE114923_data <- XICRA.stats::prepare_data(SE_R1_GSE114923, "DESeq2")
 SE_R2_GSE114923_data <- XICRA.stats::prepare_data(SE_R2_GSE114923, "DESeq2")
 
 ## Prepare genet set data
-PE_0_data_geneSet_GSE114923 <- XICRA.stats::build_geneSet_collection_DESeq2(PE_0_GSE114923_data, "PE_0", tmp_folder)
-PE_8_data_geneSet_GSE114923 <- XICRA.stats::build_geneSet_collection_DESeq2(PE_8_GSE114923_data, "PE_8", tmp_folder)
-SE_R1_data_geneSet_GSE114923 <- XICRA.stats::build_geneSet_collection_DESeq2(SE_R1_GSE114923_data, "SE_R1", tmp_folder)
-SE_R2_data_geneSet_GSE114923 <- XICRA.stats::build_geneSet_collection_DESeq2(SE_R2_GSE114923_data, "SE_R2", tmp_folder)
+PE_0_data_geneSet_GSE114923 <- XICRA.stats::build_geneSet_collection_DESeq2(PE_0_GSE114923_data, "PE_0", GSE114923_out)
+PE_8_data_geneSet_GSE114923 <- XICRA.stats::build_geneSet_collection_DESeq2(PE_8_GSE114923_data, "PE_8", GSE114923_out)
+SE_R1_data_geneSet_GSE114923 <- XICRA.stats::build_geneSet_collection_DESeq2(SE_R1_GSE114923_data, "SE_R1", GSE114923_out)
+SE_R2_data_geneSet_GSE114923 <- XICRA.stats::build_geneSet_collection_DESeq2(SE_R2_GSE114923_data, "SE_R2", GSE114923_out)
 
 ##
-save_preRank_file(data_df = PE_0_data, path2storeResults = "./", tag = "PE_0")
-save_preRank_file(data_df = PE_8_data, path2storeResults = "./", tag = "PE_8")
-save_preRank_file(data_df = SE_R1_data, path2storeResults = "./", tag = "SE_R1")
-save_preRank_file(data_df = SE_R2_data, path2storeResults = "./", tag = "SE_R2")
+save_preRank_file(data_df = PE_0_data, path2storeResults = GSE114923_out, tag = "PE_0")
+save_preRank_file(data_df = PE_8_data, path2storeResults = GSE114923_out, tag = "PE_8")
+save_preRank_file(data_df = SE_R1_data, path2storeResults = GSE114923_out, tag = "SE_R1")
+save_preRank_file(data_df = SE_R2_data, path2storeResults = GSE114923_out, tag = "SE_R2")
 
 ## do gsea analysis
 
@@ -253,11 +262,13 @@ calculate_unique_readCounts_plot(PE_0_df = PE_0_data_geneSet_GSE114923$geneSet_s
 ## Simulations
 #######################################
 
+## here, you will need to unzip the file: simulations_results_percDiff-8_XICRA.simulations.csv.gz
+
 ## read simulations
-data_df_given_percDiff8 <- read.table("./simulation/data/simulations_results_percDiff-8_XICRA.simulations.csv", sep=",", header=1)
+data_df_given_percDiff8 <- read.table(file.path(XICRA_git_folder, "./BMC_bioinformatics_paper/simulation/data/simulations_results_percDiff-8_XICRA.simulations.csv"), sep=",", header=1)
 data_df_given_percDiff8 <- data_df_given_percDiff8[!grepl("NotOb", data_df_given_percDiff8$variant),]
 
-data_df_given_percDiff0 <- read.table("./simulation/data/simulations_results_percDiff-0_XICRA.simulations.csv", sep=",", header=1)
+data_df_given_percDiff0 <- read.table(file.path(XICRA_git_folder, "./BMC_bioinformatics_paper/simulation/data/simulations_results_percDiff-0_XICRA.simulations.csv"), sep=",", header=1)
 data_df_given_percDiff0 <- data_df_given_percDiff0[!grepl("NotOb", data_df_given_percDiff0$variant),]
 
 ## miraligner
