@@ -1,5 +1,6 @@
 name: XICRA
 channels:
+  - conda-forge
   - r
   - bioconda
   - defaults
