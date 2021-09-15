@@ -26,7 +26,7 @@ from distutils.version import LooseVersion
 import pkg_resources
 
 ## import my modules
-from HCGB import functions
+import HCGB.functions.main_functions as HCGB_main
 from XICRA.config import set_config
 
 ####################################################################
@@ -44,8 +44,7 @@ def file_list(wanted_data):
 
 	"""
 	config_folder = os.path.dirname(os.path.realpath(__file__))
-	listOffiles = functions.main_functions.get_fullpath_list(config_folder, False)
-	
+	listOffiles = HCGB_main.get_fullpath_list(config_folder, False)
 	for f in listOffiles:
 		name = os.path.splitext(os.path.basename(f))[0]
 		if (name == wanted_data):
@@ -65,7 +64,7 @@ def read_dependencies():
 
 	## read from file: prog2default.csv
 	dependencies_file = file_list("dependencies")
-	return(functions.main_functions.get_data(dependencies_file, ',', 'index_col=0'))
+	return(HCGB_main.get_data(dependencies_file, ',', 'index_col=0'))
 
 #######################
 def return_defatult_soft(soft):
@@ -141,7 +140,7 @@ def min_python_module_version():
 	"""
 	## read from file: prog2default.csv
 	python_modules = file_list("python_requirements")
-	package_min_versions = functions.main_functions.file2dictionary(python_modules, ",")
+	package_min_versions = HCGB_main.file2dictionary(python_modules, ",")
 
 	return(package_min_versions)
 ##################

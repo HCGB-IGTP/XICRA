@@ -1,5 +1,6 @@
 name: XICRA
 channels:
+  - conda-forge
   - r
   - bioconda
   - defaults
@@ -69,7 +70,7 @@ dependencies:
   - numpy-base=1.19.2=py36hfa32c7d_0
   - openjdk=8.0.152=h7b6447c_3
   - openssl=1.1.1k=h27cfd23_0
-  - optimir=1.0=pyh864c0ab_1
+  - optimir=1.1=pyh3252c3a_0
   - pandas=1.1.3=py36he6710b0_0
   - pango=1.45.3=hd140c19_0
   - pcre=8.44=he6710b0_0

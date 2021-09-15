@@ -13,7 +13,8 @@ from termcolor import colored
 from distutils.version import LooseVersion
 
 ## import my modules
-from HCGB import functions
+import HCGB.functions.time_functions as HCGB_time
+import HCGB.functions.aesthetics_functions as HCGB_aes
 from XICRA.config import extern_progs
 from XICRA.config import set_config
 
@@ -29,17 +30,17 @@ def run_config(options):
     else:
         Debug = False
 
-    functions.aesthetics_functions.pipeline_header('XICRA')
-    functions.aesthetics_functions.boxymcboxface("Pipeline Configuration")
+    HCGB_aes.pipeline_header('XICRA')
+    HCGB_aes.boxymcboxface("Pipeline Configuration")
     print ("--------- Starting Process ---------")
-    functions.time_functions.print_time()
+    HCGB_time.print_time()
 
     print ("\nCheck dependencies, modules or third party software and print report...")
 
     ## python version
-    functions.aesthetics_functions.print_sepLine("+", 20, False)
+    HCGB_aes.print_sepLine("+", 20, False)
     print ('Python:')
-    functions.aesthetics_functions.print_sepLine("+", 20, False)
+    HCGB_aes.print_sepLine("+", 20, False)
 
     this_python_version = str(sys.version)
     python_min_version = extern_progs.return_min_version_soft('python')
@@ -51,32 +52,32 @@ def run_config(options):
         
     ## third-party software
     print ('\n')
-    functions.aesthetics_functions.print_sepLine("+", 20, False)
+    HCGB_aes.print_sepLine("+", 20, False)
     print ('External dependencies:')
-    functions.aesthetics_functions.print_sepLine("+", 20, False)
+    HCGB_aes.print_sepLine("+", 20, False)
     
     set_config.check_dependencies(Debug)
     print ('\n')    
 
     ## python packages
     print ('\n')
-    functions.aesthetics_functions.print_sepLine("+", 20, False)
+    HCGB_aes.print_sepLine("+", 20, False)
     print ('Python packages:')
-    functions.aesthetics_functions.print_sepLine("+", 20, False)
+    HCGB_aes.print_sepLine("+", 20, False)
 
     set_config.check_python_packages(Debug)
-    functions.aesthetics_functions.print_sepLine("+", 20, False)
+    HCGB_aes.print_sepLine("+", 20, False)
     print ('\n')
 
 
     ## R packages
     print ('\n')
-    functions.aesthetics_functions.print_sepLine("+", 20, False)
+    HCGB_aes.print_sepLine("+", 20, False)
     print ('R packages:')
-    functions.aesthetics_functions.print_sepLine("+", 20, False)
+    HCGB_aes.print_sepLine("+", 20, False)
 
     set_config.check_R_packages(Debug)
-    functions.aesthetics_functions.print_sepLine("+", 20, False)
+    HCGB_aes.print_sepLine("+", 20, False)
     print ('\n')
 
     

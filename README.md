@@ -15,6 +15,8 @@
 
 XICRA is a python pipeline developed in multiple separated modules that it is designed to take paired end fastq reads, trim adapters and low-quality base pairs positions, and merge reads (R1 & R2) that overlap. Using joined reads it describes all major RNA biotypes present in the samples including miRNA and isomiRs, tRNA fragments (tRFs) and piwi associated RNAs (piRNAs). 
 
+This pipeline resulted from the observation that potential artifacts derived from sequencing errors and/or data processing could result in an overestimation of abundance and diversity of miRNA isoforms. Paired end sequencing improves isomiR calling in small RNA sequencing data. Internal variation isomiR calls are frequent artifacts in single read sequencing data. Internal sequence variant isomiRs in single read sequencing mode may be false positives. See additional detail in the original publication [here](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-021-04128-1)
+
 So far, XICRA produces a miRNA analysis at the isomiR level using joined reads, multiple software at the user selection and following a standardization procedure. 
 Results are generated for each sample analyzed and summarized for all samples in a single expression matrix. This information can be processed at the miRNA or 
 isomiR level (single sequence) but also summarizing for each isomiR variant type. This information can be easily accessed using the accompanied R package 
@@ -102,6 +104,5 @@ Developed and maintained by Jose F. Sanchez-Herrero and Lauro Sumoy at HCGB-IGTP
 http://www.germanstrias.org/technology-services/genomica-bioinformatica/
 
 ## Citation
-Sanchez-Herrero JF, Pluvinet R, Haro AL, Sumoy L. _Paired-end small RNA sequencing reveals a possible overestimation in the isomiR sequence repertoire previously reported from conventional single read data analysis_. _Research Square; 2021._ DOI: 10.21203/rs.3.rs-351479/v1. https://europepmc.org/article/ppr/ppr302041
-
+Sanchez Herrero, J.F., Pluvinet, R., Luna de Haro, A. et al. Paired-end small RNA sequencing reveals a possible overestimation in the isomiR sequence repertoire previously reported from conventional single read data analysis. BMC Bioinformatics 22, 215 (2021). https://doi.org/10.1186/s12859-021-04128-1
 
