@@ -1,0 +1,334 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>set_config &#8212; XICRA v0.9.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="prev" title="extern_progs" href="extern_progs.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="module-XICRA.config.set_config">
+<span id="set-config"></span><span id="set-configuration"></span><h1>set_config<a class="headerlink" href="#module-XICRA.config.set_config" title="Permalink to this headline">¶</a></h1>
+<p>Provides configuration for the pipeline.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="XICRA.config.set_config.access_check">
+<span class="sig-prename descclassname"><span class="pre">XICRA.config.set_config.</span></span><span class="sig-name descname"><span class="pre">access_check</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/XICRA/config/set_config.html#access_check"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#XICRA.config.set_config.access_check" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check executable permission</p>
+<p>This function checks whether a given path is a folder or file and if it is 
+executable and accessible. It also works if a java jar file provided.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fn</strong> (<em>string</em>) – Absolute path file</p></li>
+<li><p><strong>mode</strong> (<em>string</em>) – Value to pass as the mode parameter of access()</p></li>
+</ul>
+</dd>
+</dl>
+<p><cite>mode</cite> defaults to:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>os.F_OK: Value to pass as the mode parameter of access() to test the existence of path.</p></li>
+<li><p>os.X_OK: Value to include in the mode parameter of access() to determine if path can be executed.</p></li>
+</ul>
+</div></blockquote>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<p>Be aware of Copyright</p>
+<p>The code implemented here was retrieved and modified from shutil (<a class="reference external" href="https://github.com/python/cpython/blob/master/Lib/shutil.py">https://github.com/python/cpython/blob/master/Lib/shutil.py</a>).</p>
+<p>Give them credit accordingly.</p>
+<p>We modified the code to work if java jar files provided.</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="XICRA.config.set_config.check_dependencies">
+<span class="sig-prename descclassname"><span class="pre">XICRA.config.set_config.</span></span><span class="sig-name descname"><span class="pre">check_dependencies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Debug</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/XICRA/config/set_config.html#check_dependencies"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#XICRA.config.set_config.check_dependencies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if available the different software required for <code class="docutils literal notranslate"><span class="pre">XICRA</span></code> execution.</p>
+<p>Using the function <a class="reference internal" href="extern_progs.html#XICRA.config.extern_progs.read_dependencies" title="XICRA.config.extern_progs.read_dependencies"><code class="xref py py-func docutils literal notranslate"><span class="pre">XICRA.config.extern_progs.read_dependencies()</span></code></a> the 
+information for all the dependencies is retrieved from file <code class="file docutils literal notranslate"><span class="pre">XICRA/config/software/dependencies.csv</span></code>.</p>
+<p>For each software, the function <a class="reference internal" href="#XICRA.config.set_config.get_exe" title="XICRA.config.set_config.get_exe"><code class="xref py py-func docutils literal notranslate"><span class="pre">XICRA.config.set_config.get_exe()</span></code></a> retrieves
+whether it is installed in the system or not and its version and it is check using 
+<code class="xref py py-func docutils literal notranslate"><span class="pre">XICRA.config.set_config.check_install()</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>Debug</strong> (<em>boolean</em>) – True/False for debugging messages</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Print messages and information</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="XICRA.config.set_config.check_install_module">
+<span class="sig-prename descclassname"><span class="pre">XICRA.config.set_config.</span></span><span class="sig-name descname"><span class="pre">check_install_module</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">installed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_version</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/XICRA/config/set_config.html#check_install_module"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#XICRA.config.set_config.check_install_module" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks modules installation</p>
+<p>Checks whether a module is installed and fulfilling requirements.       
+It prints messages using <a class="reference internal" href="#XICRA.config.set_config.print_module_comparison" title="XICRA.config.set_config.print_module_comparison"><code class="xref py py-func docutils literal notranslate"><span class="pre">XICRA.config.set_config.print_module_comparison()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>installed</strong> (<em>string</em>) – Version string of the module installed.</p></li>
+<li><p><strong>module_name</strong> (<em>string</em>) – Module name</p></li>
+<li><p><strong>min_version</strong> (<em>string</em>) – Version string for the minimum version required</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="XICRA.config.set_config.check_package_version">
+<span class="sig-prename descclassname"><span class="pre">XICRA.config.set_config.</span></span><span class="sig-name descname"><span class="pre">check_package_version</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">package</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Debug</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/XICRA/config/set_config.html#check_package_version"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#XICRA.config.set_config.check_package_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve python package version installed</p>
+<p>This is a modification of the original code from ARIBA (<a class="reference external" href="https://github.com/sanger-pathogens/ariba">https://github.com/sanger-pathogens/ariba</a>). 
+It basically uses pkg_resources.get_distribution(), pkg_resources.resource_filename() or imports module
+and retrieves version from __version__ variable.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>package</strong> (<em>string</em>) – Python package name</p></li>
+<li><p><strong>Debug</strong> (<em>boolean</em>) – True/False for debugging messages</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Version retrieved</p>
+</dd>
+</dl>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<p>Be aware of Copyright</p>
+<p>The code implemented here was retrieved and modified from ARIBA (<a class="reference external" href="https://github.com/sanger-pathogens/ariba">https://github.com/sanger-pathogens/ariba</a>)</p>
+<p>Give them credit accordingly.</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="XICRA.config.set_config.check_python_packages">
+<span class="sig-prename descclassname"><span class="pre">XICRA.config.set_config.</span></span><span class="sig-name descname"><span class="pre">check_python_packages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Debug</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/XICRA/config/set_config.html#check_python_packages"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#XICRA.config.set_config.check_python_packages" title="Permalink to this definition">¶</a></dt>
+<dd><p>This functions checks whether the packages installed in the system fulfilled the 
+minimum version specified in the configuration folder.</p>
+<p>It uses function <code class="xref py py-func docutils literal notranslate"><span class="pre">XICRA.config.set_config.get_python</span> <span class="pre">packages()</span></code> to
+retrieve the version of the python packages installed in the system. Then it uses
+<a class="reference internal" href="extern_progs.html#XICRA.config.extern_progs.min_python_module_version" title="XICRA.config.extern_progs.min_python_module_version"><code class="xref py py-func docutils literal notranslate"><span class="pre">XICRA.config.extern_progs.min_python_module_version()</span></code></a> to retrieve the minimum
+version specified. It compares them using function <a class="reference internal" href="#XICRA.config.set_config.check_install_module" title="XICRA.config.set_config.check_install_module"><code class="xref py py-func docutils literal notranslate"><span class="pre">XICRA.config.set_config.check_install_module()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>Debug</strong> (<em>boolean</em>) – True/False for debugging messages</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Print messages if packages are installed.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="XICRA.config.set_config.get_exe">
+<span class="sig-prename descclassname"><span class="pre">XICRA.config.set_config.</span></span><span class="sig-name descname"><span class="pre">get_exe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prog</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Return_Version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/XICRA/config/set_config.html#get_exe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#XICRA.config.set_config.get_exe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return absolute path of the executable program requested.</p>
+<p>Given a program name it returns its executable to be called. It has to fulfilled a minimum version specified.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>prog</strong> (<em>string</em>) – Software name</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Absolute path for the executable requested</p>
+</dd>
+<dt class="field-odd">Warning</dt>
+<dd class="field-odd"><p>if no executable available in system <code class="docutils literal notranslate"><span class="pre">$PATH</span></code> or not fulfilling the expected version.</p>
+</dd>
+</dl>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<p>Be aware of Copyright</p>
+<p>The code implemented here was retrieved and modified from ARIBA (<a class="reference external" href="https://github.com/sanger-pathogens/ariba">https://github.com/sanger-pathogens/ariba</a>)</p>
+<p>Give them credit accordingly.</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="XICRA.config.set_config.get_python_packages">
+<span class="sig-prename descclassname"><span class="pre">XICRA.config.set_config.</span></span><span class="sig-name descname"><span class="pre">get_python_packages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Debug</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/XICRA/config/set_config.html#get_python_packages"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#XICRA.config.set_config.get_python_packages" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves the version of the python packages installed in the system.</p>
+<p>It retrieves the dependencies name conversion from file <code class="file docutils literal notranslate"><span class="pre">XICRA/config/python/module_dependencies.csv</span></code>
+using function <a class="reference internal" href="extern_progs.html#XICRA.config.extern_progs.file_list" title="XICRA.config.extern_progs.file_list"><code class="xref py py-func docutils literal notranslate"><span class="pre">XICRA.config.extern_progs.file_list()</span></code></a> and <code class="xref py py-func docutils literal notranslate"><span class="pre">XICRA.scripts.functions.main_functions.get_data()</span></code>.
+For each module it retrieves the package version installed in the system using 
+<a class="reference internal" href="#XICRA.config.set_config.check_package_version" title="XICRA.config.set_config.check_package_version"><code class="xref py py-func docutils literal notranslate"><span class="pre">XICRA.config.set_config.check_package_version()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>Dictionary containing for each python module (key) the installed version (value).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="XICRA.config.set_config.get_version">
+<span class="sig-prename descclassname"><span class="pre">XICRA.config.set_config.</span></span><span class="sig-name descname"><span class="pre">get_version</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prog</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/XICRA/config/set_config.html#get_version"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#XICRA.config.set_config.get_version" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get version of software</p>
+<p>Given a program name and expected path, tries to determine its version.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>prog</strong> (<em>string</em>) – Program name</p></li>
+<li><p><strong>path</strong> (<em>string</em>) – Absolute path</p></li>
+<li><p><strong>Debug</strong> (<em>bool</em>) – True/False</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>String containing version. Returns NA message if no found and raises attention error message.</p>
+</dd>
+</dl>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<p>Be aware of Copyright</p>
+<p>The code implemented here was retrieved and modified from ARIBA (<a class="reference external" href="https://github.com/sanger-pathogens/ariba">https://github.com/sanger-pathogens/ariba</a>)</p>
+<p>Give them credit accordingly.</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="XICRA.config.set_config.my_which">
+<span class="sig-prename descclassname"><span class="pre">XICRA.config.set_config.</span></span><span class="sig-name descname"><span class="pre">my_which</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/XICRA/config/set_config.html#my_which"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#XICRA.config.set_config.my_which" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the absolute path to the executable</p>
+<p>Given a command return the absolute path(s), if any.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>cmd</strong> – Software command name</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List of absolute paths(s) of the given command.</p>
+</dd>
+</dl>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<p>Be aware of Copyright</p>
+<p>The code implemented here was retrieved and modified from shutil (<a class="reference external" href="https://github.com/python/cpython/blob/master/Lib/shutil.py">https://github.com/python/cpython/blob/master/Lib/shutil.py</a>).</p>
+<p>Give them credit accordingly.</p>
+<p>We modified the code to return multiple paths in a list if available different installed binaries in $PATH.</p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="XICRA.config.set_config.print_module_comparison">
+<span class="sig-prename descclassname"><span class="pre">XICRA.config.set_config.</span></span><span class="sig-name descname"><span class="pre">print_module_comparison</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">module_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/XICRA/config/set_config.html#print_module_comparison"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#XICRA.config.set_config.print_module_comparison" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates print message for a given module, version, message</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>module_name</strong> (<em>string</em>) – Name of the module</p></li>
+<li><p><strong>message</strong> (<em>string</em>) – Message to include in the print message: OK | FAILED | NOT FOUND</p></li>
+<li><p><strong>color</strong> (<em>string</em>) – Print message color: green | orange | red</p></li>
+<li><p><strong>tag</strong> (<em>string</em>) – Tag to include: Module, package, software</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Print message</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">XICRA</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../../contents.html">Contents</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../../contents.html#documentation">Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../contents.html#indices-and-tables">Indices and tables</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../../contents.html">Contents</a><ul>
+  <li><a href="../api_index.html">API Overview</a><ul>
+  <li><a href="config_index.html">Config</a><ul>
+      <li>Previous: <a href="extern_progs.html" title="previous chapter">extern_progs</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Jose F Sanchez-Herrero.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/devel/config/set_config.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

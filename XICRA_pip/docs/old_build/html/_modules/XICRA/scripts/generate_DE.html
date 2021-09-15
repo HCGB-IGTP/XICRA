@@ -1,0 +1,323 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>XICRA.scripts.generate_DE &#8212; XICRA v0.9.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for XICRA.scripts.generate_DE</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1">############################################################</span>
+<span class="c1">## Jose F. Sanchez                                        ##</span>
+<span class="c1">## Copyright (C) 2019-2020 Lauro Sumoy Lab, IGTP, Spain   ##</span>
+<span class="c1">############################################################</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">io</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="nb">open</span>
+<span class="kn">from</span> <span class="nn">sys</span> <span class="kn">import</span> <span class="n">argv</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">csv</span>
+
+<span class="kn">from</span> <span class="nn">HCGB</span> <span class="kn">import</span> <span class="n">functions</span>
+
+<span class="c1">####################</span>
+<div class="viewcode-block" id="generate_DE"><a class="viewcode-back" href="../../../devel/scripts/generate_DE.html#XICRA.scripts.generate_DE.generate_DE">[docs]</a><span class="k">def</span> <span class="nf">generate_DE</span><span class="p">(</span><span class="n">dataframe_results</span><span class="p">,</span> <span class="n">Debug</span><span class="p">,</span> <span class="n">outfolder</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="c1">## get results dictionary for each software employed </span>
+	<span class="n">soft_list</span> <span class="o">=</span> <span class="n">dataframe_results</span><span class="o">.</span><span class="n">soft</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+	<span class="c1">## debugging messages</span>
+	<span class="k">if</span> <span class="n">Debug</span><span class="p">:</span>
+		<span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;## Debug:&quot;</span><span class="p">)</span>
+		<span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;soft_list&quot;</span><span class="p">)</span>
+		<span class="nb">print</span> <span class="p">(</span><span class="n">soft_list</span><span class="p">)</span>
+
+	<span class="c1">## generate results</span>
+	<span class="k">for</span> <span class="n">soft_name</span> <span class="ow">in</span> <span class="n">soft_list</span><span class="p">:</span>
+		
+		<span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">+ Summarizing results for software: &quot;</span><span class="p">,</span> <span class="n">soft_name</span><span class="p">)</span>
+		
+		<span class="c1"># retrieve files in dictionary</span>
+		<span class="n">tmp_df</span> <span class="o">=</span> <span class="n">dataframe_results</span><span class="p">[</span> <span class="n">dataframe_results</span><span class="p">[</span><span class="s1">&#39;soft&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">soft_name</span><span class="p">]</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">)</span>
+		<span class="n">dict_files</span> <span class="o">=</span> <span class="n">tmp_df</span><span class="p">[</span><span class="s1">&#39;filename&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+
+		<span class="k">if</span> <span class="n">Debug</span><span class="p">:</span>
+			<span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;## Debug:&quot;</span><span class="p">)</span>
+			<span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;tmp_df&quot;</span><span class="p">)</span>
+			<span class="nb">print</span> <span class="p">(</span><span class="n">tmp_df</span><span class="p">)</span>
+			<span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;dict_files&quot;</span><span class="p">)</span>
+			<span class="nb">print</span> <span class="p">(</span><span class="n">dict_files</span><span class="p">)</span>
+
+		<span class="c1">## get data</span>
+		<span class="p">(</span><span class="n">all_data</span><span class="p">,</span> <span class="n">all_seqs</span><span class="p">)</span> <span class="o">=</span> <span class="n">generate_matrix</span><span class="p">(</span><span class="n">dict_files</span><span class="p">,</span> <span class="n">soft_name</span><span class="o">.</span><span class="n">lower</span><span class="p">(),</span> <span class="n">Debug</span><span class="p">)</span>
+		
+		<span class="c1">## discard duplicate UIDs if any</span>
+		<span class="n">all_data_filtered</span><span class="p">,</span> <span class="n">all_data_duplicated</span> <span class="o">=</span> <span class="n">discard_UID_duplicated</span><span class="p">(</span><span class="n">all_data</span><span class="p">)</span>
+		
+		<span class="c1">## dump data in folder provided</span>
+		<span class="n">csv_outfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outfolder</span><span class="p">,</span> <span class="s1">&#39;miRNA_expression-&#39;</span> <span class="o">+</span> <span class="n">soft_name</span><span class="p">)</span>
+		<span class="n">all_data_filtered</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">csv_outfile</span> <span class="o">+</span> <span class="s2">&quot;.csv&quot;</span><span class="p">,</span> <span class="n">quoting</span><span class="o">=</span><span class="n">csv</span><span class="o">.</span><span class="n">QUOTE_NONNUMERIC</span><span class="p">)</span>
+		<span class="n">all_data_duplicated</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">csv_outfile</span> <span class="o">+</span> <span class="s1">&#39;_dup.csv&#39;</span><span class="p">,</span> <span class="n">quoting</span><span class="o">=</span><span class="n">csv</span><span class="o">.</span><span class="n">QUOTE_NONNUMERIC</span><span class="p">)</span>
+		<span class="n">all_seqs</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">csv_outfile</span> <span class="o">+</span> <span class="s1">&#39;_seq.csv&#39;</span><span class="p">,</span> <span class="n">quoting</span><span class="o">=</span><span class="n">csv</span><span class="o">.</span><span class="n">QUOTE_NONNUMERIC</span><span class="p">)</span></div>
+
+<span class="c1">####################</span>
+<div class="viewcode-block" id="discard_UID_duplicated"><a class="viewcode-back" href="../../../devel/scripts/generate_DE.html#XICRA.scripts.generate_DE.discard_UID_duplicated">[docs]</a><span class="k">def</span> <span class="nf">discard_UID_duplicated</span><span class="p">(</span><span class="n">df_data</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="c1">## get data index</span>
+	<span class="n">df_data</span><span class="p">[</span><span class="s1">&#39;ID&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_data</span><span class="o">.</span><span class="n">index</span>
+	<span class="n">new_data</span> <span class="o">=</span> <span class="n">df_data</span><span class="o">.</span><span class="n">filter</span><span class="p">([</span><span class="s1">&#39;ID&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>	
+
+	<span class="c1"># split ID (hsa-let-7a-2-3p&amp;NA&amp;qNkjr6Ov2) into miRNA, variant and UID</span>
+	<span class="n">tmp</span> <span class="o">=</span> <span class="n">new_data</span><span class="p">[</span><span class="s1">&#39;ID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;&amp;&#39;</span><span class="p">,</span> <span class="n">expand</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+	<span class="n">new_data</span><span class="p">[</span><span class="s1">&#39;miRNA&#39;</span><span class="p">]</span>  <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+	<span class="n">new_data</span><span class="p">[</span><span class="s1">&#39;variant&#39;</span><span class="p">]</span>  <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+	<span class="n">new_data</span><span class="p">[</span><span class="s1">&#39;UID&#39;</span><span class="p">]</span>  <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+
+	<span class="c1">## count </span>
+	<span class="n">count_groups</span> <span class="o">=</span> <span class="n">new_data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;UID&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+	<span class="c1">## print to file?</span>
+	
+	<span class="c1">## get duplicated</span>
+	<span class="n">bigger1count</span> <span class="o">=</span> <span class="n">count_groups</span><span class="p">[</span> <span class="n">count_groups</span><span class="p">[</span><span class="s1">&#39;ID&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="p">]</span>
+	<span class="c1">## print counts to file?</span>
+	
+	<span class="c1">## get list of UIDs duplicate</span>
+	<span class="n">bigger1count_list</span> <span class="o">=</span> <span class="n">bigger1count</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span>
+	<span class="n">duplicates</span> <span class="o">=</span> <span class="n">new_data</span><span class="p">[</span><span class="n">new_data</span><span class="p">[</span><span class="s1">&#39;UID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">bigger1count_list</span><span class="p">)]</span>
+	<span class="c1">## print duplicate to file?</span>
+
+	<span class="c1">## get duplicated data</span>
+	<span class="n">duplicates_indes_list</span> <span class="o">=</span> <span class="n">duplicates</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">to_list</span><span class="p">()</span>
+	<span class="n">duplicates_expression</span> <span class="o">=</span> <span class="n">df_data</span><span class="p">[</span><span class="n">df_data</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">duplicates_indes_list</span><span class="p">)]</span>
+	<span class="c1">#duplicates_expression[&#39;UID&#39;] = duplicates_expression[&#39;ID&#39;].str.split(&#39;&amp;&#39;, expand = True)[2]</span>
+	<span class="n">duplicates_expression</span> <span class="o">=</span> <span class="n">duplicates_expression</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s1">&#39;ID&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+	<span class="n">duplicates_expression</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;ID&quot;</span>
+	
+	<span class="c1">## get clean data</span>
+	<span class="n">clean_data_expression</span> <span class="o">=</span> <span class="n">df_data</span><span class="p">[</span><span class="o">~</span><span class="n">df_data</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">duplicates_indes_list</span><span class="p">)]</span>
+	<span class="c1">#clean_data_expression[&#39;UID&#39;] = clean_data_expression[&#39;ID&#39;].str.split(&#39;&amp;&#39;, expand = True)[2]</span>
+	<span class="n">clean_data_expression</span> <span class="o">=</span>	<span class="n">clean_data_expression</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s1">&#39;ID&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+	<span class="n">clean_data_expression</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;ID&quot;</span>
+	<span class="c1">## Fix this error</span>
+	<span class="c1">## A value is trying to be set on a copy of a slice from a DataFrame.</span>
+	<span class="c1">## Try using .loc[row_indexer,col_indexer] = value instead</span>
+	<span class="c1">## </span>
+	<span class="c1">## See the caveats in the documentation: http://pandas.pydata.org/pandas-docs/stable/indexing.html#indexing-view-versus-copy</span>
+	<span class="c1">##   clean_data_expression[&#39;UID&#39;] = clean_data_expression[&#39;ID&#39;].str.split(&#39;&amp;&#39;, expand = True)[2]</span>
+	
+	<span class="k">return</span> <span class="p">(</span><span class="n">clean_data_expression</span><span class="p">,</span> <span class="n">duplicates_expression</span><span class="p">)</span></div>
+
+<span class="c1">####################</span>
+<div class="viewcode-block" id="generate_matrix"><a class="viewcode-back" href="../../../devel/scripts/generate_DE.html#XICRA.scripts.generate_DE.generate_matrix">[docs]</a><span class="k">def</span> <span class="nf">generate_matrix</span><span class="p">(</span><span class="n">dict_files</span><span class="p">,</span> <span class="n">soft_name</span><span class="p">,</span> <span class="n">Debug</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="c1">######################################################</span>
+	<span class="c1">### For a list of files, generates a count matrix with a unique index id by merging:</span>
+	<span class="c1">### information provided within each file: name, variant and UID by &#39;&amp;&#39;</span>
+	<span class="c1">### e.g. AlaAGC&amp;3&#39;-tRF&amp;tRF-16-KSP185D</span>
+	<span class="c1">### e.g. hsa-let-7a-2-3p&amp;NA&amp;qNkjr6Ov2</span>
+	<span class="c1">### </span>
+	<span class="c1">### It returns a dataframe containing for each index generated</span>
+	<span class="c1">### count values for each sample (sample_name) in columns</span>
+	<span class="c1">###</span>
+	<span class="c1">#########################################################</span>
+	<span class="n">all_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+	<span class="n">seq_all_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+	<span class="k">for</span> <span class="n">sample</span><span class="p">,</span> <span class="n">this_file</span> <span class="ow">in</span> <span class="n">dict_files</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+		<span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;+ Reading information from sample: &#39;</span><span class="p">,</span> <span class="n">sample</span><span class="p">)</span>	
+		
+		<span class="c1">## </span>
+		<span class="k">if</span> <span class="n">functions</span><span class="o">.</span><span class="n">files_functions</span><span class="o">.</span><span class="n">is_non_zero_file</span><span class="p">(</span><span class="n">this_file</span><span class="p">):</span>
+			<span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">this_file</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> - Information not available for sample: &#39;</span><span class="p">,</span> <span class="n">sample</span><span class="p">)</span>	
+			<span class="k">continue</span>
+		<span class="c1">##</span>
+		<span class="k">if</span> <span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+			<span class="nb">print</span> <span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1"> - Information not available for sample: &#39;</span><span class="p">,</span> <span class="n">sample</span><span class="p">)</span>  
+			<span class="k">continue</span>
+
+		<span class="c1">## get info, generate unique name and merge for samples</span>
+		<span class="c1">## header of tsv files: </span>
+		<span class="c1">## UID	Read	miRNA	Variant	iso_5p	iso_3p	iso_add3p	iso_snp	sRNAbench</span>
+
+		<span class="n">data</span><span class="p">[</span><span class="s1">&#39;Variant&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s1">&#39;NA&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+		<span class="n">data</span><span class="p">[</span><span class="s1">&#39;unique_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">data</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;miRNA&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;&amp;&#39;</span> <span class="o">+</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;Variant&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;&amp;&#39;</span> <span class="o">+</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;UID&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+		<span class="c1">## parse according to software</span>
+		<span class="k">if</span> <span class="p">(</span><span class="n">soft_name</span> <span class="o">==</span> <span class="s1">&#39;srnabench&#39;</span><span class="p">):</span>
+			<span class="c1">## sRNAbench mirtop creates a column id with sRNAbench instead of sample name</span>
+			<span class="n">new_data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">filter</span><span class="p">([</span><span class="s1">&#39;unique_id&#39;</span><span class="p">,</span> <span class="s1">&#39;sRNAbench&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+			<span class="n">new_data</span> <span class="o">=</span> <span class="n">new_data</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;unique_id&#39;</span><span class="p">)</span>
+			<span class="n">new_data</span> <span class="o">=</span> <span class="n">new_data</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;sRNAbench&#39;</span><span class="p">:</span> <span class="n">sample</span><span class="p">})</span>
+
+		<span class="k">if</span> <span class="p">(</span><span class="n">soft_name</span> <span class="o">==</span> <span class="s1">&#39;optimir&#39;</span><span class="p">):</span>
+			<span class="c1">## OptimiR mirtop creates a column containing sample name and other tags (trim, joined, fastq...)</span>
+			<span class="n">regex</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">sample</span> <span class="o">+</span> <span class="s1">&#39;.*&#39;</span><span class="p">)</span>
+			<span class="n">search_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="n">regex</span><span class="o">.</span><span class="n">match</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">tolist</span><span class="p">()))</span>
+			<span class="n">new_data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">filter</span><span class="p">([</span><span class="s1">&#39;unique_id&#39;</span><span class="p">,</span> <span class="n">search_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+			<span class="n">new_data</span> <span class="o">=</span> <span class="n">new_data</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;unique_id&#39;</span><span class="p">)</span>
+			<span class="n">new_data</span> <span class="o">=</span> <span class="n">new_data</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="n">search_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">sample</span><span class="p">})</span>
+
+		<span class="k">if</span> <span class="p">(</span><span class="n">soft_name</span> <span class="o">==</span> <span class="s1">&#39;miraligner&#39;</span><span class="p">):</span>
+			<span class="c1">## miraligner mirtop creates a column containing sample name and other tags (trim, joined, fastq...)</span>
+			<span class="n">new_data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">filter</span><span class="p">([</span><span class="s1">&#39;unique_id&#39;</span><span class="p">,</span> <span class="n">sample</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+			<span class="n">new_data</span> <span class="o">=</span> <span class="n">new_data</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;unique_id&#39;</span><span class="p">)</span>
+
+		<span class="c1">## sequence information</span>
+		<span class="n">seq_data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">filter</span><span class="p">([</span><span class="s1">&#39;UID&#39;</span><span class="p">,</span> <span class="s1">&#39;Read&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>	
+		<span class="n">seq_data</span> <span class="o">=</span> <span class="n">seq_data</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s1">&#39;UID&#39;</span><span class="p">)</span>
+		<span class="n">seq_all_data</span> <span class="o">=</span> <span class="n">seq_all_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">seq_data</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="s1">&#39;Read&#39;</span><span class="p">)</span>
+
+		<span class="c1">## debugging messages</span>
+		<span class="k">if</span> <span class="n">Debug</span><span class="p">:</span>
+			<span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;*** DEBUG: data for sample ***&quot;</span><span class="p">)</span>
+			<span class="nb">print</span> <span class="p">(</span><span class="n">new_data</span><span class="p">)</span>
+		
+		<span class="n">all_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">all_data</span><span class="p">,</span> <span class="n">new_data</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+	<span class="c1">##</span>
+	<span class="c1">## debugging messages</span>
+	<span class="k">if</span> <span class="n">Debug</span><span class="p">:</span>
+		<span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;*** DEBUG: data for all samples ***&quot;</span><span class="p">)</span>
+		<span class="nb">print</span> <span class="p">(</span><span class="n">all_data</span><span class="p">)</span>
+		<span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;*** DEBUG: data for sequences all samples ***&quot;</span><span class="p">)</span>
+		<span class="nb">print</span> <span class="p">(</span><span class="n">seq_all_data</span><span class="p">)</span>
+		
+		
+	<span class="k">return</span> <span class="p">(</span><span class="n">all_data</span><span class="p">,</span> <span class="n">seq_all_data</span><span class="p">)</span>	</div>
+
+<span class="c1">######</span>
+
+<span class="c1">######</span>
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../devel/scripts/generate_DE.html#XICRA.scripts.generate_DE.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="c1">## this code runs when call as a single script</span>
+
+    <span class="c1">## control if options provided or help</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;Provide file containing sample,file&quot;</span><span class="p">)</span>
+        <span class="n">exit</span><span class="p">()</span>        
+
+    <span class="n">dictionary_info</span> <span class="o">=</span> <span class="n">functions</span><span class="o">.</span><span class="n">main_functions</span><span class="o">.</span><span class="n">file2dictionary</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;,&quot;</span><span class="p">)</span>
+    <span class="nb">print</span> <span class="p">(</span><span class="n">dictionary_info</span><span class="p">)</span>
+
+    <span class="c1">## get data</span>
+    <span class="p">(</span><span class="n">all_data</span><span class="p">,</span> <span class="n">all_seqs</span><span class="p">)</span> <span class="o">=</span> <span class="n">generate_matrix</span><span class="p">(</span><span class="n">dictionary_info</span><span class="p">,</span> <span class="s2">&quot;miraligner&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1">## discard duplicate UIDs if any</span>
+    <span class="n">all_data_filtered</span><span class="p">,</span> <span class="n">all_data_duplicated</span> <span class="o">=</span> <span class="n">discard_UID_duplicated</span><span class="p">(</span><span class="n">all_data</span><span class="p">)</span>
+
+    <span class="c1">## dump data in folder provided</span>
+    <span class="n">outfolder</span> <span class="o">=</span> <span class="s2">&quot;./&quot;</span>
+    <span class="n">csv_outfile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outfolder</span><span class="p">,</span> <span class="s1">&#39;miRNA_expression&#39;</span><span class="p">)</span>
+    <span class="n">all_data_filtered</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">csv_outfile</span> <span class="o">+</span> <span class="s2">&quot;.csv&quot;</span><span class="p">,</span> <span class="n">quoting</span><span class="o">=</span><span class="n">csv</span><span class="o">.</span><span class="n">QUOTE_NONNUMERIC</span><span class="p">)</span>
+    <span class="n">all_data_duplicated</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">csv_outfile</span> <span class="o">+</span> <span class="s1">&#39;_dup.csv&#39;</span><span class="p">,</span> <span class="n">quoting</span><span class="o">=</span><span class="n">csv</span><span class="o">.</span><span class="n">QUOTE_NONNUMERIC</span><span class="p">)</span>
+    <span class="n">all_seqs</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">csv_outfile</span> <span class="o">+</span> <span class="s1">&#39;_seq.csv&#39;</span><span class="p">,</span> <span class="n">quoting</span><span class="o">=</span><span class="n">csv</span><span class="o">.</span><span class="n">QUOTE_NONNUMERIC</span><span class="p">)</span></div>
+
+
+
+        
+<span class="c1">######</span>
+<span class="k">if</span> <span class="vm">__name__</span><span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+    
+
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">XICRA</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../contents.html">Contents</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Jose F Sanchez-Herrero.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -13,7 +13,7 @@ git clone https://github.com/HCGB-IGTP/XICRA.git
 cd XICRA/XICRA_pip
 
 ## create conda environemt
-conda env create -n XICRA -f ./devel/conda/environment.yml
+conda env create -n XICRA -f ./devel/conda/requirements.txt
 
 ## activate
 conda activate XICRA

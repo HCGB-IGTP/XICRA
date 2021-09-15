@@ -1,0 +1,171 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>multiQC_report &#8212; XICRA v0.9.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="reads2tabular" href="reads2tabular.html" />
+    <link rel="prev" title="generate_DE" href="generate_DE.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="multiqc-report">
+<span id="id1"></span><h1>multiQC_report<a class="headerlink" href="#multiqc-report" title="Permalink to this headline">¶</a></h1>
+<p>This script contains several functions. Here we show a graph representation of the different functions and relationships among them:</p>
+<img alt="../../_images/multiQC_report.svg" class="align-center" src="../../_images/multiQC_report.svg" /><span class="target" id="module-XICRA.scripts.multiQC_report"></span><p>Calls multiQC to generate HTML statistics reports.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="XICRA.scripts.multiQC_report.multiQC_call">
+<span class="sig-prename descclassname"><span class="pre">XICRA.scripts.multiQC_report.</span></span><span class="sig-name descname"><span class="pre">multiQC_call</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pathFile</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">folder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">option</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/XICRA/scripts/multiQC_report.html#multiQC_call"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#XICRA.scripts.multiQC_report.multiQC_call" title="Permalink to this definition">¶</a></dt>
+<dd><p><a href="#id2"><span class="problematic" id="id3">multiQC_</span></a> report generation call.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pathFile</strong> (<em>string</em>) – File containing list of files to include in report.</p></li>
+<li><p><strong>name</strong> (<em>string</em>) – Name to include in the html report.</p></li>
+<li><p><strong>folder</strong> (<em>string</em>) – Absolute path for the output folder.</p></li>
+<li><p><strong>option</strong> (<em>string</em>) – Options to provide to multiQC call.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><code class="xref py py-func docutils literal notranslate"><span class="pre">XICRA.scripts.functions.system_call_functions.system_call()</span></code> output (OK/FALSE)</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>This function depends on other XICRA functions called:</p>
+<ul class="simple">
+<li><p><code class="xref py py-func docutils literal notranslate"><span class="pre">XICRA.scripts.functions.system_call_functions.system_call()</span></code></p></li>
+</ul>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="XICRA.scripts.multiQC_report.multiQC_module_call">
+<span class="sig-prename descclassname"><span class="pre">XICRA.scripts.multiQC_report.</span></span><span class="sig-name descname"><span class="pre">multiQC_module_call</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">givenList</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">option</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/XICRA/scripts/multiQC_report.html#multiQC_module_call"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#XICRA.scripts.multiQC_report.multiQC_module_call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prepares files for multiQC report generation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>givenList</strong> (<em>list</em>) – List of folder to search for multiQC report.</p></li>
+<li><p><strong>name</strong> (<em>string</em>) – Name to include in the html report.</p></li>
+<li><p><strong>path</strong> (<em>string</em>) – Absolute path for the output folder.</p></li>
+<li><p><strong>option</strong> (<em>string</em>) – Some options to provide to multiQC_call.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>This function depends on other XICRA functions called:</p>
+<ul class="simple">
+<li><p><code class="xref py py-func docutils literal notranslate"><span class="pre">XICRA.scripts.functions.printList2file()</span></code></p></li>
+<li><p><a class="reference internal" href="#XICRA.scripts.multiQC_report.multiQC_call" title="XICRA.scripts.multiQC_report.multiQC_call"><code class="xref py py-func docutils literal notranslate"><span class="pre">XICRA.scripts.multiQC_report.multiQC_call()</span></code></a></p></li>
+</ul>
+</div>
+</dd></dl>
+
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">XICRA</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../../contents.html">Contents</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../../contents.html#documentation">Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../contents.html#indices-and-tables">Indices and tables</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../../contents.html">Contents</a><ul>
+  <li><a href="../api_index.html">API Overview</a><ul>
+  <li><a href="scripts_index.html">Scripts</a><ul>
+      <li>Previous: <a href="generate_DE.html" title="previous chapter">generate_DE</a></li>
+      <li>Next: <a href="reads2tabular.html" title="next chapter">reads2tabular</a></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Jose F Sanchez-Herrero.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/devel/scripts/multiQC_report.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

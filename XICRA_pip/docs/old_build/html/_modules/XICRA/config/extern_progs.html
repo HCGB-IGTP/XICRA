@@ -1,0 +1,278 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>XICRA.config.extern_progs &#8212; XICRA v0.9.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/alabaster.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for XICRA.config.extern_progs</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1">##########################################################</span>
+<span class="c1">## this modules is an idea from ARIBA					##</span>
+<span class="c1">## (https://github.com/sanger-pathogens/ariba)			##</span>
+<span class="c1">## give credit to them appropiately						##</span>
+<span class="c1">##														##</span>
+<span class="c1">## Jose F. Sanchez										##</span>
+<span class="c1">## Copyright (C) 2019-2020 Lauro Sumoy Lab, IGTP, Spain	##</span>
+<span class="c1">##########################################################</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Provides external programs details and configuration.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1">## useful imports</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">io</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="nb">open</span>
+<span class="kn">from</span> <span class="nn">sys</span> <span class="kn">import</span> <span class="n">argv</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">termcolor</span> <span class="kn">import</span> <span class="n">colored</span>
+<span class="kn">from</span> <span class="nn">distutils.version</span> <span class="kn">import</span> <span class="n">LooseVersion</span>
+<span class="kn">import</span> <span class="nn">pkg_resources</span>
+
+<span class="c1">## import my modules</span>
+<span class="kn">from</span> <span class="nn">HCGB</span> <span class="kn">import</span> <span class="n">functions</span>
+<span class="kn">from</span> <span class="nn">XICRA.config</span> <span class="kn">import</span> <span class="n">set_config</span>
+
+<span class="c1">####################################################################</span>
+<div class="viewcode-block" id="file_list"><a class="viewcode-back" href="../../../devel/config/extern_progs.html#XICRA.config.extern_progs.file_list">[docs]</a><span class="k">def</span> <span class="nf">file_list</span><span class="p">(</span><span class="n">wanted_data</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Retrieves information of additional files under folder ``XICRA/config``.</span>
+
+<span class="sd">	Using :func:`HCGB.functions.main_functions.get_fullpath_list` retrieves absolute</span>
+<span class="sd">	path for file of interest.</span>
+
+<span class="sd">	:param wanted_data: name for file</span>
+<span class="sd">	:type wanted_data: string</span>
+
+<span class="sd">	:returns: Absolute path for file wanted</span>
+
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">config_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
+	<span class="n">listOffiles</span> <span class="o">=</span> <span class="n">functions</span><span class="o">.</span><span class="n">main_functions</span><span class="o">.</span><span class="n">get_fullpath_list</span><span class="p">(</span><span class="n">config_folder</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+	
+	<span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">listOffiles</span><span class="p">:</span>
+		<span class="n">name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">f</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+		<span class="k">if</span> <span class="p">(</span><span class="n">name</span> <span class="o">==</span> <span class="n">wanted_data</span><span class="p">):</span>
+			<span class="k">return</span> <span class="p">(</span><span class="n">f</span><span class="p">)</span></div>
+
+
+<span class="c1">##################</span>
+<span class="c1">## Software</span>
+<span class="c1">##################</span>
+<div class="viewcode-block" id="read_dependencies"><a class="viewcode-back" href="../../../devel/config/extern_progs.html#XICRA.config.extern_progs.read_dependencies">[docs]</a><span class="k">def</span> <span class="nf">read_dependencies</span><span class="p">():</span>
+	<span class="sd">&quot;&quot;&quot;Returns a dictionary containing the executable name for each software.</span>
+
+<span class="sd">	It uses :func:`XICRA.config.extern_progs.file_list` to retrieve absolute path</span>
+<span class="sd">	for file :file:`XICRA/config/software/dependencies.csv`. It then reads csv into pandas</span>
+<span class="sd">	dataframe using :func:`XICRA.scripts.functions.main_functions.get_data` and returns it.	</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="c1">## read from file: prog2default.csv</span>
+	<span class="n">dependencies_file</span> <span class="o">=</span> <span class="n">file_list</span><span class="p">(</span><span class="s2">&quot;dependencies&quot;</span><span class="p">)</span>
+	<span class="k">return</span><span class="p">(</span><span class="n">functions</span><span class="o">.</span><span class="n">main_functions</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">dependencies_file</span><span class="p">,</span> <span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="s1">&#39;index_col=0&#39;</span><span class="p">))</span></div>
+
+<span class="c1">#######################</span>
+<div class="viewcode-block" id="return_defatult_soft"><a class="viewcode-back" href="../../../devel/config/extern_progs.html#XICRA.config.extern_progs.return_defatult_soft">[docs]</a><span class="k">def</span> <span class="nf">return_defatult_soft</span><span class="p">(</span><span class="n">soft</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;Returns default name for a given software name</span>
+
+<span class="sd">	For some software we provide a shorter name for the software. Here, we read file</span>
+<span class="sd">	:file:`XICRA/config/software/dependencies.csv` using :func:`XICRA.config.extern_progs.read_dependencies`</span>
+<span class="sd">	and retrieve original software name.</span>
+
+<span class="sd">	:param soft: Software name</span>
+<span class="sd">	:type soft: string</span>
+
+<span class="sd">	:returns: String with original software name</span>
+
+<span class="sd">	.. seealso:: This function depends on other XICRA functions:</span>
+
+<span class="sd">		- :func:`XICRA.config.extern_progs.read_dependencies`</span>
+
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">dependencies_df</span> <span class="o">=</span> <span class="n">read_dependencies</span><span class="p">()</span>
+	<span class="k">return</span><span class="p">(</span><span class="n">dependencies_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">soft</span><span class="p">,</span><span class="s2">&quot;soft_name&quot;</span><span class="p">])</span></div>
+
+<span class="c1">##################</span>
+<div class="viewcode-block" id="return_min_version_soft"><a class="viewcode-back" href="../../../devel/config/extern_progs.html#XICRA.config.extern_progs.return_min_version_soft">[docs]</a><span class="k">def</span> <span class="nf">return_min_version_soft</span><span class="p">(</span><span class="n">soft</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;Retrieve version for a given software</span>
+
+<span class="sd">	Retrieves minimum version for the software of interest stored in :file:`XICRA/config/software/dependencies.csv`.</span>
+<span class="sd">	It reads file using :func:`XICRA.config.extern_progs.read_dependencies`</span>
+<span class="sd">	and retrieve minimum version required.</span>
+
+<span class="sd">	:param soft: Software name</span>
+<span class="sd">	:type soft: string</span>
+
+<span class="sd">	:returns: String with minimum version</span>
+
+<span class="sd">	.. seealso:: This function depends on other XICRA functions:</span>
+
+<span class="sd">		- :func:`XICRA.config.extern_progs.read_dependencies`	</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">dependencies_df</span> <span class="o">=</span> <span class="n">read_dependencies</span><span class="p">()</span>
+	<span class="k">return</span><span class="p">(</span><span class="n">dependencies_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">soft</span><span class="p">,</span><span class="s2">&quot;min_version&quot;</span><span class="p">])</span></div>
+<span class="c1">##################</span>
+
+<span class="c1">##################</span>
+<div class="viewcode-block" id="print_dependencies"><a class="viewcode-back" href="../../../devel/config/extern_progs.html#XICRA.config.extern_progs.print_dependencies">[docs]</a><span class="k">def</span> <span class="nf">print_dependencies</span><span class="p">():</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">progs</span> <span class="o">=</span> <span class="p">{}</span>
+	<span class="n">depencencies_pd</span> <span class="o">=</span> <span class="n">read_dependencies</span><span class="p">()</span>
+	<span class="k">for</span> <span class="n">prog</span> <span class="ow">in</span> <span class="n">depencencies_pd</span><span class="p">:</span>
+		<span class="c1">#print (prog)</span>
+		<span class="n">prog_exe</span> <span class="o">=</span> <span class="n">set_config</span><span class="o">.</span><span class="n">get_exe</span><span class="p">(</span><span class="n">prog</span><span class="p">)</span>
+		<span class="c1">#print (prog + &#39;\t&#39; + prog_exe)</span>
+		<span class="n">prog_ver</span> <span class="o">=</span> <span class="n">get_version</span><span class="p">(</span><span class="n">prog</span><span class="p">,</span> <span class="n">prog_exe</span><span class="p">)</span>
+		<span class="n">progs</span><span class="p">[</span><span class="n">prog</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">prog_exe</span><span class="p">,</span> <span class="n">prog_ver</span><span class="p">]</span>
+
+	<span class="n">df_programs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">progs</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;index&#39;</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;Executable path&#39;</span><span class="p">,</span> <span class="s1">&#39;Version&#39;</span><span class="p">))</span>
+	<span class="n">df_programs</span> <span class="o">=</span> <span class="n">df_programs</span><span class="o">.</span><span class="n">stack</span><span class="p">()</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">lstrip</span><span class="p">()</span><span class="o">.</span><span class="n">unstack</span><span class="p">()</span>
+	<span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&#39;display.max_colwidth&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+	<span class="n">pd</span><span class="o">.</span><span class="n">set_option</span><span class="p">(</span><span class="s1">&#39;display.max_columns&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+	<span class="nb">print</span> <span class="p">(</span><span class="n">df_programs</span><span class="p">)</span></div>
+
+<span class="c1">##################</span>
+<span class="c1">### Python packages</span>
+<span class="c1">##################</span>
+<div class="viewcode-block" id="min_python_module_version"><a class="viewcode-back" href="../../../devel/config/extern_progs.html#XICRA.config.extern_progs.min_python_module_version">[docs]</a><span class="k">def</span> <span class="nf">min_python_module_version</span><span class="p">():</span>
+	<span class="sd">&quot;&quot;&quot;Returns a dictionary containing minimum version for each python package.</span>
+
+<span class="sd">	Reads information from :file:`XICRA/config/python/python_requirements.csv`.</span>
+
+<span class="sd">	:returns: dictionary</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="c1">## read from file: prog2default.csv</span>
+	<span class="n">python_modules</span> <span class="o">=</span> <span class="n">file_list</span><span class="p">(</span><span class="s2">&quot;python_requirements&quot;</span><span class="p">)</span>
+	<span class="n">package_min_versions</span> <span class="o">=</span> <span class="n">functions</span><span class="o">.</span><span class="n">main_functions</span><span class="o">.</span><span class="n">file2dictionary</span><span class="p">(</span><span class="n">python_modules</span><span class="p">,</span> <span class="s2">&quot;,&quot;</span><span class="p">)</span>
+
+	<span class="k">return</span><span class="p">(</span><span class="n">package_min_versions</span><span class="p">)</span></div>
+<span class="c1">##################</span>
+
+<span class="c1">##################</span>
+<div class="viewcode-block" id="return_min_version_python_package"><a class="viewcode-back" href="../../../devel/config/extern_progs.html#XICRA.config.extern_progs.return_min_version_python_package">[docs]</a><span class="k">def</span> <span class="nf">return_min_version_python_package</span><span class="p">(</span><span class="n">package</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Retrieves minimum version requirement for the given package.</span>
+
+<span class="sd">	It retrieves the requirements using :func:`XICRA.config.extern_progs.min_python_module_version`</span>
+<span class="sd">	and returns the given package requested minimun version.</span>
+
+<span class="sd">	:param package:  </span>
+<span class="sd">	:type package: string	</span>
+<span class="sd">	:returns: Minimum version package (string)</span>
+
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">version_package</span> <span class="o">=</span> <span class="n">min_python_module_version</span><span class="p">()</span>
+	<span class="k">return</span> <span class="p">(</span><span class="n">version_package</span><span class="p">[</span><span class="n">package</span><span class="p">])</span></div>
+
+<span class="c1">##################</span>
+<div class="viewcode-block" id="print_package_version"><a class="viewcode-back" href="../../../devel/config/extern_progs.html#XICRA.config.extern_progs.print_package_version">[docs]</a><span class="k">def</span> <span class="nf">print_package_version</span><span class="p">():</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Prints the package version required by ``XICRA``</span>
+
+<span class="sd">	It retrieves the requirements using :func:`XICRA.config.extern_progs.min_python_module_version`</span>
+<span class="sd">	and prints them using function :func:`XICRA.config.set_config.print_module_comparison`.</span>
+
+<span class="sd">	:returns: Print messages</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">my_packages</span> <span class="o">=</span> <span class="n">min_python_module_version</span><span class="p">()</span>
+	<span class="k">for</span> <span class="n">each</span> <span class="ow">in</span> <span class="n">my_packages</span><span class="p">:</span>
+		<span class="n">set_config</span><span class="o">.</span><span class="n">print_module_comparison</span><span class="p">(</span><span class="n">each</span><span class="p">,</span> <span class="n">my_packages</span><span class="p">[</span><span class="n">each</span><span class="p">],</span> <span class="s1">&#39;green&#39;</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">XICRA</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../contents.html">Contents</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Jose F Sanchez-Herrero.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

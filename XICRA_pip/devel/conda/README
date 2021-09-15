@@ -1,0 +1,13 @@
+conda create -n XICRA_devel python==3.7.10
+conda activate XICRA_devel
+conda install -c bioconda -c defaults -c r fastqc mirtop optimir star fastq-join subread r-base r-ggplot2 r-optparse r-rcolorbrewer r-reshape2 r-stringr
+conda list -e > requirements.txt
+
+## Install XICRA
+
+# from pip
+pip install XICRA
+
+# from source
+cd ../..
+sh devel/pip/test_module.sh

@@ -44,7 +44,7 @@ git clone https://github.com/HCGB-IGTP/XICRA.git
 cd XICRA
 
 ## create conda environemt
-conda env create -n XICRA -f XICRA_pip/devel/conda/environment.yml
+conda env create -n XICRA -f XICRA_pip/devel/conda/requirements.txt
 
 ## activate
 conda activate XICRA
@@ -63,7 +63,7 @@ XICRA config
 
 On the other hand, if you might have already installed software and available within your path, you might only need to install it using the [XICRA pip](https://pypi.org/project/XICRA/) module. We encourage you to installed it within a python environment. See as an example the description [here](https://github.com/HCGB-IGTP/XICRA/blob/master/XICRA_pip/README.md#python-environment)
  
-### XICRA.stats
+### xicrastats
 
 We additionally provide a supplementary R package for parsing and plotting some XICRA results. See additional details [here](https://github.com/HCGB-IGTP/XICRA.stats).
 
