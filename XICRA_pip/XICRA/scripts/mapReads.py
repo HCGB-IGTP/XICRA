@@ -28,7 +28,7 @@ def create_genomeDir(folder, STAR_exe, num_threads, fasta_file, limitGenomeGener
     create_code = system_call_functions.system_call(cmd_create, False, True)
     
     if not create_code:
-        print ("** ERROR: Some error ocurred during genomeDir creation... **")
+        print ("** ERROR: Some error occurred during genomeDir creation... **")
         exit()
     
     return (genomeDir)
