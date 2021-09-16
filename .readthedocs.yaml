@@ -13,6 +13,6 @@ formats:
 python:
    version: "3.8"
    install:
-   - requirements: XICRA_pip/docs/requirements.txt
+   - requirements: XICRA_pip/docs/doc_requirements.txt
    
    system_packages: FALSE
