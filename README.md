@@ -22,8 +22,8 @@ Results are generated for each sample analyzed and summarized for all samples in
 isomiR level (single sequence) but also summarizing for each isomiR variant type. This information can be easily accessed using the accompanied R package 
 [XICRA.stats](https://github.com/HCGB-IGTP/XICRA.stats). Although the pipeline is designed to take paired-end reads, it also accepts single-end reads. 
 
-See additional details on the code [here](https://github.com/HCGB-IGTP/XICRA/tree/master/XICRA_pip). The workflow of the pipeline is described in the following image. ![Workflow](workflow/XICRA_pipeline.png "XICRA pipeline")
-
+See additional details on the code [here](https://github.com/HCGB-IGTP/XICRA/tree/master/XICRA_pip). The workflow of the pipeline is described in the following image.
+<img src="workflow/XICRA_pipeline.png" alt="Workflow" width="950"/>
 ### Installation
 
 XICRA will require python v3.6 and java (we tested in openjdk 14 2020-03-17).

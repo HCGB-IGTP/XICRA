@@ -1,3 +1,5 @@
+.. _contents:
+
 ********
 Contents
 ********
@@ -13,9 +15,12 @@ Documentation
 .. toctree::
    :maxdepth: 2
 
-   devel/api_index.rst
+   user_guide/user_guide_index.rst
+   devel/devel_index.rst
+   info/info_index.rst
+   glossary/glossary_index.rst
    bib/zbib_index.rst
-
+   
 
 Indices and tables
 ==================
