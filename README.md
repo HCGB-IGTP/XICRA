@@ -28,7 +28,7 @@ See additional details on the code [here](https://github.com/HCGB-IGTP/XICRA/tre
 
 XICRA will require python v3.6 and java (we tested in openjdk 14 2020-03-17).
 
-The XICRA python pipeline is available in `pip` and also available using `conda`.
+The XICRA python pipeline is available in `pip` and also available using `conda`. 
 
 XICRA depends on multiple third party software that we have listed [here](https://github.com/HCGB-IGTP/XICRA/blob/master/XICRA_pip/README.md#dependencies).
 
