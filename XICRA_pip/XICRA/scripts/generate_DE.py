@@ -17,7 +17,18 @@ from HCGB import functions
 
 ####################
 def generate_DE(dataframe_results, Debug, outfolder):
-	"""
+	"""Builds final expression matrices comparing all samples.
+
+	Generates three .csv for each software used:
+	miRNA_expression-soft_name_dup.csv: counts with duplicated reads for each sample
+	miRNA_expression-soft_name.csv: final matrix, counts of each isomiR (with miRNA and variant info) without duplicated reads 
+	miRNA_expression-soft_name_seq.csv: table with the miRTop identifier and the corresponding DNA sequence	
+
+	:param dataframe_results: dataframe with the paths of the outputs of each sample and software
+	:param Debug: display complete log
+	:param outfolder: output folder
+
+    :returns: None
 	"""
 	## get results dictionary for each software employed 
 	soft_list = dataframe_results.soft.unique()
