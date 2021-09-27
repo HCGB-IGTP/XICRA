@@ -16,25 +16,9 @@ within each one.
 .. toctree::
    :maxdepth: 1
    
-   annot.rst
-   assemble.rst
-   citation.rst
-   cluster.rst
    config.rst
-   database.rst
-   help_info.rst
-   ident.rst
-   MGE.rst
-   metadata.rst
    prep.rst
-   profile.rst
-   phylo.rst
-   qc.rst
-   report_generation.rst
-   run.rst
-   test.rst
-   trimm.rst
-   version.rst
+   miRNA.rst
    
 .. _shared-arguments:
 
