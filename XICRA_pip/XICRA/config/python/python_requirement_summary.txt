@@ -8,3 +8,6 @@ pybedtools
 biopython
 multiqc
 HCGB
+future
+networkx
+numpy
