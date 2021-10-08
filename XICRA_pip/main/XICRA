@@ -64,7 +64,7 @@ in_out_group_prep.add_argument("--batch", action="store_true", help="Provide thi
 in_out_group_prep.add_argument("--in_sample", help="File containing a list of samples to include (one per line) from input folder(s) [Default OFF].")
 in_out_group_prep.add_argument("--ex_sample", help="File containing a list of samples to exclude (one per line) from input folder(s) [Default OFF].")
 in_out_group_prep.add_argument("--detached", help="Isolated mode. No project folder initiated for further steps [Default OFF].")
-in_out_group_prep.add_argument("--include_lane", action="store_true", help="Include the lane tag (*L00X*) in the sample name. See --help_format for additional details [Default OFF]")
+in_out_group_prep.add_argument("--include_lane", action="store_true", help="Identify  samples (*L00X*) in the sample name. See --help_format for additional details [Default OFF]")
 in_out_group_prep.add_argument("--include_all", action="store_true", help="Include all characters as tag name before read pair, if any. See --help_format for additional details [Default OFF]")
 
 options_group_prep = subparser_prep.add_argument_group("Options")

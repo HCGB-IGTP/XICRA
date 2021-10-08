@@ -5,10 +5,10 @@ config
 ======
 
 The ``XICRA`` pipeline provides this module ``config`` to help the user
-to configurate the multiple dependencies and requirements.
+to check if the multiple dependencies and requirements are fulfilled.
 
 We encourage ``XICRA`` users to run this module after the installation to
-check whether the multiple requirements and dependencies are fulfilled.
+check whether the multiple requirements and dependencies are correctly installed.
 
 .. seealso:: Additional information on ``XICRA`` configuration and requirements
 
@@ -25,13 +25,13 @@ How to run the config module
 Once you have installed ``XICRA`` you should be able to run in the command line the pipeline.
 
 If you type ``XICRA`` you should see a prompt with the different modules available. Following 
-the pipeline name type the module of interest, in this case, config. As an example:
+the pipeline name type the module of interest, in this case, ``config``. As an example:
 
 .. code-block:: sh
 
    XICRA config -h
 
-The different options and parameters for this module should appear in the command line prompt. Here we summarized them:
+The different options and parameters for this module should appear in the command line prompt:
 
 
 .. function:: Module XICRA config

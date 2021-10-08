@@ -15,9 +15,16 @@
 .. _git: https://git-scm.com/
 .. _`python environment`: https://docs.python.org/3/tutorial/venv.html
 .. _Conda: https://docs.conda.io/en/latest/ 
+.. _article: https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-021-04128-1
+.. _miRBase: https://www.mirbase.org/
+.. _`variant nomenclature`: https://academic.oup.com/bioinformatics/article/36/3/698/5556118
 
 .. #### XICRA additional software links
 .. _XICRA.stats: https://github.com/HCGB-IGTP/XICRA.stats
+.. _Miraligner: https://seqcluster.readthedocs.io/mirna_annotation.html
+.. _Optimir: https://rnajournal.cshlp.org/content/early/2019/02/28/rna.069708.118
+.. _sRNAbench: https://bioinfo2.ugr.es/ceUGR/srnabench/
+.. _miRTop: https://github.com/miRTop/mirtop 
 
 .. #### Sites
 .. _IGTP: http://www.germanstrias.org/
