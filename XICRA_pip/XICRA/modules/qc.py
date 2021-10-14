@@ -88,7 +88,7 @@ def run_QC(options):
     start_time_partial = start_time_total
     
     ## create FASTQC call
-    fastqc(pd_samples_retrieved, outdir, options, start_time_total, name_analysis, Debug)
+    fastqc(pd_samples_retrieved, outdir, options, start_time_total, "", Debug)
 
     print ("\n*************** Finish *******************")
     start_time_partial = functions.time_functions.timestamp(start_time_total)
