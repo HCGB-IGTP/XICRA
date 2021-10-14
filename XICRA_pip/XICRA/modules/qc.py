@@ -85,10 +85,8 @@ def run_QC(options):
     print ("[ fastq, fq, fastq.gz, fq.gz ]\n")
     pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ("fastq", "fq", "fastq.gz", "fq.gz"), options.debug)
 
-    start_time_partial = start_time_total
-    
     ## create FASTQC call
-    fastqc(pd_samples_retrieved, outdir, options, start_time_total, "", Debug)
+    fastqc(pd_samples_retrieved, outdir, options, "", Debug)
 
     print ("\n*************** Finish *******************")
     start_time_partial = functions.time_functions.timestamp(start_time_total)
@@ -97,7 +95,18 @@ def run_QC(options):
     exit()
 
 #######################
-def fastqc(pd_samples_retrieved, outdir, options, start_time_total, name_analysis, Debug):
+def fastqc(pd_samples_retrieved, outdir, options, name_analysis, Debug):
+    '''
+    This is a main function to prepare data to call FASTQC.
+    
+    :param pd_samples_retrieved
+    :param outdir
+    :param options
+    :param name_analysis
+    :param Debug
+    
+    '''
+    
     
     ## debug message
     if (Debug):

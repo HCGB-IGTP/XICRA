@@ -146,7 +146,7 @@ def run_trimm(options):
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers_int) as executor:
         commandsSent = { executor.submit(cutadapt_caller.caller, sorted(cluster["sample"].tolist()), 
                                          outdir_dict[name], name, threads_job, 
-                                         min_len_read, Debug, adapters_dict, options.extra): name for name, cluster in sample_frame }
+                                         options.min_read_len, Debug, adapters_dict, options.extra): name for name, cluster in sample_frame }
 
         for cmd2 in concurrent.futures.as_completed(commandsSent):
             details = commandsSent[cmd2]
@@ -209,7 +209,7 @@ def run_trimm(options):
             print (colored("** Beginning FAStQC analysis **", 'red'))
 
         pd_samples_retrieved_trimmed = sampleParser.files.get_files(options, input_dir, "trim", ['_trim'], options.debug)
-        qc.fastqc(pd_samples_retrieved_trimmed, outdir, options, start_time_partial, "trimmed", Debug)
+        qc.fastqc(pd_samples_retrieved_trimmed, outdir, options, "trimmed", Debug)
         
     print ("\n*************** Finish *******************")
     start_time_partial = functions.time_functions.timestamp(start_time_total)
