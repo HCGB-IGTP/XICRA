@@ -195,7 +195,7 @@ def fastqc(pd_samples_retrieved, outdir, options, name_analysis, time_stamp, Deb
             print ("\n")
         
         fastqc_report = functions.files_functions.create_subfolder("FASTQC", outdir_report)
-        fastqc_final_report = functions.files_functions.create_subfolder(name_analysis, fastqc_report)
+        fastqc_final_report = functions.files_functions.create_subfolder(fold_name, fastqc_report)
         multiQC_report.multiQC_module_call(my_outdir_list, "FASTQC", fastqc_final_report,"")
         print ('\n+ A summary HTML report of each sample is generated in folder: %s' %fastqc_final_report)
 
