@@ -4,7 +4,11 @@ __all__ = [
     'generate_DE',
     'RNAbiotype',
     'mapReads',
-    'cutadapt_caller'
+    'cutadapt_caller',
+    'mirtop_caller',
+    'optimir_caller',
+    'miraligner_caller',
+    'MINTMap_caller'
     
 ]
 
