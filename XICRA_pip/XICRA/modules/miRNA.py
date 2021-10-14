@@ -26,7 +26,9 @@ from HCGB import functions
 from XICRA.config import set_config
 from XICRA.modules import help_XICRA
 from XICRA.scripts import generate_DE
+
 from XICRA.scripts import mirtop_caller
+from XICRA.scripts import sRNAbench_caller
 from XICRA.scripts import optimir_caller
 from XICRA.scripts import miraligner_caller
 
