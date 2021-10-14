@@ -14,13 +14,14 @@ import re
 import sys
 from sys import argv
 from io import open
+from termcolor import colored
 
 ## import my modules
 from HCGB import functions
 from XICRA.config import set_config
 
 #############################################
-def caller(list_reads, sample_folder, name, threads, Debug, adapters, extra):
+def caller(list_reads, sample_folder, name, threads, min_read_len, Debug, adapters, extra):
     ## check if previously trimmed and succeeded
     filename_stamp = sample_folder + '/.success'
     if os.path.isfile(filename_stamp):
@@ -29,7 +30,7 @@ def caller(list_reads, sample_folder, name, threads, Debug, adapters, extra):
     else:
         # Call cutadapt
         cutadapt_exe = set_config.get_exe('cutadapt')
-        code_returned = cutadapt(cutadapt_exe, list_reads, sample_folder, name, threads, Debug, adapters, extra)
+        code_returned = cutadapt(cutadapt_exe, list_reads, sample_folder, name, threads, min_read_len, Debug, adapters, extra)
         if code_returned:
             functions.time_functions.print_time_stamp(filename_stamp)
         else:
@@ -37,7 +38,7 @@ def caller(list_reads, sample_folder, name, threads, Debug, adapters, extra):
 
 
 #############################################
-def cutadapt (cutadapt_exe, reads, path, sample_name, num_threads, min_len_given, Debug, adapters, extra):
+def cutadapt(cutadapt_exe, reads, path, sample_name, num_threads, min_len_given, Debug, adapters, extra):
     """
     
     :param cutadapt_exe:

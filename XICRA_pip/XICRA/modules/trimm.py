@@ -158,6 +158,7 @@ def run_trimm(options):
                 print('%r generated an exception: %s' % (details, exc))
 
     print ("\n\n+ Trimming samples has finished...")
+    
     ## functions.time_functions.timestamp
     start_time_partial = functions.time_functions.timestamp(start_time_total)
 
@@ -208,12 +209,15 @@ def run_trimm(options):
         if (Debug):
             print (colored("** Beginning FAStQC analysis **", 'red'))
 
-        pd_samples_retrieved_trimmed = sampleParser.files.get_files(options, input_dir, "trim", ['_trim'], options.debug)
-        qc.fastqc(pd_samples_retrieved_trimmed, outdir, options, "trimmed", Debug)
+        ## functions.time_functions.timestamp
+        start_time_partial = functions.time_functions.timestamp(start_time_partial)
+
+    ## create FASTQC calling for trimmed reads
+    pd_samples_retrieved_trimmed = sampleParser.files.get_files(options, input_dir, "trim", ['_trim'], options.debug)
+    qc.fastqc(pd_samples_retrieved_trimmed, outdir, options, "trimmed", start_time_partial, Debug)
         
     print ("\n*************** Finish *******************")
     start_time_partial = functions.time_functions.timestamp(start_time_total)
     print ("\n+ Exiting trimm module.")
     exit()
     
-

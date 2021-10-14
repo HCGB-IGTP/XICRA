@@ -15,7 +15,6 @@ from io import open
 import shutil
 import concurrent.futures
 from termcolor import colored
-import cutadapt
 
 ## import my modules
 from XICRA.scripts import multiQC_report
@@ -27,7 +26,8 @@ from HCGB import functions
 
 ##############################################
 def run_QC(options):
-        ## init time
+    
+    ## init time
     start_time_total = time.time()
 
     ##################################
@@ -86,7 +86,7 @@ def run_QC(options):
     pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ("fastq", "fq", "fastq.gz", "fq.gz"), options.debug)
 
     ## create FASTQC call
-    fastqc(pd_samples_retrieved, outdir, options, "", Debug)
+    fastqc(pd_samples_retrieved, outdir, options, "", start_time_total, Debug)
 
     print ("\n*************** Finish *******************")
     start_time_partial = functions.time_functions.timestamp(start_time_total)
@@ -95,7 +95,7 @@ def run_QC(options):
     exit()
 
 #######################
-def fastqc(pd_samples_retrieved, outdir, options, name_analysis, Debug):
+def fastqc(pd_samples_retrieved, outdir, options, name_analysis, time_stamp, Debug):
     '''
     This is a main function to prepare data to call FASTQC.
     
@@ -105,8 +105,13 @@ def fastqc(pd_samples_retrieved, outdir, options, name_analysis, Debug):
     :param name_analysis
     :param Debug
     
-    '''
+    :type pd_samples_retrieved
+    :type outdir
+    :type options
+    :type name_analysis
+    :type Debug
     
+    '''
     
     ## debug message
     if (Debug):
@@ -132,7 +137,7 @@ def fastqc(pd_samples_retrieved, outdir, options, name_analysis, Debug):
     outdir_dict = functions.files_functions.outdir_project(outdir, options.project, pd_samples_retrieved, fold_name, options.debug)
     
     print ("+ Checking quality for each sample retrieved...")
-    start_time_partial = start_time_total
+    start_time_partial = time_stamp
     
     # Group dataframe by sample name
     sample_frame = pd_samples_retrieved.groupby(["name"])
