@@ -20,6 +20,7 @@ from termcolor import colored
 from XICRA.scripts import multiQC_report
 from XICRA.config import set_config
 from XICRA.modules import help_XICRA
+from XICRA.modules import qc
 from HCGB import functions
 from HCGB import sampleParser
 
@@ -198,6 +199,13 @@ def run_trimm(options):
         multiQC_report.multiQC_module_call(my_outdir_list, "Cutadapt", trimm_report,"")
         print ('\n+ A summary HTML report of each sample is generated in folder: %s' %trimm_report)
         
+        ## QC analysis for trimmed reads
+        if (Debug):
+            print (colored("** Beginning FAStQC analysis **", 'red'))
+
+        pd_samples_retrieved_trimmed = sampleParser.files.get_files(options, input_dir, "trim", ['_trim'], options.debug)
+        qc.fastqc(pd_samples_retrieved_trimmed, outdir, options, start_time_partial, "trimmed", Debug)
+        
     print ("\n*************** Finish *******************")
     start_time_partial = functions.time_functions.timestamp(start_time_total)
     print ("\n+ Exiting trimm module.")
@@ -258,8 +266,8 @@ def cutadapt (cutadapt_exe, reads, path, sample_name, num_threads, Debug, adapte
             p_param = os.path.join(path, sample_name + '_trim_R2.fastq')
             o_param = os.path.join(path, sample_name + '_trim_R1.fastq')
         
-        ## paired-end mode
-        cmd = '%s -j %s -a %s -A %s -o %s -p %s %s %s > %s' %(cutadapt_exe,  
+        ## paired-end mode, 15 bps as the min length cutoff
+        cmd = '%s -j %s -a %s -A %s -o %s -p %s %s %s > %s -m 15' %(cutadapt_exe,  
                                                                        num_threads, adapters['adapter_a'], 
                                                                        adapters['adapter_A'], o_param, 
                                                                        p_param, reads[0], reads[1], logfile)
