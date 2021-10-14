@@ -7,9 +7,7 @@
 Help messages for different scripts, modules
 """
 from termcolor import colored
-
 from HCGB import functions
-
 
 ###############
 def help_fastq_format():
@@ -153,18 +151,27 @@ def help_fastq_format():
     print ("name_L00x_R2.fastq\tname_L00x_R2.fq\nname_L00x_R2.fastq.gz\tname_L00x_R2.fq.gz")
     print ("\n")
 
-
+###############
 def project_help():
     return ()
 
+###############
 def multiqc_help():
     return ()
 
+###############
 def print_help_adapters():
     return()
 
+###############
 def help_join_reads():
     return ()
 
+###############
 def help_miRNA():
     return ()
+
+###############
+def help_tRNA():
+    return ()
+
