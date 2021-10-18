@@ -57,7 +57,7 @@ def biotype_all(featureCount_exe, path, gtf_file, bam_file, name, threads, Debug
 			stamp = time_functions.read_time_stamp(filename_stamp_featureCounts)
 			print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'featureCounts'), 'yellow'))
 		else:
-
+            
 			## debugging messages
 			if Debug:
 				print ("** DEBUG:")
@@ -160,7 +160,7 @@ def parse_featureCount(out_file, path, name, bam_file, Debug):
 		string2write = "tRNA\t%s\n" %tRNA_count
 		RNA_biotypes_file.write(string2write)
 		RNA_biotypes_file.close()
-				
+		
 		##########################################
 		### read summary count file
 		##########################################
@@ -265,7 +265,9 @@ def parse_featureCount(out_file, path, name, bam_file, Debug):
 		
 		## close files
 		out_tsv_file.close()
-
+		summary_count_file.close()
+		mapping_stats_file.close()
+		count_file.close()
 		## print timestamp
 		time_functions.print_time_stamp(filename_stamp_parse)
 
@@ -345,7 +347,7 @@ def pie_plot_results(RNAbiotypes_stats_file, name, folder, Debug):
 		stamp = time_functions.read_time_stamp(filename_stamp_plot)
 		print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'plot results'), 'yellow'))
 	else:
-	
+		
 		# PLOT and SHOW results
 		RNAbiotypes_stats = main_functions.get_data(RNAbiotypes_stats_file, '\t', 'header=None')
 	
@@ -397,9 +399,10 @@ def pie_plot_results(RNAbiotypes_stats_file, name, folder, Debug):
 		name_figure = os.path.join(folder, name + '_RNAbiotypes.pdf')
 	
 		## generate image
-		plt.savefig(name_figure)
+		plt.savefig(name_figure)		
 		plt.close(name_figure)
-
+		plt.close()
+		
 		## print time stamps
 		time_functions.print_time_stamp(filename_stamp_plot)
 		filename_stamp_all = folder + '/.success_all'

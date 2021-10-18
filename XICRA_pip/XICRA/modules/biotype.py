@@ -141,20 +141,20 @@ def run_biotype(options):
 
     ## debug message
     if (Debug):
-        print (colored("**DEBUG: mapping_results **", 'yellow'))
-        print (mapping_results)
+         print (colored("**DEBUG: mapping_results **", 'yellow'))
+         print (mapping_results)
     
     # time stamp
     start_time_partial = time_functions.timestamp(start_time_partial)
-
+    
     ## for samples
     biotype_outdir_dict = files_functions.outdir_project(outdir, options.project, pd_samples_retrieved, "biotype", options.debug)
-
+    
     ## debug message
     if (Debug):
         print (colored("**DEBUG: biotype_outdir_dict **", 'yellow'))
         print (biotype_outdir_dict)
-        
+    
     ## multimapping:
     if options.no_multiMapping:
         multimapping = False

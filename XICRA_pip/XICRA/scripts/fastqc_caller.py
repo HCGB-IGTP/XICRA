@@ -14,6 +14,7 @@ import re
 import sys
 from sys import argv
 from io import open
+from termcolor import colored
 
 ## import my modules
 from HCGB import functions
