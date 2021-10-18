@@ -7,7 +7,8 @@ __all__ = [
 	'miRNA',
 	'prep',
 	'qc',
-	'trimm'	
+	'trimm',
+	'tRNA'
 ]
 
 from XICRA.modules import *

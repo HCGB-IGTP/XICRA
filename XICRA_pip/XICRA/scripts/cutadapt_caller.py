@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 ##########################################################
-## Jose F. Sanchez                                      ##
-## Copyright (C) 2019 Lauro Sumoy Lab, IGTP, Spain      ##
+## Jose F. Sanchez, Marta Lopez & Lauro Sumoy           ##
+## Copyright (C) 2019-2021 Lauro Sumoy Lab, IGTP, Spain ##
 ##########################################################
 '''
 Calls cutadapt to trim raw reads
