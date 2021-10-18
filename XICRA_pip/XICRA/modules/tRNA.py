@@ -27,7 +27,6 @@ from XICRA.config import set_config
 from XICRA.modules import help_XICRA
 from XICRA.scripts import generate_DE
 from XICRA.scripts import MINTMap_caller
-from HCGB.functions import fasta_functions
 
 ##############################################
 def run_tRNA(options):
@@ -116,6 +115,102 @@ def run_tRNA(options):
     ## species
     print ("+ Species provided:", options.species)
 
+    ## set database path if necessary
+    if not (options.database):
+        install_path =  os.path.dirname(os.path.realpath(__file__))
+        options.database = os.path.join(install_path, "db_files") 
+    else:
+        options.database = os.path.abspath(options.database)
     
+    ## generate output folder, if necessary
+    if not options.project:
+        print ("\n+ Create output folder(s):")
+        functions.files_functions.create_folder(outdir)
     
+    ## for samples
+    outdir_dict = functions.files_functions.outdir_project(outdir, options.project, pd_samples_retrieved, "tRNA", options.debug)
+    
+    ## optimize threads
+    name_list = set(pd_samples_retrieved["new_name"].tolist())
+    threads_job = functions.main_functions.optimize_threads(options.threads, len(name_list)) ## threads optimization
+    max_workers_int = int(options.threads/threads_job)
+
+    ## to FIX: MINTmap requires to chdir to folder to create results
+    max_workers_int = 1
+
+    ## debug message
+    if (Debug):
+        print (colored("**DEBUG: options.threads " +  str(options.threads) + " **", 'yellow'))
+        print (colored("**DEBUG: max_workers " +  str(max_workers_int) + " **", 'yellow'))
+        print (colored("**DEBUG: cpu_here " +  str(threads_job) + " **", 'yellow'))
+
+    print ("+ Create a tRNA analysis for each sample retrieved...")    
+    
+    ## call tRNA_analysis: 
+    ## Get user software selection: mintmap, ...
+    
+    ## dictionary results
+    global results_df
+    results_df = pd.DataFrame(columns=("name", "soft", "type", "filename"))
+    
+    # Group dataframe by sample name
+    sample_frame = pd_samples_retrieved.groupby(["new_name"])
+    
+    ## send for each sample
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers_int) as executor:
+        commandsSent = { executor.submit(tRNA_analysis, 
+                                         sorted(cluster["sample"].tolist()), 
+                                         outdir_dict[name], name, threads_job, 
+                                         options.soft_name, options.species, 
+                                         options.database, Debug): name for name, cluster in sample_frame }
+
+        for cmd2 in concurrent.futures.as_completed(commandsSent):
+            details = commandsSent[cmd2]
+            try:
+                data = cmd2.result()
+            except Exception as exc:
+                print ('***ERROR:')
+                print (cmd2)
+                print('%r generated an exception: %s' % (details, exc))
+
+    print ("\n\n+ tRNA analysis is finished...")
+    print ("+ Let's summarize all results...")
+    
+    ## outdir
+    outdir_report = functions.files_functions.create_subfolder("report", outdir)
+    expression_folder = functions.files_functions.create_subfolder("tRNA", outdir_report)
+
+    ## debugging messages
+    if options.debug:
+        print (results_df)
+    
+    ## merge all parse gtf files created
+    print ("+ Summarize tRNA analysis for all samples...")
+    generate_DE.generate_DE(results_df, options.debug, expression_folder,  default_name="tRNA_expression-")
+
+    print ("\n*************** Finish *******************")
+    start_time_partial = functions.time_functions.timestamp(start_time_total)
+    print ("\n+ Exiting tRNA module.")
+    return()
+
+
+#########################################
+def tRNA_analysis(reads, folder, name, threads, soft_list, species, database, Debug):
+    
+    ##
+    for soft in soft_list:
+        if (soft == "mintmap"):
+            ## create mintmap
+            MINTmap_folder = functions.files_functions.create_subfolder('mintmap', folder)
+            code_success = MINTMap_caller.MINTmap_caller(MINTmap_folder, reads, name, threads, species, Debug)   
+            
+            if not code_success:
+                print ('** Some error ocurred during MINTmap analysis for sample %s...' %name)
+                return ()
+            
+            ## save results in dataframe
+            filename_amb = os.path.join(MINTmap_folder, 'mintmap_parse', name + '_amb.tsv')
+            filename_exc = os.path.join(MINTmap_folder, 'mintmap_parse', name + '_exc.tsv')
+            results_df.loc[len(results_df)] = name, soft, "amb", filename_amb
+            results_df.loc[len(results_df)] = name, soft, "exc", filename_exc
     

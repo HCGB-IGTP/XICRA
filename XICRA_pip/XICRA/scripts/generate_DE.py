@@ -16,13 +16,15 @@ import csv
 from HCGB import functions
 
 ####################
-def generate_DE(dataframe_results, Debug, outfolder):
+def generate_DE(dataframe_results, Debug, outfolder, default_name='miRNA_expression-'):
 	"""Builds final expression matrices comparing all samples.
 	
 		Generates three .csv for each software used:
 		miRNA_expression-soft_name_dup.csv: counts with duplicated reads for each sample
 		miRNA_expression-soft_name.csv: final matrix, counts of each isomiR (with miRNA and variant info) without duplicated reads 
-		miRNA_expression-soft_name_seq.csv: table with the miRTop identifier and the corresponding DNA sequence	
+		miRNA_expression-soft_name_seq.csv: table with the miRTop identifier and the corresponding DNA sequence
+		
+		miRNA_expression- is the default analysis but other can be provided such as tRNA, piRNA, etc
 		
 		:param dataframe_results: dataframe with the paths of the outputs of each sample and software
 		:param Debug: display complete log
@@ -61,7 +63,7 @@ def generate_DE(dataframe_results, Debug, outfolder):
 		all_data_filtered, all_data_duplicated = discard_UID_duplicated(all_data)
 		
 		## dump data in folder provided
-		csv_outfile = os.path.join(outfolder, 'miRNA_expression-' + soft_name)
+		csv_outfile = os.path.join(outfolder, default_name, + soft_name)
 		all_data_filtered.to_csv(csv_outfile + ".csv", quoting=csv.QUOTE_NONNUMERIC)
 		all_data_duplicated.to_csv(csv_outfile + '_dup.csv', quoting=csv.QUOTE_NONNUMERIC)
 		all_seqs.to_csv(csv_outfile + '_seq.csv', quoting=csv.QUOTE_NONNUMERIC)
@@ -115,7 +117,7 @@ def discard_UID_duplicated(df_data):
 	return (clean_data_expression, duplicates_expression)
 
 ####################
-def generate_matrix(dict_files, soft_name, Debug):
+def generate_matrix(dict_files, soft_name, Debug, type_analysis="miRNA"):
 	"""
 	"""
 	######################################################
@@ -144,33 +146,57 @@ def generate_matrix(dict_files, soft_name, Debug):
 			print ('\t - Information not available for sample: ', sample)  
 			continue
 
-		## get info, generate unique name and merge for samples
-		## header of tsv files: 
-		## UID	Read	miRNA	Variant	iso_5p	iso_3p	iso_add3p	iso_snp	sRNAbench
+		####
+		if type_analysis=="miRNA":
+			
+			## ------------------------------------------ ##
+			## Create matrix for miRNA results
+			## ------------------------------------------ ##
+			
+			## get info, generate unique name and merge for samples
+			## header of tsv files: 
+			## UID	Read	miRNA	Variant	iso_5p	iso_3p	iso_add3p	iso_snp	sRNAbench
+	
+			data['Variant'].fillna('NA', inplace=True)
+			data['unique_id'] = data.apply(lambda data: data['miRNA'] + '&' + data['Variant'] + '&' + data['UID'], axis=1)
+	
+			## parse according to software
+			if (soft_name == 'srnabench'):
+				## sRNAbench mirtop creates a column id with sRNAbench instead of sample name
+				new_data = data.filter(['unique_id', 'sRNAbench'], axis=1)
+				new_data = new_data.set_index('unique_id')
+				new_data = new_data.rename(columns={'sRNAbench': sample})
+	
+			if (soft_name == 'optimir'):
+				## OptimiR mirtop creates a column containing sample name and other tags (trim, joined, fastq...)
+				regex=re.compile(sample + '.*')
+				search_list = list(filter(regex.match, data.columns.values.tolist()))
+				new_data = data.filter(['unique_id', search_list[0]], axis=1)
+				new_data = new_data.set_index('unique_id')
+				new_data = new_data.rename(columns={search_list[0]: sample})
+	
+			if (soft_name == 'miraligner'):
+				## miraligner mirtop creates a column containing sample name and other tags (trim, joined, fastq...)
+				new_data = data.filter(['unique_id', sample], axis=1)
+				new_data = new_data.set_index('unique_id')
+		
+		####
+		elif type_analysis=="tRNA":
 
-		data['Variant'].fillna('NA', inplace=True)
-		data['unique_id'] = data.apply(lambda data: data['miRNA'] + '&' + data['Variant'] + '&' + data['UID'], axis=1)
-
-		## parse according to software
-		if (soft_name == 'srnabench'):
-			## sRNAbench mirtop creates a column id with sRNAbench instead of sample name
-			new_data = data.filter(['unique_id', 'sRNAbench'], axis=1)
-			new_data = new_data.set_index('unique_id')
-			new_data = new_data.rename(columns={'sRNAbench': sample})
-
-		if (soft_name == 'optimir'):
-			## OptimiR mirtop creates a column containing sample name and other tags (trim, joined, fastq...)
-			regex=re.compile(sample + '.*')
-			search_list = list(filter(regex.match, data.columns.values.tolist()))
-			new_data = data.filter(['unique_id', search_list[0]], axis=1)
-			new_data = new_data.set_index('unique_id')
-			new_data = new_data.rename(columns={search_list[0]: sample})
-
-		if (soft_name == 'miraligner'):
-			## miraligner mirtop creates a column containing sample name and other tags (trim, joined, fastq...)
-			new_data = data.filter(['unique_id', sample], axis=1)
-			new_data = new_data.set_index('unique_id')
-
+			## ------------------------------------------ ##
+			## Create matrix for tRNA results
+			## ------------------------------------------ ##
+			## UID	Read	tRNA	variant	ident	expression	soft\n'
+			
+			data['variant'].fillna('NA', inplace=True)
+			data['unique_id'] = data.apply(lambda data: data['tRNA'] + '&' + data['variant'] + '&' + data['UID'], axis=1)
+	
+			## parse according to software
+			if (soft_name == 'mintmap'):
+				new_data = data.filter(['unique_id', 'mintmap'], axis=1)
+				new_data = new_data.set_index('unique_id')
+				new_data = new_data.rename(columns={'mintmap': sample})
+	
 		## sequence information
 		seq_data = data.filter(['UID', 'Read'], axis=1)	
 		seq_data = seq_data.set_index('UID')

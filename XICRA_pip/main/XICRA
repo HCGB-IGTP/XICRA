@@ -299,6 +299,7 @@ in_out_group_tRNA.add_argument("--noTrim", action='store_true', help="Use non-tr
 options_group_tRNA = subparser_tRNA.add_argument_group("Options")
 options_group_tRNA.add_argument("-t", "--threads", type=int, help="Number of CPUs to use [Default: 2].", default=2)
 options_group_tRNA.add_argument("--species", help="Species tag ID [Default: hsa (Homo sapiens)].", default='hsa')
+options_group_tRNA.add_argument("--database", help="Path to store tRNA annotation files downloaded: GtRNAdb, etc")
 
 software_group_tRNA = subparser_tRNA.add_argument_group("Software")
 software_group_tRNA.add_argument("--software", dest='soft_name', nargs='*', 
