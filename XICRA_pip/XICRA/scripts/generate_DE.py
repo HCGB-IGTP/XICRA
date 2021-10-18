@@ -12,11 +12,13 @@ from io import open
 from sys import argv
 import pandas as pd
 import csv
+from termcolor import colored
 
 from HCGB import functions
+import HCGB.functions.aesthetics_functions as HCGB_aes
 
 ####################
-def generate_DE(dataframe_results, Debug, outfolder, default_name='miRNA_expression-'):
+def generate_DE(dataframe_results, Debug, outfolder, type_analysis='miRNA'):
 	"""Builds final expression matrices comparing all samples.
 	
 		Generates three .csv for each software used:
@@ -24,7 +26,7 @@ def generate_DE(dataframe_results, Debug, outfolder, default_name='miRNA_express
 		miRNA_expression-soft_name.csv: final matrix, counts of each isomiR (with miRNA and variant info) without duplicated reads 
 		miRNA_expression-soft_name_seq.csv: table with the miRTop identifier and the corresponding DNA sequence
 		
-		miRNA_expression- is the default analysis but other can be provided such as tRNA, piRNA, etc
+		miRNA is the default analysis but other can be provided such as tRNA, piRNA, etc
 		
 		:param dataframe_results: dataframe with the paths of the outputs of each sample and software
 		:param Debug: display complete log
@@ -32,8 +34,12 @@ def generate_DE(dataframe_results, Debug, outfolder, default_name='miRNA_express
 		
 	    :returns: None
 	"""
+	
 	## get results dictionary for each software employed 
 	soft_list = dataframe_results.soft.unique()
+	
+	dataframe_results = dataframe_results.reset_index()
+	
 	## debugging messages
 	if Debug:
 		print ("## Debug:")
@@ -56,32 +62,33 @@ def generate_DE(dataframe_results, Debug, outfolder, default_name='miRNA_express
 			print ("dict_files")
 			print (dict_files)
 
-		## get data
-		(all_data, all_seqs) = generate_matrix(dict_files, soft_name.lower(), Debug)
-		
-		## discard duplicate UIDs if any
-		all_data_filtered, all_data_duplicated = discard_UID_duplicated(all_data)
+		## get data and discard duplicate UIDs if any
+		(all_data, all_seqs) = generate_matrix(dict_files, soft_name.lower(), Debug, type_analysis=type_analysis)
+		all_data_filtered, all_data_duplicated = discard_UID_duplicated(all_data, type_res=type_analysis)
+			
 		
 		## dump data in folder provided
-		csv_outfile = os.path.join(outfolder, default_name, + soft_name)
+		csv_outfile = os.path.join(outfolder, type_analysis + '_expression-' + soft_name)
 		all_data_filtered.to_csv(csv_outfile + ".csv", quoting=csv.QUOTE_NONNUMERIC)
 		all_data_duplicated.to_csv(csv_outfile + '_dup.csv', quoting=csv.QUOTE_NONNUMERIC)
 		all_seqs.to_csv(csv_outfile + '_seq.csv', quoting=csv.QUOTE_NONNUMERIC)
 
 ####################
-def discard_UID_duplicated(df_data):
+def discard_UID_duplicated(df_data, type_res="miRNA"):
 	"""
 	"""
+	
 	## get data index
 	df_data['ID'] = df_data.index
 	new_data = df_data.filter(['ID'], axis=1)	
 
 	# split ID (hsa-let-7a-2-3p&NA&qNkjr6Ov2) into miRNA, variant and UID
 	tmp = new_data['ID'].str.split('&', expand = True)
-	new_data['miRNA']  = tmp[0]
+	
+	new_data[type_res]  = tmp[0]
 	new_data['variant']  = tmp[1]
 	new_data['UID']  = tmp[2]
-
+	
 	## count 
 	count_groups = new_data.groupby('UID').count()
 	## print to file?
@@ -133,6 +140,9 @@ def generate_matrix(dict_files, soft_name, Debug, type_analysis="miRNA"):
 	all_data = pd.DataFrame()
 	seq_all_data = pd.DataFrame()
 	for sample, this_file in dict_files.items():
+		
+		new_data=pd.DataFrame()
+		
 		print ('+ Reading information from sample: ', sample)	
 		
 		## 
@@ -181,7 +191,10 @@ def generate_matrix(dict_files, soft_name, Debug, type_analysis="miRNA"):
 				new_data = new_data.set_index('unique_id')
 		
 		####
-		elif type_analysis=="tRNA":
+		elif "tRF" in type_analysis: ## tRF-amb; tRF-exc, tRF
+
+			if Debug:
+				HCGB_aes.debug_message(type_analysis + " analysis: ", color)
 
 			## ------------------------------------------ ##
 			## Create matrix for tRNA results
@@ -189,14 +202,25 @@ def generate_matrix(dict_files, soft_name, Debug, type_analysis="miRNA"):
 			## UID	Read	tRNA	variant	ident	expression	soft\n'
 			
 			data['variant'].fillna('NA', inplace=True)
-			data['unique_id'] = data.apply(lambda data: data['tRNA'] + '&' + data['variant'] + '&' + data['UID'], axis=1)
-	
+			
 			## parse according to software
 			if (soft_name == 'mintmap'):
-				new_data = data.filter(['unique_id', 'mintmap'], axis=1)
+				data['unique_id'] = data.apply(lambda data: data['tRNA'] + '&' + data['variant'] + '&' + data['UID'], axis=1)
+				new_data = data.filter(['unique_id', 'expression'], axis=1)
 				new_data = new_data.set_index('unique_id')
-				new_data = new_data.rename(columns={'mintmap': sample})
-	
+				new_data = new_data.rename(columns={'expression': sample})
+			
+			## TODO
+			#else:
+			#	data['unique_id'] = data.apply(lambda data: data['tRNA'] + '&' + data['variant'] + '&' + data['UID'], axis=1)
+			#	new_data = data.filter(['unique_id', 'XXXX'], axis=1) ## TODO
+			#	new_data = new_data.set_index('unique_id')			  ## TODO
+			#	new_data = new_data.rename(columns={'XXXX': sample})  ## TODO
+				
+		else:
+			print()
+			## add new
+		
 		## sequence information
 		seq_data = data.filter(['UID', 'Read'], axis=1)	
 		seq_data = seq_data.set_index('UID')
@@ -216,8 +240,7 @@ def generate_matrix(dict_files, soft_name, Debug, type_analysis="miRNA"):
 		print (all_data)
 		print ("*** DEBUG: data for sequences all samples ***")
 		print (seq_all_data)
-		
-		
+	
 	return (all_data, seq_all_data)	
 
 ######

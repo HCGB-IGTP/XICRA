@@ -183,10 +183,24 @@ def run_tRNA(options):
     ## debugging messages
     if options.debug:
         print (results_df)
-    
+        
     ## merge all parse gtf files created
     print ("+ Summarize tRNA analysis for all samples...")
-    generate_DE.generate_DE(results_df, options.debug, expression_folder,  default_name="tRNA_expression-")
+    
+    if 'mintmap' in options.soft_name:
+        results_df = results_df.set_index('type')
+        
+        ## exclusive tRFs
+        print ("\n\n+ Parsing exclusive tRNA analysis for all samples...")
+        generate_DE.generate_DE(results_df.filter(like="amb", axis=0).set_index('name'), 
+                                options.debug, expression_folder,  type_analysis="tRF-amb")
+        
+        ## amb tRFs
+        print ("\n\n+ Parsing ambiguous tRNA analysis for all samples...")
+        generate_DE.generate_DE(results_df.filter(like="exc", axis=0).set_index('name'), 
+                                options.debug, expression_folder,  type_analysis="tRF-exc")
+    else:
+        generate_DE.generate_DE(results_df, options.debug, expression_folder,  type_analysis="tRNA")
 
     print ("\n*************** Finish *******************")
     start_time_partial = functions.time_functions.timestamp(start_time_total)
@@ -211,6 +225,7 @@ def tRNA_analysis(reads, folder, name, threads, soft_list, species, database, De
             ## save results in dataframe
             filename_amb = os.path.join(MINTmap_folder, 'mintmap_parse', name + '_amb.tsv')
             filename_exc = os.path.join(MINTmap_folder, 'mintmap_parse', name + '_exc.tsv')
+            
             results_df.loc[len(results_df)] = name, soft, "amb", filename_amb
             results_df.loc[len(results_df)] = name, soft, "exc", filename_exc
     

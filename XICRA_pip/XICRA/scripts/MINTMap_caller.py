@@ -69,7 +69,6 @@ def MINTMap_analysis(path_folder, reads, name, num_threads, species, Debug):
         print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'MINTmap call'), 'yellow'))
     else:
         # Call MINTMap_analysis
-        print ("\n+ Run MINTmap: ")
         codeReturn = MINTmap(reads, path_folder, name, num_threads, species_code, Debug)
         os.chdir(path_here)
         
@@ -110,7 +109,6 @@ def MINTMap_analysis(path_folder, reads, name, num_threads, species, Debug):
     if functions.files_functions.is_non_zero_file(amb_file) and functions.files_functions.is_non_zero_file(exc_file):
         filename_stamp = path_folder + '/.success_all'
         functions.time_functions.print_time_stamp(filename_stamp)
-
     
     return(True)
 
@@ -139,9 +137,7 @@ def parse_tRF(pathFile, sample_name, matrix_folder, ident, Debug):
         if Debug:    
             HCGB_aes.debug_message("MINTmap file: " + pathFile, "yellow")
         
-        
         for line in expression_lines:
-            
             # ------------------------------ #
             # Example line:
             # tRF-31-87R8WP9N1EWJ0    TCCCTGGTGGTCTAGTGGTTAGGATTCGGCG    5'-tRF    921    7026.67    452.60    na    trna77_GluCTC_6_+_28949976_28950047@1.31.31, trna80_GluCTC_1_-_161417018_161417089@1.31.31
