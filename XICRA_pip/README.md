@@ -53,7 +53,7 @@ conda activate XICRA
 
 ## install latest python code
 pip install XICRA
-
+```
 
 4) Install missing software:  Unfortunately, a couple of executables are not available neither as a `conda` or `pip` packages. These packages are `miraligner` and `sRNAbench`. We have generated a `shell` script to retrieve and include within your `conda environment`.
 
