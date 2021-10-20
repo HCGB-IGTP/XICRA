@@ -1,0 +1,8 @@
+# adds skeleton for python code
+conda skeleton pypi xicra
+
+# modify and add required packages from bioconda, r etc.
+# gedit xicra/meta.yaml
+
+## build and test recipe
+conda-build --channel bioconda --channel r xicra

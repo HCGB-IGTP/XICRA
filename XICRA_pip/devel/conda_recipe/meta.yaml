@@ -1,0 +1,111 @@
+{% set name = "xicra" %}
+{% set version = "1.2.2" %}
+
+package:
+  name: "{{ name|lower }}"
+  version: "{{ version }}"
+
+source:
+  url: "https://files.pythonhosted.org/packages/91/71/783964120a5971b3fdb2dfa2a8145fef6c9c6ffd11c0bdb10e6b0f7b7be0/XICRA-{{version}}.tar.gz"
+  sha256: 065c8c021cd9b234a82661ac33b6dd7b586e45eeec4aef5924bf4feeb19974c0
+
+build:
+  number: 0
+  noarch: generic
+  script: python -m pip install --ignore-installed .
+
+requirements:
+  build:
+    - {{ compiler("c") }}
+    - {{ compiler("cxx") }}
+  host:
+    - python
+    - pip
+    - setuptools
+    - biopython
+    - cutadapt
+    - future
+    - mirtop
+    - multiqc
+    - networkx
+    - numpy
+    - pandas
+    - pybedtools
+    - pysam
+    - termcolor
+
+  run:
+    - python
+    - biopython
+    - future
+    - networkx
+    - numpy
+    - pandas
+    - pip
+    - python
+    - termcolor
+    - biopython
+    - cutadapt
+    - future
+    - hcgb
+    - mirtop
+    - multiqc
+    - networkx
+    - numpy
+    - pandas
+    - patool
+    - pybedtools
+    - pysam
+    - python
+    - termcolor
+    - fastqc 
+    - optimir 
+    - star 
+    - fastq-join 
+    - subread 
+    - r-base 
+    - r-ggplot2 
+    - r-optparse 
+    - r-rcolorbrewer 
+    - r-reshape 
+    - r-stringr
+
+test:
+  imports:
+    - HCGB
+    - XICRA
+  commands:
+    - "XICRA -h"
+    
+about:
+  home: "https://github.com/HCGB-IGTP/XICRA/"
+  license: MIT
+  license_family: MIT
+  license_file: 
+  summary: "Small RNAseq pipeline for paired-end reads"
+  description:
+        XICRA is a python pipeline developed in multiple separated modules that it is designed to take paired end fastq reads, trim adapters and 
+        low-quality base pairs positions, and merge reads (R1 & R2) that overlap. Using joined reads it describes all major RNA biotypes present 
+        in the samples including miRNA and isomiRs, tRNA fragments (tRFs) and piwi associated RNAs (piRNAs). 
+        This pipeline resulted from the observation that potential artifacts derived from sequencing errors and/or data processing could result in an overestimation of abundance and diversity of miRNA isoforms. Paired end sequencing improves isomiR calling in small RNA sequencing data. Internal variation isomiR calls are frequent artifacts in single read sequencing data. Internal sequence variant isomiRs in single read sequencing mode may be false positives. See additional detail in the original publication [here](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-021-04128-1)
+        So far, XICRA produces a miRNA analysis at the isomiR level and tRNA using either joined reads (from paired-end data) or single end reads, 
+        multiple software at the user selection and following a standardization procedure. 
+        Results are generated for each sample analyzed and summarized for all samples in a single expression matrix. This information can be processed at the miRNA or 
+        isomiR level (single sequence) but also summarizing for each isomiR variant type. This information can be easily accessed using the accompanied R package 
+        [XICRA.stats](https://github.com/HCGB-IGTP/XICRA.stats). Although the pipeline is designed to take paired-end reads, it also accepts single-end reads. 
+  doc_url: https://xicra.readthedocs.io/
+  dev_url: 
+
+extra:  
+  container:
+    # matplotlib depends on libGL.so.1 from the system
+    extended-base: true
+
+  recipe-maintainers:
+    - JFsanchezherrero
+    - MartaLoBalastegui
+    - lsumoy
+    - hcgb-admin
+  identifiers:
+    - biotools:xicra
+    - doi:10.1186/s12859-021-04128-1

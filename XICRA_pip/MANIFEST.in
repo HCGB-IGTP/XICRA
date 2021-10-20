@@ -1,4 +1,5 @@
 include XICRA/config/python/*
 include XICRA/config/R/*
 include XICRA/config/software/*
-include XICRA/config/VERSION
+include ./VERSION
+include XICRA/other_tools/plot_RNAbiotype_sum.R

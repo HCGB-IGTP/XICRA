@@ -22,7 +22,7 @@ XICRA_pip/dist
 XICRA_pip/build
 XICRA_pip/.pypirc
 
-## big file to avoid
+# big file to avoid
 BMC_bioinformatics_paper/simulation/data/simulations_results_percDiff-8_XICRA.simulations.csv
 XICRA_pip/XICRA/modules/db_files/
 
