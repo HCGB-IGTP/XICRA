@@ -12,12 +12,12 @@ def get_require_modules():
     return myModules
 
 #######
-def get_version():
+def get_version(file_VERSION):
     """
     Original code: PhiSpy setup.py 
     https://github.com/linsalrob/PhiSpy/blob/master/setup.py
     """
-    with open("./VERSION", 'r') as f:
+    with open(file_VERSION, 'r') as f:
         v = f.readline().strip()
     return v
 
@@ -27,7 +27,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="XICRA",
-    version=get_version(),
+    version=get_version("XICRA/config/VERSION"),
 
     scripts=glob.glob('main/*'),
     author="Jose F. Sanchez-Herrero",
