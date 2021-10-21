@@ -1,28 +1,7 @@
+#!/usr/bin/env python3
 import setuptools
 import glob
-
-#######
-def get_require_modules():
-    """
-    Get main python requirements modules
-    """
-    with open("./XICRA/config/python/python_requirement_summary.txt", 'r') as f:
-        myModules = [line.strip().split(',')[0] for line in f]
-    
-    return myModules
-
-#######
-def get_version(file_VERSION):
-    """
-    Original code: PhiSpy setup.py 
-    and https://milkr.io/kfei/5-common-patterns-to-version-your-Python-package/1
-    """
-    with open(file_VERSION, 'r') as f:
-        v = f.readline().strip()
-    return v
-
-
-version=get_version("./VERSION"),
+import HCGB.config.setup_module as setup_module
 
 long_description_text = ""
 with open("README.md", "r") as fh:
@@ -30,7 +9,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="XICRA",
-    version=get_version("./VERSION"),
+    version=setup_module.get_version("./VERSION"),
 
     scripts=glob.glob('main/*'),
     author="Jose F. Sanchez-Herrero",
@@ -50,6 +29,6 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     include_package_data=True,
-    install_requires=get_require_modules(),
+    install_requires=setup_module.get_require_modules("XICRA/config/python/python_requirement_summary.txt"),
 
 )
