@@ -30,3 +30,6 @@
 .. _IGTP: http://www.germanstrias.org/
 .. _HCGB: http://www.germanstrias.org/technology-services/genomica-bioinformatica/
 .. _`XICRA github`: https://github.com/HCGB-IGTP/XICRA
+.. _`report issues`: https://github.com/HCGB-IGTP/XICRA/issues
+.. _`forking the project`: https://help.github.com/en/github/getting-started-with-github/fork-a-repo
+.. _`creating pull requests`: https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/about-pull-requests
