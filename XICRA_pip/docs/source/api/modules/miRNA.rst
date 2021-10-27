@@ -28,7 +28,7 @@ Functions
    :members:
    
 Other functions
----------------
+---------
 This module calls the function:
 
 .. currentmodule:: XICRA.scripts.generate_DE
