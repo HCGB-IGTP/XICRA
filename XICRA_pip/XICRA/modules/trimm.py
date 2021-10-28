@@ -25,7 +25,19 @@ from HCGB import sampleParser
 
 ##############################################
 def run_trimm(options):
+    """Main function of the module, organizes the trimming process.
 
+    First, checks if the adapter(s) sequence(s) have been provided by the user:
+    - adapters_a or adapters_A
+    If there is no adapter sequence provided the process will be stopped.  
+
+    If the adapters have been introduced, it calls cutadapt_caller() for each sample in parallel.
+    Finally, generates a report using MultiQC module if desired.
+    
+    :param options: input parameters introduced by the user. See XICRA trimm -h.
+
+    :returns: None
+    """
     ## init time
     start_time_total = time.time()
 
@@ -206,6 +218,26 @@ def run_trimm(options):
 
 #############################################
 def cutadapt_caller(list_reads, sample_folder, name, threads, Debug, adapters, extra):
+    """ Checks if the trimming process have been done previously. If not, it executes it
+    calling cutadapt()    
+    
+    :param list_reads: name of the fastqc files of the sample to be trimmed
+    :param sample_folder: path to the sample folder to store the results
+    :param threads: number of CPUs to use.
+    :param Debug: show additional message for debugging purposes.
+    :param adapters: dictionary with the introduced adapters
+    :param extra: provided extra options for cutadapt trimming process
+
+    :type list_reads: string
+    :type sample_folder: string
+    :type threads: string
+    :type Debug: boolean
+    :type adapters: dictionary
+    :type extra: string
+    
+
+    :returns: None
+    """
     ## check if previously trimmed and succeeded
     filename_stamp = sample_folder + '/.success'
     if os.path.isfile(filename_stamp):
@@ -224,25 +256,27 @@ def cutadapt_caller(list_reads, sample_folder, name, threads, Debug, adapters, e
 #############################################
 def cutadapt (cutadapt_exe, reads, path, sample_name, num_threads, Debug, adapters, extra):
     """
+    Executes cutadapt sofware for each sample cutting the adapters of each read
     
-    :param cutadapt_exe:
-    :param reads:
-    :param path:
-    :param sample_name:
-    :param num_threads: 
-    :param Debug:
-    :param adapters
-    :param extra:
+    :param cutadapt_exe: to call cutadapt software
+    :param reads: name of the fastqc files of the sample to be trimmed
+    :param path: path to the sample folder to store the results
+    :param sample_name: name of the sample to be trimmed
+    :param num_threads: number of CPUs to use.
+    :param Debug: show additional message for debugging purposes.
+    :param adapters: dictionary with the introduced adapters
+    :param extra: provided extra options for cutadapt trimming process
     
-    :type cutadapt_exe:
-    :type reads:
-    :type path:
-    :type sample_name:
-    :type num_threads: 
-    :type Debug:
+    :type cutadapt_exe: string
+    :type reads: string
+    :type path: string
+    :type sample_name: string
+    :type num_threads: string
+    :type Debug: boolean
     :type adapters: dictionary
     :type extra: string
     
+    :returns: the trimmed files
     """
     logfile = os.path.join(path, sample_name + '.cutadapt.log')
     

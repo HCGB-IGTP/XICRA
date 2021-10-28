@@ -33,3 +33,5 @@
 .. _`report issues`: https://github.com/HCGB-IGTP/XICRA/issues
 .. _`forking the project`: https://help.github.com/en/github/getting-started-with-github/fork-a-repo
 .. _`creating pull requests`: https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/about-pull-requests
+.. _`Illumina sequencing`: https://support.illumina.com/bulletins/2016/12/what-sequences-do-i-use-for-adapter-trimming.html
+.. _Cutadapt: https://cutadapt.readthedocs.io/en/stable/

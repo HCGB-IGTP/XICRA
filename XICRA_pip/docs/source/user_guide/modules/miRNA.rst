@@ -50,7 +50,7 @@ Executing the following:
 
 The different options and parameters for this module should appear in the command line prompt:
 
-.. function:: Module XICRA miRNA optional arguments
+.. function:: Module XICRA miRNA help
       
    :param -h --help: Show this help message and exit. 
 
@@ -106,6 +106,7 @@ The different options and parameters for this module should appear in the comman
    :param --help_miRNA: Show additional help on the miRNA paired-end reads process.
    :param --debug: Show additional message for debugging purposes.
 
+- For further information of the module functionallity, check this :doc:`page <../../api/modules/miRNA>`.
 
 Output of miRNA for each sample
 -------------------------------
