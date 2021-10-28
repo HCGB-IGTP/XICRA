@@ -27,7 +27,19 @@ from HCGB import sampleParser
 
 ##############################################
 def run_trimm(options):
+    """Main function of the module, organizes the trimming process.
 
+    First, checks if the adapter(s) sequence(s) have been provided by the user:
+    - adapters_a or adapters_A
+    If there is no adapter sequence provided the process will be stopped.  
+
+    If the adapters have been introduced, it calls cutadapt_caller() for each sample in parallel.
+    Finally, generates a report using MultiQC module if desired.
+    
+    :param options: input parameters introduced by the user. See XICRA trimm -h.
+
+    :returns: None
+    """
     ## init time
     start_time_total = time.time()
 
@@ -220,4 +232,4 @@ def run_trimm(options):
     start_time_partial = functions.time_functions.timestamp(start_time_total)
     print ("\n+ Exiting trimm module.")
     exit()
-    
+

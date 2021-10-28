@@ -2,8 +2,8 @@
 .. _userguide-info:
 .. ########################
 
-User Guide Information
-**********************
+Input File Format Information
+*****************************
       
 .. contents::
 

@@ -18,6 +18,7 @@ within each one.
    
    config.rst
    prep.rst
+   trimm.rst
    miRNA.rst
    
 .. _shared-arguments:
