@@ -96,7 +96,7 @@ def run_biotype(options):
     else:
         print ('+ Mode: trim.\n+ Extension: ')
         print ("[ _trim_ ]\n")
-        pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "trim", ['_trim'], options.debug)
+        pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "trim", ['_trim_'], options.debug)
         
         ## Discard if joined reads: use trimmed single-end or paired-end
         pd_samples_retrieved = pd_samples_retrieved[pd_samples_retrieved['ext'] != '_joined']   
@@ -141,20 +141,20 @@ def run_biotype(options):
 
     ## debug message
     if (Debug):
-        print (colored("**DEBUG: mapping_results **", 'yellow'))
-        print (mapping_results)
+         print (colored("**DEBUG: mapping_results **", 'yellow'))
+         print (mapping_results)
     
     # time stamp
     start_time_partial = time_functions.timestamp(start_time_partial)
-
+    
     ## for samples
     biotype_outdir_dict = files_functions.outdir_project(outdir, options.project, pd_samples_retrieved, "biotype", options.debug)
-
+    
     ## debug message
     if (Debug):
         print (colored("**DEBUG: biotype_outdir_dict **", 'yellow'))
         print (biotype_outdir_dict)
-        
+    
     ## multimapping:
     if options.no_multiMapping:
         multimapping = False

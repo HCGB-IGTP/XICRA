@@ -24,6 +24,7 @@ from HCGB.functions import files_functions, math_functions
 ## plots
 import pandas as pd
 import matplotlib
+from build.lib.HCGB.functions.aesthetics_functions import debug_message
 
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
@@ -57,7 +58,7 @@ def biotype_all(featureCount_exe, path, gtf_file, bam_file, name, threads, Debug
 			stamp = time_functions.read_time_stamp(filename_stamp_featureCounts)
 			print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'featureCounts'), 'yellow'))
 		else:
-
+            
 			## debugging messages
 			if Debug:
 				print ("** DEBUG:")
@@ -160,7 +161,7 @@ def parse_featureCount(out_file, path, name, bam_file, Debug):
 		string2write = "tRNA\t%s\n" %tRNA_count
 		RNA_biotypes_file.write(string2write)
 		RNA_biotypes_file.close()
-				
+		
 		##########################################
 		### read summary count file
 		##########################################
@@ -193,6 +194,8 @@ def parse_featureCount(out_file, path, name, bam_file, Debug):
 		mapping_folder = os.path.dirname(bam_file)
 		mapping_stats = mapping_folder + '/Log.final.out'
 		
+		## ATTENTION: See example at the end of this file
+		
 		## -------------------------------- ##
 		### STAR mapping		
 		## -------------------------------- ##
@@ -209,20 +212,44 @@ def parse_featureCount(out_file, path, name, bam_file, Debug):
 	
 			for line in mapping_stats_file_lines:
 				multi_search = re.search(r".*Number of reads mapped to", line)
-				unmap_search = re.search(r".*unmapped.*", line)
+				unmap_search = re.search(r".*Number of reads unmapped", line)
 				input_search = re.search(r".*input reads.*", line)
+			
+				if Debug:
+					debug_message("mapping_stats_file Line")
+					debug_message(line)
 			
 				if input_search:
 					total_input_reads = int(line.split('\t')[-1])
-	
+					if Debug:
+						print("total_input_reads")
+						print(type(total_input_reads))
+						print(total_input_reads)
+							
 				if multi_search:
 					count_tmp = int(line.split('\t')[-1])
 					count_multi = count_multi + count_tmp
+					if Debug:
+						print("count_tmp")
+						print(type(count_tmp))
+						print(count_tmp)
+						print("count_multi")
+						print(type(count_multi))
+						print(count_multi)
 	
-				elif unmap_search:
-					perc_tmp = line.split('\t')[-1]
-					count_reads = math_functions.percentage(perc_tmp, total_input_reads)
-					count_unmap = count_unmap + count_reads
+				if unmap_search:
+					count_reads_tmp = int(line.split('\t')[-1])
+					#count_reads = math_functions.percentage(perc_tmp, total_input_reads)
+					count_unmap = count_unmap + count_reads_tmp
+					if Debug:
+						print("perc_tmp")
+						print(type(count_reads_tmp))
+						print(count_reads_tmp)
+						
+						print("count_unmap")
+						print(type(count_unmap))
+						print(count_unmap)
+		
 		else:
 	
 			## -------------------------------- ##
@@ -265,7 +292,9 @@ def parse_featureCount(out_file, path, name, bam_file, Debug):
 		
 		## close files
 		out_tsv_file.close()
-
+		summary_count_file.close()
+		mapping_stats_file.close()
+		count_file.close()
 		## print timestamp
 		time_functions.print_time_stamp(filename_stamp_parse)
 
@@ -345,7 +374,7 @@ def pie_plot_results(RNAbiotypes_stats_file, name, folder, Debug):
 		stamp = time_functions.read_time_stamp(filename_stamp_plot)
 		print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'plot results'), 'yellow'))
 	else:
-	
+		
 		# PLOT and SHOW results
 		RNAbiotypes_stats = main_functions.get_data(RNAbiotypes_stats_file, '\t', 'header=None')
 	
@@ -397,9 +426,10 @@ def pie_plot_results(RNAbiotypes_stats_file, name, folder, Debug):
 		name_figure = os.path.join(folder, name + '_RNAbiotypes.pdf')
 	
 		## generate image
-		plt.savefig(name_figure)
+		plt.savefig(name_figure)		
 		plt.close(name_figure)
-
+		plt.close()
+		
 		## print time stamps
 		time_functions.print_time_stamp(filename_stamp_plot)
 		filename_stamp_all = folder + '/.success_all'
@@ -436,4 +466,48 @@ def main():
 ######
 if __name__== "__main__":
 	main()
-	
+
+
+
+#===============================================================================
+# Example STAR Log Log.final.out
+#===============================================================================
+#
+# 								 Started job on |	Oct 20 10:44:42
+# 							 Started mapping on |	Oct 20 10:44:42
+# 									Finished on |	Oct 20 11:13:25
+# 	   Mapping speed, Million of reads per hour |	63.38
+# 
+# 						  Number of input reads |	30332431
+# 					  Average input read length |	65
+# 									UNIQUE READS:
+# 				   Uniquely mapped reads number |	11259635
+# 						Uniquely mapped reads % |	37.12%
+# 						  Average mapped length |	47.60
+# 					   Number of splices: Total |	0
+# 			Number of splices: Annotated (sjdb) |	0
+# 					   Number of splices: GT/AG |	0
+# 					   Number of splices: GC/AG |	0
+# 					   Number of splices: AT/AC |	0
+# 			   Number of splices: Non-canonical |	0
+# 					  Mismatch rate per base, % |	0.06%
+# 						 Deletion rate per base |	0.00%
+# 						Deletion average length |	1.00
+# 						Insertion rate per base |	0.00%
+# 					   Insertion average length |	1.36
+# 							 MULTI-MAPPING READS:
+# 		Number of reads mapped to multiple loci |	0
+# 			 % of reads mapped to multiple loci |	0.00%
+# 		Number of reads mapped to too many loci |	18685152
+# 			 % of reads mapped to too many loci |	61.60%
+# 								  UNMAPPED READS:
+#   Number of reads unmapped: too many mismatches |	268064
+# 	   % of reads unmapped: too many mismatches |	0.88%
+# 			Number of reads unmapped: too short |	20122
+# 				 % of reads unmapped: too short |	0.07%
+# 				Number of reads unmapped: other |	99458
+# 					 % of reads unmapped: other |	0.33%
+# 								  CHIMERIC READS:
+# 					   Number of chimeric reads |	0
+# 							% of chimeric reads |	0.00%
+#===============================================================================

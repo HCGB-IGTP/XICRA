@@ -1,5 +1,7 @@
+#!/usr/bin/env python3
 import setuptools
 import glob
+import HCGB.config.setup_module as setup_module
 
 long_description_text = ""
 with open("README.md", "r") as fh:
@@ -7,7 +9,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="XICRA",
-    version="0.9.4",
+    version=setup_module.get_version("./VERSION"),
 
     scripts=glob.glob('main/*'),
     author="Jose F. Sanchez-Herrero",
@@ -27,9 +29,6 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     include_package_data=True,
+    install_requires=setup_module.get_require_modules("XICRA/config/python/python_requirement_summary.txt"),
 
-    install_requires=[
-        'pandas', 'patool', 'termcolor', 'cutadapt', 'mirtop',
-        'pysam', 'pybedtools', 'biopython', 'multiqc', 'HCGB'
-    ],
 )

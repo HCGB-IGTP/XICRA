@@ -3,7 +3,12 @@ __all__ = [
     'multiQC_report',
     'generate_DE',
     'RNAbiotype',
-    'mapReads'
+    'mapReads',
+    'cutadapt_caller',
+    'mirtop_caller',
+    'optimir_caller',
+    'miraligner_caller',
+    'MINTMap_caller'
     
 ]
 

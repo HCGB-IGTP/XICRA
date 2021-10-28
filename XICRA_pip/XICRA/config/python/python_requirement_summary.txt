@@ -1,0 +1,12 @@
+pandas
+termcolor
+cutadapt
+mirtop
+pysam
+pybedtools
+biopython
+multiqc
+HCGB
+future
+networkx
+numpy

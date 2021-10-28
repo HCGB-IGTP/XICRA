@@ -16,7 +16,7 @@ paired-end reads, it also accepts single-end reads.
 
 ## Installation
 
-XICRA will require python v3.6 and java (we tested in openjdk 14 2020-03-17).
+XICRA will require python v3.7 and java (we tested in openjdk 14 2020-03-17).
 
 The XICRA python pipeline is available in `pip` and also available using `conda`.
 
@@ -32,23 +32,32 @@ But additionally, XICRA depends on third party software that we listed in the fo
 
 We encourage you to install XICRA and all dependencies using the `conda` environment we created and following these instructions. 
 
-Unfortunately, a couple of executables are not available neither as a `conda` or `pip` packages. These packages are `miraligner` and `sRNAbench`. We have generated a `shell` script to retrieve and include within your `conda environment`.
+To create a new conda environment, install third party software, install XICRA and missing dependencies, do as follows: 
 
-To create a new conda environment, install third party software, install XICRA and missing dependencies, do as follows:
+1) Get requirements file from XICRA git repo
 
 ```sh
-## clone repo
-git clone https://github.com/HCGB-IGTP/XICRA.git
+wget https://raw.githubusercontent.com/HCGB-IGTP/XICRA/master/XICRA_pip/devel/conda/environment.yml
+```
 
-## create conda environemt
-conda env create -n XICRA -f XICRA_pip/devel/conda/environment.yml
+2) Create environment and install required packages using conda: 
 
+```sh
+conda env create -n XICRA -f environment.yml
+```
+
+3) Activate environment and install XICRA
+```sh
 ## activate
 conda activate XICRA
 
 ## install latest python code
 pip install XICRA
+```
 
+4) Install missing software:  Unfortunately, a couple of executables are not available neither as a `conda` or `pip` packages. These packages are `miraligner` and `sRNAbench`. We have generated a `shell` script to retrieve and include within your `conda environment`.
+
+```sh
 ## install missing software
 sh XICRA_pip/XICRA/config/software/installer.sh
 ```
@@ -57,7 +66,6 @@ To check everything is fine, try executing the `config` module:
 ```sh
 XICRA config
 ```
-
 
 ### Python environment
 
@@ -104,17 +112,26 @@ XICRA miRNA --input test_XICRA --software miraligner sRNAbench
 ls test_XICRA/report/
 ```
 
+## Documentation
+For a full documentation and details visit Read the Docs site [here](https://xicra.readthedocs.io/). 
+
+See a brief example on how to install and run XICRA [here](https://github.com/HCGB-IGTP/XICRA/tree/master/XICRA_pip#example)
+
 ## License 
+
 MIT License
 
 Copyright (c) 2020 HCGB-IGTP
 
-See additional details [here](LICENSE)
+See additional details [here](XICRA_pip/LICENSE)
+
+Developed and maintained by Jose F. Sanchez-Herrero and Lauro Sumoy at HCGB-IGTP
+
+http://www.germanstrias.org/technology-services/genomica-bioinformatica/
 
 ## Citation
-Sanchez-Herrero et. al .... 2020
+Sanchez Herrero, J.F., Pluvinet, R., Luna de Haro, A. et al. Paired-end small RNA sequencing reveals a possible overestimation in the isomiR sequence repertoire previously reported from conventional single read data analysis. BMC Bioinformatics 22, 215 (2021). https://doi.org/10.1186/s12859-021-04128-1
 
 ## Authors
 Antonio Luna de Haro (v0.1)
-
 Jose F Sanchez-Herrero (v1.0)	

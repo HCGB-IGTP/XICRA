@@ -8,6 +8,7 @@ import argparse
 import os
 import sys
 import XICRA.modules
+from email.policy import default
 
 ## initiate parser
 parser = argparse.ArgumentParser(prog='XICRA', description='Paired-end small RNA sequence analysis pipeline.'
@@ -21,6 +22,7 @@ help_options = ('--help_format',
 				'--help_trimm_adapters',
                 '--help_join_reads',
                 '--help_miRNA',
+                '--help_tRNA',
                 '--help_RNAbiotype',
 				'--help_multiqc')
 
@@ -57,10 +59,10 @@ subparser_prep = subparsers.add_parser(
 )
 
 in_out_group_prep = subparser_prep.add_argument_group("Input/Output")
-in_out_group_prep.add_argument("--input", help="Folder containing fastq files. Files could be .fastq/.fq/ or fastq.gz/.fq.gz. All files would be retrieved.", required= not any(elem in help_options for elem in sys.argv))
-in_out_group_prep.add_argument("--output_folder", help="Output folder. Name for the project folder.", required= not any(elem in help_options for elem in sys.argv))
+in_out_group_prep.add_argument("-i", "--input", help="Folder containing fastq files. Files could be .fastq/.fq/ or fastq.gz/.fq.gz. All files would be retrieved.", required= not any(elem in help_options for elem in sys.argv))
+in_out_group_prep.add_argument("-o", "--output_folder", help="Output folder. Name for the project folder.", required= not any(elem in help_options for elem in sys.argv))
 in_out_group_prep.add_argument("--single_end", action="store_true", help="Single end files [Default OFF]. Default mode is paired-end.")
-in_out_group_prep.add_argument("--batch", action="store_true", help="Provide this option if input is a file containing multiple paths instead a path.")
+in_out_group_prep.add_argument("-b", "--batch", action="store_true", help="Provide this option if input is a file containing multiple paths instead a path.")
 in_out_group_prep.add_argument("--in_sample", help="File containing a list of samples to include (one per line) from input folder(s) [Default OFF].")
 in_out_group_prep.add_argument("--ex_sample", help="File containing a list of samples to exclude (one per line) from input folder(s) [Default OFF].")
 in_out_group_prep.add_argument("--detached", help="Isolated mode. No project folder initiated for further steps [Default OFF].")
@@ -68,7 +70,7 @@ in_out_group_prep.add_argument("--include_lane", action="store_true", help="Iden
 in_out_group_prep.add_argument("--include_all", action="store_true", help="Include all characters as tag name before read pair, if any. See --help_format for additional details [Default OFF]")
 
 options_group_prep = subparser_prep.add_argument_group("Options")
-options_group_prep.add_argument("--threads", type=int, help="Number of CPUs to use [Default: 2].", default=2)
+options_group_prep.add_argument("-t", "--threads", type=int, help="Number of CPUs to use [Default: 2].", default=2)
 options_group_prep.add_argument("--copy_reads", action="store_true", help="Instead of generating symbolic links, copy files into output folder. [Default OFF].")
 options_group_prep.add_argument("--merge_Reads", action="store_true", help="Merges FASTQ files for the same sample [Default OFF].")
 #options_group_prep.add_argument("--merge_Reads_by_lane", action="store_true", help="Merges FASTQ files for the same sample by lane (Technical replicates) [Default OFF].")
@@ -90,9 +92,9 @@ subparser_qc = subparsers.add_parser(
     description='This module calls different quality check programs attending the input provided.',
 )
 in_out_group_qc = subparser_qc.add_argument_group("Input/Output")
-in_out_group_qc.add_argument("--input", help="Folder containing input. Project or raw reads, assembly or annotation fasta files according to mode option provided.", required= not any(elem in help_options for elem in sys.argv))
-in_out_group_qc.add_argument("--output_folder", help="Output folder. Required if '--detached' mode. Under '--project' mode, information will be stored following a designed scheme. See instructions for further details", required = '--detached' in sys.argv)
-in_out_group_qc.add_argument("--batch", action="store_true", help="Provide this option if input is a file containing multiple paths instead a path.")
+in_out_group_qc.add_argument("-i", "--input", help="Folder containing input. Project or raw reads, assembly or annotation fasta files according to mode option provided.", required= not any(elem in help_options for elem in sys.argv))
+in_out_group_qc.add_argument("-o", "--output_folder", help="Output folder. Required if '--detached' mode. Under '--project' mode, information will be stored following a designed scheme. See instructions for further details", required = '--detached' in sys.argv)
+in_out_group_qc.add_argument("-b", "--batch", action="store_true", help="Provide this option if input is a file containing multiple paths instead a path.")
 in_out_group_qc.add_argument("--in_sample", help="File containing a list of samples to include (one per line) from input folder(s) [Default OFF].")
 in_out_group_qc.add_argument("--ex_sample", help="File containing a list of samples to exclude (one per line) from input folder(s) [Default OFF].")
 in_out_group_qc.add_argument("--detached", action="store_true", help="Isolated mode. --input is a folder containing samples, contigs or protein sequences. Provide a unique path o several using --batch option")
@@ -104,7 +106,7 @@ in_out_group_qc.add_argument("--include_all", action="store_true", help="Include
 options_group_qc = subparser_qc.add_argument_group("Configuration")
 options_group_qc.add_argument("--single_end", action="store_true", help="Single end files [Default OFF]. Default mode is paired-end. Only applicable if --raw_reads option.")
 options_group_qc.add_argument("--skip_report", action="store_true", help="Do not report statistics using MultiQC report module [Default OFF]")
-options_group_qc.add_argument("--threads", type=int, help="Number of CPUs to use [Default: 2].", default=2)
+options_group_qc.add_argument("-t", "--threads", type=int, help="Number of CPUs to use [Default: 2].", default=2)
 
 info_group_qc = subparser_qc.add_argument_group("Additional information")
 info_group_qc.add_argument("--help_format", action="store_true", help="Show additional help on name format for files.")
@@ -121,22 +123,25 @@ subparser_trimm = subparsers.add_parser(
     description='This module trimms sequencing adapters that could be present in next generation sequencing files',
 )
 in_out_group_trimm = subparser_trimm.add_argument_group("Input/Output")
-in_out_group_trimm.add_argument("--input", help="Folder containing a project or reads, according to the mode selected. Files could be .fastq/.fq/ or fastq.gz/.fq.gz. See --help_format for additional details.", required= not any(elem in help_options for elem in sys.argv))
-in_out_group_trimm.add_argument("--output_folder", help="Output folder.", required = '--detached' in sys.argv)
+in_out_group_trimm.add_argument("-i", "--input", help="Folder containing a project or reads, according to the mode selected. Files could be .fastq/.fq/ or fastq.gz/.fq.gz. See --help_format for additional details.", required= not any(elem in help_options for elem in sys.argv))
+in_out_group_trimm.add_argument("-o", "--output_folder", help="Output folder.", required = '--detached' in sys.argv)
 in_out_group_trimm.add_argument("--single_end", action="store_true", help="Single end files [Default OFF]. Default mode is paired-end.")
-in_out_group_trimm.add_argument("--batch", action="store_true", help="Provide this option if input is a file containing multiple paths instead a path.")
+in_out_group_trimm.add_argument("-b", "--batch", action="store_true", help="Provide this option if input is a file containing multiple paths instead a path.")
 in_out_group_trimm.add_argument("--in_sample", help="File containing a list of samples to include (one per line) from input folder(s) [Default OFF].")
 in_out_group_trimm.add_argument("--ex_sample", help="File containing a list of samples to exclude (one per line) from input folder(s) [Default OFF].")
 in_out_group_trimm.add_argument("--detached", action="store_true", help="Isolated mode. --input is a folder containing fastq reads. Provide a unique path o several using --batch option")
 in_out_group_trimm.add_argument("--include_lane", action="store_true", help="Include the lane tag (*L00X*) in the sample name. See --help_format for additional details [Default OFF]")
 in_out_group_trimm.add_argument("--include_all", action="store_true", help="Include all characters as tag name before read pair, if any. See --help_format for additional details [Default OFF]")
 
+parameters_group_trimm = subparser_trimm.add_argument_group("Parameters")
+parameters_group_trimm.add_argument("--adapters_a", help="Sequence of an adapter ligated to the 3' end. See --help_trimm_adapters for further information.")
+parameters_group_trimm.add_argument("--adapters_A", help="Sequence of an adapter ligated to the 3' read in pair. See --help_trimm_adapters for further information.")
+parameters_group_trimm.add_argument("--min_read_len", type=int, help="Minimum length of read to maintain.", default=15)
+parameters_group_trimm.add_argument("--extra", help="Provide extra options for cutadapt trimming process. See --help_trimm_adapters for further information.")
+
 options_group_trimm = subparser_trimm.add_argument_group("Options")
-options_group_trimm.add_argument("--adapters_a", help="Sequence of an adapter ligated to the 3' end. See --help_trimm_adapters for further information.")
-options_group_trimm.add_argument("--adapters_A", help="Sequence of an adapter ligated to the 3' read in pair. See --help_trimm_adapters for further information.")
-options_group_trimm.add_argument("--extra", help="Provide extra options for cutadapt trimming process. See --help_trimm_adapters for further information.")
 options_group_trimm.add_argument("--skip_report", action="store_true", help="Do not report statistics using MultiQC report module [Default OFF]. See details in --help_multiqc")
-options_group_trimm.add_argument("--threads", type=int, help="Number of CPUs to use [Default: 2].", default=2)
+options_group_trimm.add_argument("-t", "--threads", type=int, help="Number of CPUs to use [Default: 2].", default=2)
 
 info_group_trimm = subparser_trimm.add_argument_group("Additional information")
 info_group_trimm.add_argument("--help_format", action="store_true", help="Show additional help on name format for files.")
@@ -155,10 +160,10 @@ subparser_join = subparsers.add_parser(
     description='This module joins sequencing reads (paired-end)',
 )
 in_out_group_join = subparser_join.add_argument_group("Input/Output")
-in_out_group_join.add_argument("--input", help="Folder containing a project or reads, according to the mode selected. Files could be .fastq/.fq/ or fastq.gz/.fq.gz. See --help_format for additional details.", required= not any(elem in help_options for elem in sys.argv))
-in_out_group_join.add_argument("--output_folder", help="Output folder.", required = '--detached' in sys.argv)
+in_out_group_join.add_argument("-i", "--input", help="Folder containing a project or reads, according to the mode selected. Files could be .fastq/.fq/ or fastq.gz/.fq.gz. See --help_format for additional details.", required= not any(elem in help_options for elem in sys.argv))
+in_out_group_join.add_argument("-o", "--output_folder", help="Output folder.", required = '--detached' in sys.argv)
 in_out_group_join.add_argument("--single_end", action="store_true", help="Single end files [Default OFF]. Default mode is paired-end.")
-in_out_group_join.add_argument("--batch", action="store_true", help="Provide this option if input is a file containing multiple paths instead a path.")
+in_out_group_join.add_argument("-b", "--batch", action="store_true", help="Provide this option if input is a file containing multiple paths instead a path.")
 in_out_group_join.add_argument("--in_sample", help="File containing a list of samples to include (one per line) from input folder(s) [Default OFF].")
 in_out_group_join.add_argument("--ex_sample", help="File containing a list of samples to exclude (one per line) from input folder(s) [Default OFF].")
 in_out_group_join.add_argument("--detached", action="store_true", help="Isolated mode. --input is a folder containing fastq reads. Provide a unique path o several using --batch option")
@@ -166,7 +171,7 @@ in_out_group_join.add_argument("--include_lane", action="store_true", help="Incl
 in_out_group_join.add_argument("--include_all", action="store_true", help="Include all characters as tag name before read pair, if any. See --help_format for additional details [Default OFF]")
 
 options_group_join = subparser_join.add_argument_group("Options")
-options_group_join.add_argument("--threads", type=int, help="Number of CPUs to use [Default: 2].", default=2)
+options_group_join.add_argument("-t", "--threads", type=int, help="Number of CPUs to use [Default: 2].", default=2)
 options_group_join.add_argument("--perc_diff", type=int, help="Percentage difference for fastqjoin [Default: 0].")
 options_group_join.add_argument("--noTrim", action='store_true', help="Use non-trimmed reads [or not containing '_trim' in the name].")
 
@@ -189,10 +194,10 @@ subparser_RNAbiotype = subparsers.add_parser(
     description='This module generates a RNA biotype analysis',
 )
 in_out_group_RNAbiotype = subparser_RNAbiotype.add_argument_group("Input/Output")
-in_out_group_RNAbiotype.add_argument("--input", help="Folder containing a project or reads, according to the mode selected. Files could be .fastq/.fq/ or fastq.gz/.fq.gz. See --help_format for additional details.", required= not any(elem in help_options for elem in sys.argv))
-in_out_group_RNAbiotype.add_argument("--output_folder", help="Output folder.", required = '--detached' in sys.argv)
+in_out_group_RNAbiotype.add_argument("-i", "--input", help="Folder containing a project or reads, according to the mode selected. Files could be .fastq/.fq/ or fastq.gz/.fq.gz. See --help_format for additional details.", required= not any(elem in help_options for elem in sys.argv))
+in_out_group_RNAbiotype.add_argument("-o", "--output_folder", help="Output folder.", required = '--detached' in sys.argv)
 in_out_group_RNAbiotype.add_argument("--single_end", action="store_true", help="Single end files [Default OFF]. Default mode is paired-end.")
-in_out_group_RNAbiotype.add_argument("--batch", action="store_true", help="Provide this option if input is a file containing multiple paths instead a path.")
+in_out_group_RNAbiotype.add_argument("-b", "--batch", action="store_true", help="Provide this option if input is a file containing multiple paths instead a path.")
 in_out_group_RNAbiotype.add_argument("--in_sample", help="File containing a list of samples to include (one per line) from input folder(s) [Default OFF].")
 in_out_group_RNAbiotype.add_argument("--ex_sample", help="File containing a list of samples to exclude (one per line) from input folder(s) [Default OFF].")
 in_out_group_RNAbiotype.add_argument("--detached", action="store_true", help="Isolated mode. --input is a folder containing fastq reads. Provide a unique path o several using --batch option")
@@ -200,7 +205,7 @@ in_out_group_RNAbiotype.add_argument("--include_lane", action="store_true", help
 in_out_group_RNAbiotype.add_argument("--include_all", action="store_true", help="Include all characters as tag name before read pair, if any. See --help_format for additional details [Default OFF]")
 
 options_group_RNAbiotype = subparser_RNAbiotype.add_argument_group("Options")
-options_group_RNAbiotype.add_argument("--threads", type=int, help="Number of CPUs to use [Default: 2].", default=2)
+options_group_RNAbiotype.add_argument("-t", "--threads", type=int, help="Number of CPUs to use [Default: 2].", default=2)
 options_group_RNAbiotype.add_argument("--annotation", help="Reference genome annotation in GTF format.", required=True)
 options_group_RNAbiotype.add_argument("--limitRAM", type=int, help="limitRAM parameter for STAR mapping. Default 20 Gbytes.", default=20000000000)
 options_group_RNAbiotype.add_argument("--noTrim", action='store_true', help="Use non-trimmed reads [or not containing '_trim' in the name].")
@@ -234,10 +239,10 @@ subparser_miRNA = subparsers.add_parser(
     description='This module generates a miRNA analysis',
 )
 in_out_group_miRNA = subparser_miRNA.add_argument_group("Input/Output")
-in_out_group_miRNA.add_argument("--input", help="Folder containing a project or reads, according to the mode selected. Files could be .fastq/.fq/ or fastq.gz/.fq.gz. See --help_format for additional details.", required= not any(elem in help_options for elem in sys.argv))
-in_out_group_miRNA.add_argument("--output_folder", help="Output folder.", required = '--detached' in sys.argv)
+in_out_group_miRNA.add_argument("-i", "--input", help="Folder containing a project or reads, according to the mode selected. Files could be .fastq/.fq/ or fastq.gz/.fq.gz. See --help_format for additional details.", required= not any(elem in help_options for elem in sys.argv))
+in_out_group_miRNA.add_argument("-o", "--output_folder", help="Output folder.", required = '--detached' in sys.argv)
 in_out_group_miRNA.add_argument("--single_end", action="store_true", help="Single end files [Default OFF]. Default mode is paired-end.")
-in_out_group_miRNA.add_argument("--batch", action="store_true", help="Provide this option if input is a file containing multiple paths instead a path.")
+in_out_group_miRNA.add_argument("-b", "--batch", action="store_true", help="Provide this option if input is a file containing multiple paths instead a path.")
 in_out_group_miRNA.add_argument("--in_sample", help="File containing a list of samples to include (one per line) from input folder(s) [Default OFF].")
 in_out_group_miRNA.add_argument("--ex_sample", help="File containing a list of samples to exclude (one per line) from input folder(s) [Default OFF].")
 in_out_group_miRNA.add_argument("--detached", action="store_true", help="Isolated mode. --input is a folder containing fastq reads. Provide a unique path o several using --batch option")
@@ -246,7 +251,7 @@ in_out_group_miRNA.add_argument("--include_all", action="store_true", help="Incl
 in_out_group_miRNA.add_argument("--noTrim", action='store_true', help="Use non-trimmed reads [or not containing '_trim' in the name].")
 
 options_group_miRNA = subparser_miRNA.add_argument_group("Options")
-options_group_miRNA.add_argument("--threads", type=int, help="Number of CPUs to use [Default: 2].", default=2)
+options_group_miRNA.add_argument("-t", "--threads", type=int, help="Number of CPUs to use [Default: 2].", default=2)
 options_group_miRNA.add_argument("--species", help="Species tag ID [Default: hsa (Homo sapiens)].", default='hsa')
 options_group_miRNA.add_argument("--database", help="Path to store miRNA annotation files downloaded: miRBase, miRCarta, etc")
 options_group_miRNA.add_argument("--miRNA_gff", help="miRBase hsa GFF file containing miRNA information.")
@@ -255,12 +260,14 @@ options_group_miRNA.add_argument("--matureFasta", help="miRNA mature fasta file.
 options_group_miRNA.add_argument("--miRBase_str", help="miRBase str information.")
 
 ## TODO: Enhancement
-
 ##options_group_miRNA.add_argument("--sRNAbench_options", type=int, help="Additional sRNAbench options.")
 ##options_group_miRNA.add_argument("--miRTop_options", type=int, help="Additional miRTop options.")
 
 software_group_miRNA = subparser_miRNA.add_argument_group("Software")
-software_group_miRNA.add_argument("--software", dest='soft_name', nargs='*', help="Software to analyze miRNAs. Provide several input if desired", choices=['sRNAbench','optimir', 'miraligner'], required= not any(elem in help_options for elem in sys.argv))
+software_group_miRNA.add_argument("--software", dest='soft_name', nargs='*', 
+                                  help="Software to analyze miRNAs. Provide several input if desired", 
+                                  choices=['sRNAbench','optimir', 'miraligner'], 
+                                  required= not any(elem in help_options for elem in sys.argv))
 
 info_group_miRNA = subparser_miRNA.add_argument_group("Additional information")
 info_group_miRNA.add_argument("--help_format", action="store_true", help="Show additional help on name format for files.")
@@ -271,12 +278,42 @@ info_group_miRNA.add_argument("--debug", action="store_true", help="Show additio
 subparser_miRNA.set_defaults(func=XICRA.modules.miRNA.run_miRNA)
 ##-------------------------------------------------------------##
 
-##------------------------------ tRF ----------------------- ##
-##subparser_tRF = subparsers.add_parser(
-##    'tRF',
-##    help='tRF analysis.',
-##    description='This module generates a tRF analysis',
-##)
+##------------------------------ tRNA ----------------------- ##
+subparser_tRNA = subparsers.add_parser(
+    'tRNA',
+    help='tRNA analysis.',
+    description='This module generates a tRNA analysis',
+)
+in_out_group_tRNA = subparser_tRNA.add_argument_group("Input/Output")
+in_out_group_tRNA.add_argument("-i", "--input", help="Folder containing a project or reads, according to the mode selected. Files could be .fastq/.fq/ or fastq.gz/.fq.gz. See --help_format for additional details.", required= not any(elem in help_options for elem in sys.argv))
+in_out_group_tRNA.add_argument("-o", "--output_folder", help="Output folder.", required = '--detached' in sys.argv)
+in_out_group_tRNA.add_argument("--single_end", action="store_true", help="Single end files [Default OFF]. Default mode is paired-end.")
+in_out_group_tRNA.add_argument("-b", "--batch", action="store_true", help="Provide this option if input is a file containing multiple paths instead a path.")
+in_out_group_tRNA.add_argument("--in_sample", help="File containing a list of samples to include (one per line) from input folder(s) [Default OFF].")
+in_out_group_tRNA.add_argument("--ex_sample", help="File containing a list of samples to exclude (one per line) from input folder(s) [Default OFF].")
+in_out_group_tRNA.add_argument("--detached", action="store_true", help="Isolated mode. --input is a folder containing fastq reads. Provide a unique path o several using --batch option")
+in_out_group_tRNA.add_argument("--include_lane", action="store_true", help="Include the lane tag (*L00X*) in the sample name. See --help_format for additional details [Default OFF]")
+in_out_group_tRNA.add_argument("--include_all", action="store_true", help="Include all characters as tag name before read pair, if any. See --help_format for additional details [Default OFF]")
+in_out_group_tRNA.add_argument("--noTrim", action='store_true', help="Use non-trimmed reads [or not containing '_trim' in the name].")
+
+options_group_tRNA = subparser_tRNA.add_argument_group("Options")
+options_group_tRNA.add_argument("-t", "--threads", type=int, help="Number of CPUs to use [Default: 2].", default=2)
+options_group_tRNA.add_argument("--species", help="Species tag ID [Default: hsa (Homo sapiens)].", default='hsa')
+options_group_tRNA.add_argument("--database", help="Path to store tRNA annotation files downloaded: GtRNAdb, etc")
+
+software_group_tRNA = subparser_tRNA.add_argument_group("Software")
+software_group_tRNA.add_argument("--software", dest='soft_name', nargs='*', 
+                                 help="Software to analyze tRNAs. Provide several input if desired", 
+                                 choices=['mintmap'], 
+                                 required= not any(elem in help_options for elem in sys.argv))
+
+info_group_tRNA = subparser_tRNA.add_argument_group("Additional information")
+info_group_tRNA.add_argument("--help_format", action="store_true", help="Show additional help on name format for files.")
+info_group_tRNA.add_argument("--help_project", action="store_true", help="Show additional help on the project scheme.")
+info_group_tRNA.add_argument("--help_tRNA", action="store_true", help="Show additional help on the miRNA paired-end reads process.")
+info_group_tRNA.add_argument("--debug", action="store_true", help="Show additional message for debugging purposes.")
+
+subparser_tRNA.set_defaults(func=XICRA.modules.tRNA.run_tRNA)
 ##-------------------------------------------------------------##
 
 ##------------------------------ piRNA ----------------------- ##

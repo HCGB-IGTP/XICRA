@@ -7,9 +7,7 @@
 Help messages for different scripts, modules
 """
 from termcolor import colored
-
 from HCGB import functions
-
 
 ###############
 def help_fastq_format():
@@ -18,6 +16,7 @@ def help_fastq_format():
     """
 
     functions.aesthetics_functions.boxymcboxface("Name format for samples")
+
 
     print ("Format for fastq files can be:\n")
     print ("- name.fastq.gz")
@@ -156,24 +155,29 @@ def help_fastq_format():
     print("\t - Sample 2: name1_L002_XYZ_R1, name1_L002_XYZ_R2")
     print (colored('\t ** Remember to use option --include_all within each module. **\n', 'yellow'))
     
-
-    
-    
-
 def project_help():
     return ()
 
+###############
 def multiqc_help():
     return ()
 
+###############
 def print_help_adapters():
     print("Check the XICRA documentation of the module: ", "\033[4m"+ "https://xicra.readthedocs.io/en/latest/user_guide/modules/trimm.html"+"\033[0m")
     return()
 
+###############
 def help_join_reads():
     return ()
 
+###############
 def help_miRNA():
     print("Check the XICRA documentation of the module: ", "\033[4m"+ "https://xicra.readthedocs.io/en/latest/user_guide/modules/miRNA.html"+"\033[0m")
     return()
     return ()
+
+###############
+def help_tRNA():
+    return ()
+

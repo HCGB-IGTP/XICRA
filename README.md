@@ -17,13 +17,12 @@ XICRA is a python pipeline developed in multiple separated modules that it is de
 
 This pipeline resulted from the observation that potential artifacts derived from sequencing errors and/or data processing could result in an overestimation of abundance and diversity of miRNA isoforms. Paired end sequencing improves isomiR calling in small RNA sequencing data. Internal variation isomiR calls are frequent artifacts in single read sequencing data. Internal sequence variant isomiRs in single read sequencing mode may be false positives. See additional detail in the original publication [here](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-021-04128-1)
 
-So far, XICRA produces a miRNA analysis at the isomiR level using joined reads, multiple software at the user selection and following a standardization procedure. 
-Results are generated for each sample analyzed and summarized for all samples in a single expression matrix. This information can be processed at the miRNA or 
-isomiR level (single sequence) but also summarizing for each isomiR variant type. This information can be easily accessed using the accompanied R package 
+So far, XICRA produces a miRNA or tRNA analysis at the isomiR or tRF level using joined reads or single-end reads, multiple software at the user selection and following a standardization procedure. Results are generated for each sample analyzed and summarized for all samples in a single expression matrix. This information can be processed at the miRNA or isomiR level (single sequence) but also summarizing for each isomiR variant type. This information can be easily accessed using the accompanied R package 
 [XICRA.stats](https://github.com/HCGB-IGTP/XICRA.stats). Although the pipeline is designed to take paired-end reads, it also accepts single-end reads. 
 
 See additional details on the code [here](https://github.com/HCGB-IGTP/XICRA/tree/master/XICRA_pip). The workflow of the pipeline is described in the following image.
 <img src="workflow/XICRA_pipeline.png" alt="Workflow" width="950"/>
+
 ### Installation
 
 XICRA will require python v3.6 and java (we tested in openjdk 14 2020-03-17).

@@ -14,6 +14,7 @@ import re
 import sys
 from sys import argv
 from io import open
+from termcolor import colored
 
 ## import my modules
 from HCGB import functions
@@ -47,7 +48,7 @@ def run_module_fastqc(path, files, sample, threads):
     filename_stamp = path + '/.success'
     if os.path.isfile(filename_stamp):
         stamp = functions.time_functions.read_time_stamp(filename_stamp)
-        print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'fastqc'), 'yellow'))
+        print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, sample, 'fastqc'), 'yellow'))
     else:
         ## call fastqc
         fastqc_bin = set_config.get_exe('fastqc')
