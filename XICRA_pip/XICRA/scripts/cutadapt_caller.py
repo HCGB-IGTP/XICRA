@@ -22,6 +22,27 @@ from XICRA.config import set_config
 
 #############################################
 def caller(list_reads, sample_folder, name, threads, min_read_len, Debug, adapters, extra):
+    """ Checks if the trimming process have been done previously. If not, it executes it
+    calling cutadapt()    
+    
+    :param list_reads: name of the fastqc files of the sample to be trimmed
+    :param sample_folder: path to the sample folder to store the results
+    :param threads: number of CPUs to use.
+    :param Debug: show additional message for debugging purposes.
+    :param adapters: dictionary with the introduced adapters
+    :param extra: provided extra options for cutadapt trimming process
+
+    :type list_reads: string
+    :type sample_folder: string
+    :type threads: string
+    :type Debug: boolean
+    :type adapters: dictionary
+    :type extra: string
+    
+
+    :returns: None
+    """
+    
     ## check if previously trimmed and succeeded
     filename_stamp = sample_folder + '/.success'
     if os.path.isfile(filename_stamp):
@@ -40,25 +61,27 @@ def caller(list_reads, sample_folder, name, threads, min_read_len, Debug, adapte
 #############################################
 def cutadapt(cutadapt_exe, reads, path, sample_name, num_threads, min_len_given, Debug, adapters, extra):
     """
+    Executes cutadapt sofware for each sample cutting the adapters of each read
     
-    :param cutadapt_exe:
-    :param reads:
-    :param path:
-    :param sample_name:
-    :param num_threads: 
-    :param Debug:
-    :param adapters
-    :param extra:
+    :param cutadapt_exe: to call cutadapt software
+    :param reads: name of the fastqc files of the sample to be trimmed
+    :param path: path to the sample folder to store the results
+    :param sample_name: name of the sample to be trimmed
+    :param num_threads: number of CPUs to use.
+    :param Debug: show additional message for debugging purposes.
+    :param adapters: dictionary with the introduced adapters
+    :param extra: provided extra options for cutadapt trimming process
     
-    :type cutadapt_exe:
-    :type reads:
-    :type path:
-    :type sample_name:
-    :type num_threads: 
-    :type Debug:
+    :type cutadapt_exe: string
+    :type reads: string
+    :type path: string
+    :type sample_name: string
+    :type num_threads: string
+    :type Debug: boolean
     :type adapters: dictionary
     :type extra: string
     
+    :returns: the trimmed files
     """
     logfile = os.path.join(path, sample_name + '.cutadapt.log')
     
