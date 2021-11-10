@@ -1,0 +1,21 @@
+
+## for each sample
+convert bam to bed
+
+cmd_bedtools = "%s bamtobed -i %s > %s" %(bedtools_exe, bam_file, bed_file)
+
+
+## for annot file
+convert gtf to bed
+generate table with details: gene, biotype, etc
+gtf2bed
+
+## for each sample
+intersect and get counts for each entry
+generate table with count information, biotype, etc
+plot
+
+we can even plot for each chromosome.
+
+## piRNA module
+use information for piRNA
