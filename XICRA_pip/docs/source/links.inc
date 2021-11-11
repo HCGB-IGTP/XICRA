@@ -25,6 +25,10 @@
 .. _Optimir: https://rnajournal.cshlp.org/content/early/2019/02/28/rna.069708.118
 .. _sRNAbench: https://bioinfo2.ugr.es/ceUGR/srnabench/
 .. _miRTop: https://github.com/miRTop/mirtop 
+.. _fastqc: https://www.bioinformatics.babraham.ac.uk/projects/fastqc/
+.. _MultiQC: https://multiqc.info/
+.. _STAR: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3530905/
+.. _featureCounts: https://www.rdocumentation.org/packages/Rsubread/versions/1.22.2/topics/featureCounts
 
 .. #### Sites
 .. _IGTP: http://www.germanstrias.org/

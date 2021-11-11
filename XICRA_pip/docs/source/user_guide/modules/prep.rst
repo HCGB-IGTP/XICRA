@@ -81,7 +81,7 @@ The different options and parameters for this module should appear in the comman
 - For further information of the module functionallity, check this :doc:`page <../../api/modules/prep>`.
 
 
-Output of trimm for each sample
+Output of prep for each sample
 -------------------------------
 After the ``prep`` module excution, a data folder will be generated. Inside it, for each sample, a new folder will be created 
 (called as the sample). These sample folders will contain links to all the raw files that correspond to each sample (if -\ -copy_reads has

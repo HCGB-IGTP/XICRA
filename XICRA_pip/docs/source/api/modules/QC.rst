@@ -1,12 +1,13 @@
 QC
-==
+===
 
-This module calls different quality check programs attending the input provided.
+This module calls fastqc_, a quality check program, to analyze the 
+quality of each sample. 
 
 For each sample, a folder called "fastqc" is generated with the 
 quality analysis, reported in an html file.
 
-In addition, by defoult, a multiQC report is generated for all the samples.
+In addition, by default, a multiQC_ report is generated for all the samples.
 
 
 Workflow

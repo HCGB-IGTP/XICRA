@@ -35,6 +35,21 @@ mapping_results = {}
 
 ##############################################
 def run_biotype(options):
+    """Main function of the module, organizes the biotype analysis
+
+    First, checks if the files needed to do the mapping (and posterior
+    classification of the reads) have been provided by the user:
+    fasta sequence + annotation or STAR index directory. 
+
+    First, it executes the maping calling mapReads_module().
+    Then, it calls RNAbiotype_module_call() to execute featureCounts.
+    
+    Finally, generate the MultiQC featureCounts report of all samples.
+    
+    :param options: input parameters introduced by the user. See XICRA biotype -h.
+
+    :returns: None
+    """
 
     ## init time
     start_time_total = time.time()
@@ -161,6 +176,10 @@ def run_biotype(options):
     else:
         multimapping = True    
     
+    ##############################################
+    ## feature counts
+    ##############################################
+
     ## get RNAbiotype information
     RNAbiotype.RNAbiotype_module_call(mapping_results, biotype_outdir_dict, options.annotation, 
                                       options.debug, max_workers_int, threads_job, multimapping, options.stranded)
@@ -245,6 +264,35 @@ def run_biotype(options):
 def mapReads_module(options, pd_samples_retrieved, outdir_dict, Debug, 
                     max_workers_int, threads_job, start_time_partial, outdir):
     
+    """Organizes the mapping of the samples, excuted in parallel.
+
+    First, checks if the files needed to do the mapping (and posterior
+    classification of the reads) have been provided by the user:
+    fasta sequence + annotation or STAR index directory. 
+
+    Then, sends the mapping in parallel for each sample calling mapReads_caller().    
+    
+    Finally, generate the MultiQC report  of the mapping for each sample.
+    
+    :param options: input parameters introduced by the user. See XICRA biotype -h.
+    :param pd_samples_retrieved: data frame with the information of the samples
+    :param outdir_dict: dictionary with the names of the samples and their files
+    :param Debug: show extra information of the process
+    :param max_workers_int: number of workers for each thread
+    :param threads_job: number of threads to do the computation
+    :param start_time_partial: time of the beggining of the process
+    :param outdir: directory to store the results
+
+    :type Debug: boolean
+    :type max_workers_int: int
+    :type threads_job: int 
+    :type start_time_partial: int
+    :type outdir: string
+
+
+    :returns: None
+    """
+
     # Group dataframe by sample name
     sample_frame = pd_samples_retrieved.groupby(["new_name"])
     
@@ -339,6 +387,34 @@ def mapReads_module(options, pd_samples_retrieved, outdir_dict, Debug,
 
 #################################
 def mapReads_caller(files, folder, name, threads, STAR_exe, genomeDir, limitRAM_option, Debug):
+    """Mapping of a given sample with STAR
+
+    First, checks if the trimmed unjoined files exist for the sample and also
+    if the calculation has not been done previously. 
+
+    Executes STAR and generate the BAM file of the sample with mapReads script. 
+    
+    :param files: unjoined trimmed files of the sample
+    :param folder: sample folder to store the results
+    :param name: sample name
+    :param threads: number of threads to do the computation
+    :param STAR_exe: check the STAR software is available
+    :param genomeDir: path to the genome directory to do the mappig
+    :param limitRAM_option: limit RAM bytes to be used in the computation
+    :param Debug: show extra information of the process
+
+
+    :type folder: string
+    :type name: string
+    :type threads: int 
+    :type start_exe: boolean
+    :type genomeDir: string
+    :type limitRAM_option: int
+    :type Debug: boolean
+
+    :returns: None
+    """
+
     ## check if previously joined and succeeded
     filename_stamp = folder + '/.success'
     if os.path.isfile(filename_stamp):
