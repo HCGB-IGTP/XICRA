@@ -67,7 +67,7 @@ def convert_GTF2bed(GTF_file, path_given, cpus2use=2, debug=False):
     return (bed_files, split_GTF_files)
 
 #######################################################
-def convert_bam2bed(sample, bam_file, path_given, debug):
+def convert_bam2bed(bam_file, path_given, debug):
     """
     This functions calls bedtools to generate a conversion from BAM to BED format.
     """
@@ -122,7 +122,6 @@ def main():
     
     args=parser.parse_args();
     
-    
     ##
     (bed_files, gtf_files) = convert_GTF2bed(os.path.abspath(args.annot), os.path.abspath(args.path), debug=False)
     
@@ -139,7 +138,7 @@ def main():
     ## lets split the big file provided
     files_generated = get_length_dist(os.path.abspath(args.input), os.path.abspath(args.annot), name=args.name, 
               chr=args.annot_splitted, path_given=os.path.abspath(args.path), debug=True)
-    
+
     return ()
 
 ######
