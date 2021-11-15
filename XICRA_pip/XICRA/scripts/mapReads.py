@@ -17,7 +17,22 @@ from HCGB.functions import files_functions
 
 ############################################################
 def create_genomeDir(folder, STAR_exe, num_threads, fasta_file, limitGenomeGenerateRAM):
+    """Create the STAR_index genome dir 
     
+    :param folder: folder to store the results
+    :param STAR_exe: Executable path for STAR binary
+    :param num_threads: number of threads to do the computation
+    :param fasta_file: path to the genome directory
+    :param limitGenomeGenerateRAM: limit RAM bytes to be used in the computation
+
+    :type folder: string
+    :type num_threads: int 
+    :type STAR_exe: string
+    :type fasta_file: string
+    :type limitGenomeGenerateRAM: int
+
+    :returns: genomeDir
+    """
     ##
     genomeDir = files_functions.create_subfolder("STAR_index", folder)
     
@@ -35,7 +50,20 @@ def create_genomeDir(folder, STAR_exe, num_threads, fasta_file, limitGenomeGener
 
 ############################################################
 def load_Genome(folder, STAR_exe, genomeDir, num_threads):
+    """Load the genome stored in STAR_index  
     
+    :param folder: folder where the genome will be loaded
+    :param STAR_exe: Executable path for STAR binary
+    :param num_threads: number of threads to do the computation
+    :param genomeDir: path to the genome directory
+
+    :type folder: string
+    :type num_threads: int 
+    :type STAR_exe: string
+    :type genomeDir: string
+
+    :returns: load_code
+    """
     ## --genomeLoad LoadAndExit
     Load_folder = files_functions.create_subfolder('LoadMem', folder)
     cmd_LD = "%s --genomeDir %s --runThreadN %s --outFileNamePrefix %s --genomeLoad LoadAndExit" %(
@@ -47,7 +75,20 @@ def load_Genome(folder, STAR_exe, genomeDir, num_threads):
 
 ############################################################
 def remove_Genome(STAR_exe, genomeDir, folder, num_threads):
+    """Remove the loaded genome 
     
+    :param folder: folder where the genome was loaded
+    :param STAR_exe: Executable path for STAR binary
+    :param num_threads: number of threads to do the computation
+    :param genomeDir: path to the genome directory
+
+    :type folder: string
+    :type num_threads: int 
+    :type STAR_exe: string
+    :type genomeDir: string
+
+    :returns: remove_code
+    """
     ## --genomeLoad Remove
     remove_folder = files_functions.create_subfolder('RemoveMem', folder)
     cmd_RM = "%s --genomeDir %s --outFileNamePrefix %s --runThreadN %s --genomeLoad Remove" %(
@@ -71,9 +112,9 @@ def mapReads(option, reads, folder, name, STAR_exe, genomeDir, limitRAM_option, 
     :param folder: Path for output results
     :param name: Sample name
     :param STAR_exe: Executable path for STAR binary
-    :param genomeDir: 
+    :param genomeDir: path to the genome directory
     :param limitRAM_option: maximum available RAM (bytes) for map reads process. Default: 40000000000
-    :param num_threads:
+    :param num_threads: number of threads to do the computation
     
     :type option: string
     :type reads: list
@@ -84,7 +125,7 @@ def mapReads(option, reads, folder, name, STAR_exe, genomeDir, limitRAM_option, 
     :type limitRAM_option: int
     :type num_threads: int
     
-    
+    :returns: mapping_code
     """
     ## open file
     print("\t+ Mapping sample %s using STAR" %name)

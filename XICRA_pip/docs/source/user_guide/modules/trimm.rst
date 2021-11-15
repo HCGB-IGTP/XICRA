@@ -1,5 +1,6 @@
 .. ############################
 .. _trimm-description:
+.. ############################
 
 trimm
 =====
@@ -59,8 +60,8 @@ The different options and parameters for this module should appear in the comman
    :param --in_sample: File containing a list of samples to include (one per line) from input folder(s). Default OFF.
    :param --ex_sample: File containing a list of samples to exclude (one per line) from input folder(s). Default OFF.
    :param --detached: Isolated mode. --input is a folder containing fastq reads. Provide a unique path o several using --batch option.
-   :param --include_lane: Include the lane tag (*L00X*) in the sample name. See --help_format for additional details. Default OFF.
-   :param --include_all: Include all characters as tag name before read pair, if any. See --help_format for additional details. Default OFF.
+   :param --include_lane: Include the lane tag (*L00X*) in the sample identification. See -\ -help_format for additional details. Default OFF.
+   :param --include_all: IInclude all file name characters in the sample identification. See -\ -help_format for additional details. Default OFF.
    
    :type input: string
    :type output_folder: string
@@ -70,8 +71,8 @@ The different options and parameters for this module should appear in the comman
 .. function:: Module XICRA trimm options
 
    :param --adapters_a: Sequence of an adapter ligated to the 3' end (of read 1). See --help_trimm_adapters for further information.
-   :param --adapters_A: Sequence of an adapter ligated to the 3' read in pair (of read 2). See --help_trimm_adapters for further information.
-   :param --extra: provide extra options for cutadapt trimming process. See --help_trimm_adapters for further information.
+   :param --adapters_A: Sequence of an adapter ligated to the 3' read in pair (of read 2). See -\ -help_trimm_adapters for further information.
+   :param --extra: provide extra options for cutadapt trimming process. See -\ -help_trimm_adapters for further information.
    :param --skip_report: Do not report statistics using MultiQC report module. [Default OFF]. See details in --help_multiqc
    :param --threads: Number of CPUs to use. Default: 2. 
    
@@ -92,7 +93,7 @@ The different options and parameters for this module should appear in the comman
 
 Output of trimm for each sample
 -------------------------------
-After the trimm module excution, for each sample, a new fastq file is generated in the in the "trimm" folder of the sample 
+After the ``trimm`` module excution, for each sample, a new fastq file is generated in the in the "trimm" folder of the sample 
 with the same name as the raw one + "_trimm". 
 
 It generates by default a MultiQC report in the folder "report/trimm", this report may be useful to detect outliers or 

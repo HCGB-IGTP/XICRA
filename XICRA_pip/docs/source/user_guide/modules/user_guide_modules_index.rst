@@ -18,7 +18,10 @@ within each one.
    
    config.rst
    prep.rst
+   QC.rst
    trimm.rst
+   join.rst
+   biotype.rst
    miRNA.rst
    
 .. _shared-arguments:

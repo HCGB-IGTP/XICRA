@@ -31,7 +31,12 @@ def run_prep(options):
     
     This module allows to user to copy files into the project folder initiate or only link using
     a symbolic link to avoid duplicated raw data. 
+    
+    The input files will be organized in folders. One folder per sample. 
 
+    :param options: input parameters introduced by the user. See XICRA prep -h.
+
+    :returns: None
     """
     
     ## help_format option
