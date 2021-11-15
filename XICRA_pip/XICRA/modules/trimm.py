@@ -121,7 +121,7 @@ def run_trimm(options):
     print ('+ Getting files from input folder... ')
     print ('+ Mode: fastq.\n+ Extension: ')
     print ("[ fastq, fq, fastq.gz, fq.gz ]\n")
-    pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ("fastq", "fq", "fastq.gz", "fq.gz"), options.debug)
+    pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ["fastq", "fq", "fastq.gz", "fq.gz"], options.debug)
     
     ## debug message
     if (Debug):

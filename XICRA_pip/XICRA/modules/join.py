@@ -82,7 +82,7 @@ def run_join(options):
     if options.noTrim:
         print ('+ Mode: fastq.\n+ Extension: ')
         print ("[ fastq, fq, fastq.gz, fq.gz ]\n")
-        pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ("fastq", "fq", "fastq.gz", "fq.gz"), options.debug)
+        pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ["fastq", "fq", "fastq.gz", "fq.gz"], options.debug)
     else:
         print ('+ Mode: trim.\n+ Extension: ')
         print ("[ _trim_ ]\n")
