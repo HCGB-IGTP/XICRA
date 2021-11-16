@@ -122,7 +122,6 @@ def main():
     
     args=parser.parse_args();
     
-    
     ##
     (bed_files, gtf_files) = convert_GTF2bed(os.path.abspath(args.annot), os.path.abspath(args.path), debug=False)
     
@@ -139,7 +138,6 @@ def main():
     ## lets split the big file provided
     files_generated = get_length_dist(os.path.abspath(args.input), os.path.abspath(args.annot), name=args.name, 
               chr=args.annot_splitted, path_given=os.path.abspath(args.path), debug=True)
-    
     return ()
 
 ######
