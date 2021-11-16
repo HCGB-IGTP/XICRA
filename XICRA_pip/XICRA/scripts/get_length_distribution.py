@@ -44,7 +44,7 @@ def convert_GTF2bed(GTF_file, path_given, cpus2use=2, debug=False):
     print("+ Split GTF in multiple subsets to speed up process")
             
     ## split GTF file
-    split_GTF_files = HCGB.scripts.split_GTF.split_GTF_call(GTF_file, num_files=1, 
+    split_GTF_files = HCGB.scripts.file_splitter.split_GTF_call(GTF_file, num_files=1, 
                                              name=False, chr_option=True, 
                                              path_given=path_given, debug=debug) 
     # create bed
@@ -59,7 +59,7 @@ def convert_GTF2bed(GTF_file, path_given, cpus2use=2, debug=False):
         print("\t- To BED file: " + each_file)
         print()
         ## convert GTF
-        HCGB.scripts.gtf2bed.parse_GTF(each_file, bed_file, debug)
+        HCGB.scripts.gtf2bed.parse_GTF_call(each_file, bed_file, debug)
         
         ## save
         bed_files[each_file] = bed_file
@@ -67,7 +67,7 @@ def convert_GTF2bed(GTF_file, path_given, cpus2use=2, debug=False):
     return (bed_files, split_GTF_files)
 
 #######################################################
-def convert_bam2bed(bam_file, path_given, debug):
+def convert_bam2bed(sample, bam_file, path_given, debug):
     """
     This functions calls bedtools to generate a conversion from BAM to BED format.
     """
@@ -138,7 +138,6 @@ def main():
     ## lets split the big file provided
     files_generated = get_length_dist(os.path.abspath(args.input), os.path.abspath(args.annot), name=args.name, 
               chr=args.annot_splitted, path_given=os.path.abspath(args.path), debug=True)
-
     return ()
 
 ######

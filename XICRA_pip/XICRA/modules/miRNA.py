@@ -111,7 +111,7 @@ def run_miRNA(options):
         if options.noTrim:
             print ('+ Mode: fastq.\n+ Extension: ')
             print ("[ fastq, fq, fastq.gz, fq.gz ]\n")
-            pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ("fastq", "fq", "fastq.gz", "fq.gz"), options.debug)
+            pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ["fastq", "fq", "fastq.gz", "fq.gz"], options.debug)
         else:
             print ('+ Mode: join.\n+ Extension: ')
             print ("[_joined.fastq]\n")
@@ -120,7 +120,7 @@ def run_miRNA(options):
         if options.noTrim:
             print ('+ Mode: fastq.\n+ Extension: ')
             print ("[ fastq, fq, fastq.gz, fq.gz ]\n")
-            pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ("fastq", "fq", "fastq.gz", "fq.gz"), options.debug)
+            pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ["fastq", "fq", "fastq.gz", "fq.gz"], options.debug)
         else:
             print ('+ Mode: join.\n+ Extension: ')
             print ("[_joined.fastq]\n")
@@ -228,10 +228,6 @@ def run_miRNA(options):
     ## Get user software selection: sRNAbench, optimir, ...
     ## Standarize using miRTop
     
-    ## dictionary results
-    global results_df
-    results_df = pd.DataFrame(columns=("name", "soft", "filename"))
-    
     # Group dataframe by sample name
     sample_frame = pd_samples_retrieved.groupby(["new_name"])
     
@@ -257,6 +253,15 @@ def run_miRNA(options):
     ## outdir
     outdir_report = functions.files_functions.create_subfolder("report", outdir)
     expression_folder = functions.files_functions.create_subfolder("miRNA", outdir_report)
+
+    ## Get results files generated
+    
+    ## dictionary results
+    results_SampleParser = sampleParser.files.get_files(options, input_dir, "miRNA", ["mirtop.tsv"], options.debug)
+    results_df = pd.DataFrame(columns=("name", "soft", "filename"))
+    results_df['name'] = results_SampleParser['name']
+    results_df['soft'] = results_SampleParser['ext']
+    results_df['filename'] = results_SampleParser['sample']
 
     ## debugging messages
     if options.debug:
@@ -312,8 +317,8 @@ def miRNA_analysis(reads, folder, name, threads, miRNA_gff, soft_list,
             mirtop_caller.miRTop_caller(sRNAbench_folder, miRTop_folder, name, threads, miRNA_gff, hairpinFasta, 'sRNAbench', species, Debug)
             
             ## save results in dataframe
-            filename = os.path.join(miRTop_folder, 'counts', 'mirtop.tsv')
-            results_df.loc[len(results_df)] = name, soft, filename
+            #filename = os.path.join(miRTop_folder, 'counts', 'mirtop.tsv')
+            #results_df.loc[len(results_df)] = name, soft, filename
             
         ###
         if (soft == "optimir"):
@@ -326,8 +331,8 @@ def miRNA_analysis(reads, folder, name, threads, miRNA_gff, soft_list,
             mirtop_caller.miRTop_caller(optimir_folder, miRTop_folder, name, threads, miRNA_gff, hairpinFasta, 'optimir', species, Debug)
             
             ## save results in dataframe
-            filename = os.path.join(miRTop_folder, 'counts', 'mirtop.tsv')
-            results_df.loc[len(results_df)] = name, soft, filename
+            #filename = os.path.join(miRTop_folder, 'counts', 'mirtop.tsv')
+            #results_df.loc[len(results_df)] = name, soft, filename
             
         ###
         if (soft == "miraligner"):
@@ -341,6 +346,6 @@ def miRNA_analysis(reads, folder, name, threads, miRNA_gff, soft_list,
             mirtop_caller.miRTop_caller(miraligner_folder, miRTop_folder, name, threads, miRNA_gff, hairpinFasta, 'seqbuster', species, Debug)
             
             ## save results in dataframe
-            filename = os.path.join(miRTop_folder, 'counts', 'mirtop.tsv')
-            results_df.loc[len(results_df)] = name, soft, filename
+            #filename = os.path.join(miRTop_folder, 'counts', 'mirtop.tsv')
+            #results_df.loc[len(results_df)] = name, soft, filename
 

@@ -18,7 +18,7 @@ In addition, an expression matrix comparing all the samples is created.
 
 Workflow
 --------
-TODO: build image
+TODO: build image 
 
 
 Functions
@@ -28,7 +28,7 @@ Functions
    :members:
    
 Other functions
----------
+---------------
 This module calls the function:
 
 .. currentmodule:: XICRA.scripts.generate_DE

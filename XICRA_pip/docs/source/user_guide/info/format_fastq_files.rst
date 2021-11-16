@@ -92,8 +92,8 @@ It can be the case that more than one file belong to the same sample. In order t
 ``XICRA``, a combination of the following parameters may be needed depending on the characteristics of the
 input file names:
 
-Option: include_lane
---------------------
+Option: -\ -include_lane
+------------------------
 
 If you want to include lane tags (*L00X*, *00X*) into each  each sample name (differentiate samples considering the lane):
 Use option **-**\ **-include_lane within each module** and the lane tag will also be used to identify samples.
@@ -124,8 +124,8 @@ As an example, considering the input files:
       
       
 
-Option: include_all
--------------------
+Option: -\ -include_all
+-----------------------
 
 In some cases, files might contain other extra information and it is necessary to use all the information of the 
 file name to identify samples:

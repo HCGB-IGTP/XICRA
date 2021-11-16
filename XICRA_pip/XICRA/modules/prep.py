@@ -31,7 +31,12 @@ def run_prep(options):
     
     This module allows to user to copy files into the project folder initiate or only link using
     a symbolic link to avoid duplicated raw data. 
+    
+    The input files will be organized in folders. One folder per sample. 
 
+    :param options: input parameters introduced by the user. See XICRA prep -h.
+
+    :returns: None
     """
     
     ## help_format option
@@ -89,7 +94,7 @@ def run_prep(options):
     print ('+ Mode: fastq.\n+ Extension: ')
     print ("[ fastq, fq, fastq.gz, fq.gz ]\n")
     
-    pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ("fastq", "fq", "fastq.gz", "fq.gz"), options.debug)
+    pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ["fastq", "fq", "fastq.gz", "fq.gz"], options.debug)
         
     ## Information returned in pd_samples_retrieved
     ### sample, dirname, name, name_len, lane, read_pair, lane_file, ext, gz
