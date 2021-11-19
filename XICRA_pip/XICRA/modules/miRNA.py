@@ -316,10 +316,6 @@ def miRNA_analysis(reads, folder, name, threads, miRNA_gff, soft_list,
             miRTop_folder = functions.files_functions.create_subfolder("sRNAbench_miRTop", folder)
             mirtop_caller.miRTop_caller(sRNAbench_folder, miRTop_folder, name, threads, miRNA_gff, hairpinFasta, 'sRNAbench', species, Debug)
             
-            ## save results in dataframe
-            #filename = os.path.join(miRTop_folder, 'counts', 'mirtop.tsv')
-            #results_df.loc[len(results_df)] = name, soft, filename
-            
         ###
         if (soft == "optimir"):
             ## create OptimiR analysis
@@ -329,10 +325,6 @@ def miRNA_analysis(reads, folder, name, threads, miRNA_gff, soft_list,
             ## create folder for Optimir results
             miRTop_folder = functions.files_functions.create_subfolder("OptimiR_miRTop", folder)
             mirtop_caller.miRTop_caller(optimir_folder, miRTop_folder, name, threads, miRNA_gff, hairpinFasta, 'optimir', species, Debug)
-            
-            ## save results in dataframe
-            #filename = os.path.join(miRTop_folder, 'counts', 'mirtop.tsv')
-            #results_df.loc[len(results_df)] = name, soft, filename
             
         ###
         if (soft == "miraligner"):
@@ -345,7 +337,3 @@ def miRNA_analysis(reads, folder, name, threads, miRNA_gff, soft_list,
             miRTop_folder = functions.files_functions.create_subfolder("miraligner_miRTop", folder)
             mirtop_caller.miRTop_caller(miraligner_folder, miRTop_folder, name, threads, miRNA_gff, hairpinFasta, 'seqbuster', species, Debug)
             
-            ## save results in dataframe
-            #filename = os.path.join(miRTop_folder, 'counts', 'mirtop.tsv')
-            #results_df.loc[len(results_df)] = name, soft, filename
-
