@@ -20,15 +20,14 @@ from termcolor import colored
 ## import my modules
 from XICRA.config import set_config
 from XICRA.modules import help_XICRA
-from XICRA.scripts import RNAbiotype
-from XICRA.scripts import mapReads
-from XICRA.scripts import multiQC_report
+from XICRA.scripts import RNAbiotype, mapReads, multiQC_report, get_length_distribution
 from XICRA.other_tools import tools
 
 from HCGB import sampleParser
 from HCGB.functions import fasta_functions, time_functions
 from HCGB.functions import aesthetics_functions, system_call_functions
 from HCGB.functions import files_functions, main_functions
+
 
 global mapping_results
 mapping_results = {}
@@ -254,7 +253,11 @@ def run_biotype(options):
         ##
         print ("+ Create summary plot for all samples")
         callCode = system_call_functions.system_call(cmd_R_plot)
-            
+    
+    ## Create length distribution analysis
+    get_length_distribution.get_length_dist()
+    
+    
     print ("\n*************** Finish *******************")
     start_time_partial = time_functions.timestamp(start_time_total)
     print ("\n+ Exiting join module.")

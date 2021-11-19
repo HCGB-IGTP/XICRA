@@ -8,7 +8,8 @@ __all__ = [
     'mirtop_caller',
     'optimir_caller',
     'miraligner_caller',
-    'MINTMap_caller'
+    'MINTMap_caller',
+    'bedtools_caller'
     
 ]
 

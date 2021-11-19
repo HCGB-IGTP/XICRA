@@ -210,6 +210,7 @@ options_group_RNAbiotype.add_argument("--annotation", help="Reference genome ann
 options_group_RNAbiotype.add_argument("--limitRAM", type=int, help="limitRAM parameter for STAR mapping. Default 20 Gbytes.", default=20000000000)
 options_group_RNAbiotype.add_argument("--noTrim", action='store_true', help="Use non-trimmed reads [or not containing '_trim' in the name].")
 options_group_RNAbiotype.add_argument("--skip_report", action="store_true", help="Do not report statistics using MultiQC report module [Default OFF]. See details in --help_multiqc")
+options_group_RNAbiotype.add_argument("--database", help="Path to store annotation files downloaded, converted, etc")
 
 parameters_group_RNAbiotype = subparser_RNAbiotype.add_argument_group("Parameters")
 parameters_group_RNAbiotype.add_argument("--no_multiMapping", action='store_true', help="Set NO to counting multimapping in the feature count. By default, multimapping reads are allowed. Default: False")
