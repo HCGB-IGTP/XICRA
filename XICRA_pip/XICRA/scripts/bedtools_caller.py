@@ -42,6 +42,8 @@ def intersect_coordinates(file1, file2, path_given, name, options, debug):
     
     ###
     string_options = " -wa -wb "
+    if options:
+        string_options = string_options + options
     
     ## Create call for bedtools intersect
     bedtools_exe = set_config.get_exe("bedtools", debug)

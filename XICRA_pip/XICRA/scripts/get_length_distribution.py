@@ -136,7 +136,7 @@ def get_length_dist(bam_file, GTF_info, name, chr, path_given, folder_GTF, debug
     for RefSeq_bed_file in bed_files.values():
         ## intersect
         ## call bedtools_caller.intersect_coordinates()
-        bed_file = bedtools_caller.intersect_coordinates(mapping_bed_file, RefSeq_bed_file, path_given, name, "", debug)
+        bed_file = bedtools_caller.intersect_coordinates(mapping_bed_file, RefSeq_bed_file, path_given, name, "-s", debug)
         out_file = os.path.join(path_given, name + ".length.results.txt") 
     
         ## print results to file
