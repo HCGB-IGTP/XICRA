@@ -99,10 +99,10 @@ def mapReads_module_STAR(options, pd_samples_retrieved, outdir_dict, Debug,
         
     ## remove previous reference genome from memory
     print ("+ Remove genome in memory from previous call... (if any)")
-    ##STAR_caller.remove_Genome(STAR_exe, options.genomeDir, folder, options.threads)
+    STAR_caller.remove_Genome(STAR_exe, options.genomeDir, folder, options.threads)
     
     ## load reference genome
-    ##STAR_caller.load_Genome(folder, STAR_exe, options.genomeDir, options.threads)
+    STAR_caller.load_Genome(folder, STAR_exe, options.genomeDir, options.threads)
 
     ## functions.time_functions.timestamp
     start_time_partial = time_functions.timestamp(start_time_partial)
@@ -130,7 +130,7 @@ def mapReads_module_STAR(options, pd_samples_retrieved, outdir_dict, Debug,
     start_time_partial = time_functions.timestamp(start_time_partial)
 
     ## remove reference genome from memory
-    ##STAR_caller.remove_Genome(STAR_exe, options.genomeDir, folder, options.threads)
+    STAR_caller.remove_Genome(STAR_exe, options.genomeDir, folder, options.threads)
     
     ## functions.time_functions.timestamp
     start_time_partial = time_functions.timestamp(start_time_partial)
