@@ -11,6 +11,7 @@ import re
 import sys
 from sys import argv
 import subprocess
+import traceback
 
 from HCGB.functions import system_call_functions
 from HCGB.functions import files_functions
@@ -162,8 +163,7 @@ def mapReads(option, reads, folder, name, STAR_exe, genomeDir, limitRAM_option, 
     cmd = cmd + ' > ' + logfile + ' 2> ' + errfile
     
     ## sent command
-    mapping_code = system_call_functions.system_call(cmd, False, True)
-
+    mapping_code = system_call_functions.system_call(cmd, True, True)
     return (mapping_code)
 
 ###############

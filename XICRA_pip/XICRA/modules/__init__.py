@@ -2,6 +2,7 @@ __all__ = [
 	'biotype',
 	'config',
 	'citation',
+	'database',
 	'help_XICRA',
 	'join',
 	'miRNA',

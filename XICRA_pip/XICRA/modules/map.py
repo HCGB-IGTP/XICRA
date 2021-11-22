@@ -20,7 +20,7 @@ from termcolor import colored
 ## import my modules
 from XICRA.config import set_config
 from XICRA.modules import help_XICRA
-from XICRA.scripts import RNAbiotype, mapReads, multiQC_report, get_length_distribution
+from XICRA.scripts import RNAbiotype, STAR_caller, multiQC_report, get_length_distribution
 from XICRA.other_tools import tools
 
 from HCGB import sampleParser
@@ -83,7 +83,7 @@ def mapReads_module(options, pd_samples_retrieved, outdir_dict, Debug,
         options.fasta = os.path.abspath(options.fasta)
         
         ## create genomeDir
-        options.genomeDir = mapReads.create_genomeDir(folder, STAR_exe, options.threads, options.fasta, options.limitRAM)
+        options.genomeDir = STAR_caller.create_genomeDir(folder, STAR_exe, options.threads, options.fasta, options.limitRAM)
         
     elif (options.genomeDir):
         print ("+ genomeDir provided.")
@@ -91,10 +91,10 @@ def mapReads_module(options, pd_samples_retrieved, outdir_dict, Debug,
         
     ## remove previous reference genome from memory
     print ("+ Remove genome in memory from previous call... (if any)")
-    mapReads.remove_Genome(STAR_exe, options.genomeDir, folder, options.threads)
+    ##STAR_caller.remove_Genome(STAR_exe, options.genomeDir, folder, options.threads)
     
     ## load reference genome
-    mapReads.load_Genome(folder, STAR_exe, options.genomeDir, options.threads)
+    ##STAR_caller.load_Genome(folder, STAR_exe, options.genomeDir, options.threads)
 
     ## functions.time_functions.timestamp
     start_time_partial = time_functions.timestamp(start_time_partial)
@@ -122,11 +122,15 @@ def mapReads_module(options, pd_samples_retrieved, outdir_dict, Debug,
     start_time_partial = time_functions.timestamp(start_time_partial)
 
     ## remove reference genome from memory
-    mapReads.remove_Genome(STAR_exe, options.genomeDir, folder, options.threads)
+    STAR_caller.remove_Genome(STAR_exe, options.genomeDir, folder, options.threads)
     
     ## functions.time_functions.timestamp
     start_time_partial = time_functions.timestamp(start_time_partial)
 
+    ## retrieve mapping files
+    results_SampleParser = sampleParser.files.get_files(options, input_dir, "map", ["Aligned.sortedByCoord.out.bam"], options.debug, bam=True)
+    mapping_results = dict(zip(results_SampleParser.name, results_SampleParser.sample))
+    
     if (options.skip_report):
         print ("+ No report generation...")
     else:
@@ -151,7 +155,7 @@ def mapReads_module(options, pd_samples_retrieved, outdir_dict, Debug,
         multiQC_report.multiQC_module_call(my_outdir_list, "STAR", map_report,"-dd 2")
         print ('\n+ A summary HTML report of each sample is generated in folder: %s' %map_report)
 
-    return(start_time_partial)
+    return(start_time_partial, mapping_results)
 
 #################################
 def mapReads_caller(files, folder, name, threads, STAR_exe, genomeDir, limitRAM_option, Debug):
@@ -202,7 +206,7 @@ def mapReads_caller(files, folder, name, threads, STAR_exe, genomeDir, limitRAM_
             print (files)
             
         # Call STAR
-        code_returned = mapReads.mapReads("LoadAndKeep", files, folder, name, STAR_exe, genomeDir, limitRAM_option, threads, Debug)
+        code_returned = STAR_caller.mapReads("LoadAndKeep", files, folder, name, STAR_exe, genomeDir, limitRAM_option, threads, Debug)
         
         if (code_returned):
             time_functions.print_time_stamp(filename_stamp)
@@ -210,8 +214,5 @@ def mapReads_caller(files, folder, name, threads, STAR_exe, genomeDir, limitRAM_
             print ("+ Mapping sample %s failed..." %name)
     
     ## return results
-    bam_file = os.path.join(folder, 'Aligned.sortedByCoord.out.bam')
-    mapping_results[name] = bam_file
-
     return()
     
