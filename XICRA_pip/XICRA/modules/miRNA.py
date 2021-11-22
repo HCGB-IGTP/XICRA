@@ -152,6 +152,8 @@ def run_miRNA(options):
     ## call database module and return options updated
     options = database.miRNA_db(options)    
     
+    exit()
+    
     ##############################################################
     ## Start the analysis
     ##############################################################

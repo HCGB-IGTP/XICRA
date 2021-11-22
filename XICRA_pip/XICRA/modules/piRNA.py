@@ -26,6 +26,7 @@ from XICRA.config import set_config
 from XICRA.modules import help_XICRA
 from XICRA.scripts import generate_DE, bedtools_caller
 from XICRA.scripts import MINTMap_caller
+from XICRA.scripts import get_length_distribution
 
 ##############################################
 def run_piRNA(options):
@@ -171,6 +172,20 @@ def run_piRNA(options):
         # time stamp
         start_time_partial = time_functions.timestamp(start_time_partial)
 
+    ############################################################
+    ## Download piRNA information: piRBase
+    ############################################################
+    if not (options.database):
+        install_path =  os.path.dirname(os.path.realpath(__file__))
+        options.database = os.path.join(install_path, "db_files") 
+    else:
+        options.database = os.path.abspath(options.database)
+    
+    print ("+ Create folder to store results: ", options.database)
+    functions.files_functions.create_folder(options.database)
+    
+    ## call database module and return options updated
+    options = database.piRNA_db(options)    
 
     ##############################################################
     ## Start the analysis
@@ -186,8 +201,34 @@ def run_piRNA(options):
     ## Mapping is done, process bam files
     print ("+ Create a piRNA analysis for each sample retrieved...")    
     
-    ## call piRNA_analysis: 
+    ############################################# 
     ## Get user software selection: 
+    #############################################
+    # TODO
+    
+    #############################################
+    ## Parse annotation provided    
+    ## convert annotation in GTF to BED
+    #############################################
+    
+    folder_GTF = os.path.join(options.database, 'GTF_annot') 
+    functions.files_functions.create_folder(folder_GTF)
+    
+    print("+ Converting GTF annotation file into BED...")
+    (bed_files, gtf_files) = get_length_distribution.convert_GTF2bed(options.GTF_info, folder_GTF, debug=options.debug)
+
+    ## debugging messages
+    if debug:
+        HCGB_aes.debug_message("bed_files", color="yellow")
+        print(bed_files)        
+        print()
+        HCGB_aes.debug_message("gtf_files", color="yellow")
+        print(gtf_files)
+        
+    ## Loop for each reference sequence BED file
+    ## and intersect with mapping BAM->BED file
+    
+    print("+ Intersecting GTF annotation file and mapping BED file...")
     
     # Group dataframe by sample name
     sample_frame = pd_samples_retrieved.groupby(["new_name"])
@@ -198,7 +239,7 @@ def run_piRNA(options):
                                          sorted(cluster["sample"].tolist()), 
                                          outdir_dict[name], name, threads_job, 
                                          options.soft_name, options.species, 
-                                         options.database, Debug): name for name, cluster in sample_frame }
+                                         options.database, bed_files, Debug): name for name, cluster in sample_frame }
 
         for cmd2 in concurrent.futures.as_completed(commandsSent):
             details = commandsSent[cmd2]
@@ -241,7 +282,7 @@ def run_piRNA(options):
 
 
 #########################################
-def piRNA_analysis(bam_file, folder, name, threads, soft_list, species, database, Debug):
+def piRNA_analysis(bam_file, folder, name, threads, soft_list, species, database, bed_files, Debug):
     
     
     bed_folder = functions.files_functions.create_subfolder('bed', folder)
