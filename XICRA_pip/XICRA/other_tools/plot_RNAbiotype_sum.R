@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 library("optparse")
-library("XICRA.stats") ## Get this in conda
+library("XICRA.stats") ## Get this from conda: 
 
 ## get options
 option_list = list(
@@ -17,7 +17,7 @@ if (is.null(opt$file)){
 }
 
 ## get data
-data_biotypes <- get_data(opt$file)
+data_biotypes <- XICRA.stats::get_data(opt$file)
 
 ## plot into biotypes-plot.pdf in provided folder
-plot_biotypes(data_biotypes, out_folder = opt$output)
+XICRA.stats::plot_biotypes(data_biotypes, out_folder = opt$output)

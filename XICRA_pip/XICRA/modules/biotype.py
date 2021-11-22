@@ -245,13 +245,13 @@ def run_biotype(options):
         abs_csv_outfile = os.path.join(biotype_report, "summary.csv")
         all_data.to_csv(abs_csv_outfile)
        
-        ## create plot: call R [TODO: implement in python]
-        outfile_pdf = os.path.join(biotype_report, "RNAbiotypes_summary.pdf")
+        ## create plot: call R and XICRA::stats 
+        ## outfile_pdf = os.path.join(biotype_report, "RNAbiotypes_summary.pdf") ## creates automatically the name biotypes-plot.pdf
         
         ## R scripts
         biotype_R_script = tools.R_scripts('plot_RNAbiotype_sum', options.debug)
         rscript = set_config.get_exe("Rscript", options.debug)
-        cmd_R_plot = "%s %s -f %s -o %s" %(rscript, biotype_R_script, abs_csv_outfile, outfile_pdf)
+        cmd_R_plot = "%s %s -f %s -o %s" %(rscript, biotype_R_script, abs_csv_outfile, biotype_report)
         
         ##
         print ("+ Create summary plot for all samples")
