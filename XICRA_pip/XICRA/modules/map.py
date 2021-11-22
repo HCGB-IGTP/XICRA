@@ -28,11 +28,19 @@ from HCGB.functions import fasta_functions, time_functions
 from HCGB.functions import aesthetics_functions, system_call_functions
 from HCGB.functions import files_functions, main_functions
 
+## set to use as a module
+## allow multiple software to map
+## e.g. bowtie
+
 #########################################
-def mapReads_module(options, pd_samples_retrieved, outdir_dict, Debug, 
+def run_mapping(options):
+    print("TODO: Implement this module")
+
+#########################################
+def mapReads_module_STAR(options, pd_samples_retrieved, outdir_dict, Debug, 
                     max_workers_int, threads_job, start_time_partial, outdir):
     
-    """Organizes the mapping of the samples, excuted in parallel.
+    """Organizes the mapping of the samples, executed in parallel.
 
     First, checks if the files needed to do the mapping (and posterior
     classification of the reads) have been provided by the user:
@@ -103,7 +111,7 @@ def mapReads_module(options, pd_samples_retrieved, outdir_dict, Debug,
 
     ## send for each sample
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers_int) as executor:
-        commandsSent = { executor.submit(mapReads_caller, sorted(cluster["sample"].tolist()), 
+        commandsSent = { executor.submit(mapReads_caller_STAR, sorted(cluster["sample"].tolist()), 
                                          outdir_dict[name], name, threads_job, STAR_exe, 
                                          options.genomeDir, options.limitRAM, Debug): name for name, cluster in sample_frame }
 
@@ -122,15 +130,23 @@ def mapReads_module(options, pd_samples_retrieved, outdir_dict, Debug,
     start_time_partial = time_functions.timestamp(start_time_partial)
 
     ## remove reference genome from memory
-    STAR_caller.remove_Genome(STAR_exe, options.genomeDir, folder, options.threads)
+    ##STAR_caller.remove_Genome(STAR_exe, options.genomeDir, folder, options.threads)
     
     ## functions.time_functions.timestamp
     start_time_partial = time_functions.timestamp(start_time_partial)
 
     ## retrieve mapping files
+    input_dir = os.path.abspath(options.input)
     results_SampleParser = sampleParser.files.get_files(options, input_dir, "map", ["Aligned.sortedByCoord.out.bam"], options.debug, bam=True)
-    mapping_results = dict(zip(results_SampleParser.name, results_SampleParser.sample))
-    
+    del results_SampleParser['dirname']
+    del results_SampleParser['ext']
+    del results_SampleParser['tag']
+    del results_SampleParser['new_name']
+
+    results_SampleParser = results_SampleParser.set_index('name')
+    mapping_results = results_SampleParser.to_dict()['sample']
+
+    ## Create mapping report    
     if (options.skip_report):
         print ("+ No report generation...")
     else:
@@ -158,7 +174,7 @@ def mapReads_module(options, pd_samples_retrieved, outdir_dict, Debug,
     return(start_time_partial, mapping_results)
 
 #################################
-def mapReads_caller(files, folder, name, threads, STAR_exe, genomeDir, limitRAM_option, Debug):
+def mapReads_caller_STAR(files, folder, name, threads, STAR_exe, genomeDir, limitRAM_option, Debug):
     """Mapping of a given sample with STAR
 
     First, checks if the trimmed unjoined files exist for the sample and also

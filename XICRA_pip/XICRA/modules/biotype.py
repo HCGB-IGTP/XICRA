@@ -19,8 +19,8 @@ from termcolor import colored
 
 ## import my modules
 from XICRA.config import set_config
-from XICRA.modules import help_XICRA
-from XICRA.scripts import RNAbiotype, mapReads, multiQC_report, get_length_distribution
+from XICRA.modules import help_XICRA, map
+from XICRA.scripts import RNAbiotype, multiQC_report, get_length_distribution
 from XICRA.other_tools import tools
 
 from HCGB import sampleParser
@@ -36,7 +36,7 @@ def run_biotype(options):
     classification of the reads) have been provided by the user:
     fasta sequence + annotation or STAR index directory. 
 
-    First, it executes the maping calling mapReads_module().
+    First, it executes the maping calling map XICRA module.
     Then, it calls RNAbiotype_module_call() to execute featureCounts.
     
     Finally, generate the MultiQC featureCounts report of all samples.
@@ -97,19 +97,26 @@ def run_biotype(options):
     ## get files
     print ('+ Getting files from input folder... ')
        
-    ## get files
-    if options.noTrim:
-        print ('+ Mode: fastq.\n+ Extension: ')
-        print ("[ fastq, fq, fastq.gz, fq.gz ]\n")
-        pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ["fastq", "fq", "fastq.gz", "fq.gz"], options.debug)
-        
+    ## get files: use joined reads if paired-end data
+    if options.pair:
+        options.pair = False ## set paired-end to false for further prepocessing
+        if options.noTrim:
+            print ('+ Mode: fastq.\n+ Extension: ')
+            print ("[ fastq, fq, fastq.gz, fq.gz ]\n")
+            pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ["fastq", "fq", "fastq.gz", "fq.gz"], options.debug)
+        else:
+            print ('+ Mode: join.\n+ Extension: ')
+            print ("[_joined.fastq]\n")
+            pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "join", ['_joined.fastq'], options.debug)
     else:
-        print ('+ Mode: trim.\n+ Extension: ')
-        print ("[ _trim_ ]\n")
-        pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "trim", ['_trim_'], options.debug)
-        
-        ## Discard if joined reads: use trimmed single-end or paired-end
-        pd_samples_retrieved = pd_samples_retrieved[pd_samples_retrieved['ext'] != '_joined']   
+        if options.noTrim:
+            print ('+ Mode: fastq.\n+ Extension: ')
+            print ("[ fastq, fq, fastq.gz, fq.gz ]\n")
+            pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ["fastq", "fq", "fastq.gz", "fq.gz"], options.debug)
+        else:
+            print ('+ Mode: join.\n+ Extension: ')
+            print ("[_joined.fastq]\n")
+            pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "trim", ['_trim'], options.debug)
     
     ## debug message
     if (Debug):
@@ -146,14 +153,9 @@ def run_biotype(options):
     ##############################################
     ## map Reads
     ##############################################
-    start_time_partial = mapReads_module(options, pd_samples_retrieved, mapping_outdir_dict, 
+    (start_time_partial, mapping_results) = map.mapReads_module_STAR(options, pd_samples_retrieved, mapping_outdir_dict, 
                     options.debug, max_workers_int, threads_job, start_time_partial, outdir)
 
-
-    ## retrieve mapping files
-    results_SampleParser = sampleParser.files.get_files(options, input_dir, "map", ["Aligned.sortedByCoord.out.bam"], options.debug, bam=True)
-    mapping_results = dict(zip(results_SampleParser.name, results_SampleParser.sample))
-    
     ## debug message
     if (Debug):
          print (colored("**DEBUG: mapping_results **", 'yellow'))
