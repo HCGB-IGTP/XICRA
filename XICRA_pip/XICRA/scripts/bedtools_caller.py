@@ -61,7 +61,7 @@ def intersect_coordinates(file1, file2, path_given, name, options, debug):
     return (bed_file)    
 
 #######################################################
-def convert_bam2bed(sample, bam_file, path_given, debug):
+def convert_bam2bed(sample, bam_file, path_given, pilfer=False, debug=False):
     """
     This functions calls bedtools to generate a conversion from BAM to BED format.
     
@@ -83,27 +83,42 @@ def convert_bam2bed(sample, bam_file, path_given, debug):
     ## bedtools sort -chrThenSizeA -i bed_file > bed_sort.file
     ## bedtools groupby -i bed_sort.file -o count -g 1,2,3 -c 4 > counts.bed 
     
-    ## Create call in two separate calls to reduce RAM requirement
-    bedtools_exe = set_config.get_exe("bedtools", debug)
-    cmd_bedtools = "%s bamtobed -i %s | %s groupby -o count -g 1,2,3 -c 4 > %s" %(bedtools_exe, bam_file, bedtools_exe, bed_file_tmp)
-    bed_code = HCGB_sys.system_call(cmd_bedtools, False, True)
-
-    if bed_code:
-        cmd_bedtools2 = "%s sort -chrThenSizeA -i %s | %s groupby -o count -g 1,2,3 -c 4 > %s" %(bedtools_exe, bed_file_tmp, 
-                                                                                                                bedtools_exe, bed_file)
-        bed_code2 = HCGB_sys.system_call(cmd_bedtools2, False, True)
+    if pilfer:
+        ## Create call in two separate calls to reduce RAM requirement
+        bedtools_exe = set_config.get_exe("bedtools", debug)
+        cmd_bedtools = "%s bamtobed -i %s > %s" %(bedtools_exe, bam_file, bed_file)
+        bed_code = HCGB_sys.system_call(cmd_bedtools, False, True)
     
-    ## -----------------------------------------------
-    ## Pybedtools
-    ## -----------------------------------------------
-    ## It might be possible to use pybedtools. We need to load bam, bed or whatever file. it is not possible to use string to absolute path
-    #bed_info = pybedtools.bedtool.BedTool.bam_to_bed(bam_file)
+        if bed_code:
+            ## print time stamp
+            HCGB_time.print_time_stamp(filename_stamp)
+        
+            return (bed_file)
+        else:
+            print ("** ERROR: Some error occurred during conversion from BAM to BED... **")
+            exit()
+    else:
+        ## Create call in two separate calls to reduce RAM requirement
+        bedtools_exe = set_config.get_exe("bedtools", debug)
+        cmd_bedtools = "%s bamtobed -i %s | %s groupby -o count -g 1,2,3 -c 4 > %s" %(bedtools_exe, bam_file, bedtools_exe, bed_file_tmp)
+        bed_code = HCGB_sys.system_call(cmd_bedtools, False, True)
     
-    ## We might try but I guess to many RAM would be required.
-    
-    if not bed_code or not bed_code2:
-        print ("** ERROR: Some error occurred during conversion from BAM to BED... **")
-        exit()
+        if bed_code:
+            cmd_bedtools2 = "%s sort -chrThenSizeA -i %s | %s groupby -o count -g 1,2,3 -c 4 > %s" %(bedtools_exe, bed_file_tmp, 
+                                                                                                                    bedtools_exe, bed_file)
+            bed_code2 = HCGB_sys.system_call(cmd_bedtools2, False, True)
+        
+        ## -----------------------------------------------
+        ## Pybedtools
+        ## -----------------------------------------------
+        ## It might be possible to use pybedtools. We need to load bam, bed or whatever file. it is not possible to use string to absolute path
+        #bed_info = pybedtools.bedtool.BedTool.bam_to_bed(bam_file)
+        
+        ## We might try but I guess to many RAM would be required.
+        
+        if not bed_code or not bed_code2:
+            print ("** ERROR: Some error occurred during conversion from BAM to BED... **")
+            exit()
     
     ## print time stamp
     HCGB_time.print_time_stamp(filename_stamp)
