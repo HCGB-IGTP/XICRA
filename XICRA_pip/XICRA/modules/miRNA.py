@@ -25,6 +25,7 @@ from HCGB import functions
 
 from XICRA.config import set_config
 from XICRA.modules import help_XICRA
+from XICRA.modules import database
 from XICRA.scripts import generate_DE
 
 from XICRA.scripts import mirtop_caller
@@ -137,7 +138,7 @@ def run_miRNA(options):
     print ("+ Species provided:", options.species)
     
     ############################################################
-    ## miRNA information: hairpin, mature, str, gff3
+    ## Download miRNA information: hairpin, mature, str, gff3
     ############################################################
     if not (options.database):
         install_path =  os.path.dirname(os.path.realpath(__file__))
@@ -148,61 +149,14 @@ def run_miRNA(options):
     print ("+ Create folder to store results: ", options.database)
     functions.files_functions.create_folder(options.database)
     
-    ## miRNA_gff: can be set as automatic to download from miRBase
-    if not options.miRNA_gff:
-        print ("+ File miRNA gff3 annotation")
-        if Debug:
-            print (colored("\t** ATTENTION: No miRNA gff file provided", 'yellow'))     
-        print (colored("\t** Download it form miRBase", 'green'))
-        file_name = options.species + ".gff3"
-        ftp_site = "ftp://mirbase.org/pub/mirbase/CURRENT/genomes/" + file_name 
-        options.miRNA_gff = functions.main_functions.urllib_request(options.database, ftp_site, file_name, Debug)
-        
-    else:
-        print ("+ miRNA gff file provided")
-        options.miRNA_gff = os.path.abspath(options.miRNA_gff)
-
-    ## hairpin: can be set as automatic to download from miRBase
-    if not options.hairpinFasta:
-        print ("+ File hairpin fasta")
-        if Debug:
-            print (colored("\t** ATTENTION: No hairpin fasta file provided", 'yellow'))        
-        print (colored("\t** Download it form miRBase", 'green'))
-        ftp_site = "ftp://mirbase.org/pub/mirbase/CURRENT/hairpin.fa.gz"
-        options.hairpinFasta = functions.main_functions.urllib_request(options.database, ftp_site, "hairpin.fa.gz", Debug)
-        
-    else:
-        print ("+ hairpin fasta file provided")
-        options.hairpinFasta = os.path.abspath(options.hairpinFasta)
-   
-    ## mature: can be set as automatic to download from miRBase
-    if not options.matureFasta:
-        print ("+ File mature fasta")
-        if Debug:
-            print (colored("\t** ATTENTION: No mature miRNA fasta file provided", 'yellow'))        
-        print (colored("\t** Download it form miRBase", 'green'))
-        ftp_site = "ftp://mirbase.org/pub/mirbase/CURRENT/mature.fa.gz"
-        options.matureFasta = functions.main_functions.urllib_request(options.database, ftp_site, "mature.fa.gz", Debug)
-
-    else:
-        print ("+ mature fasta file provided")
-        options.matureFasta = os.path.abspath(options.matureFasta)
+    ## call database module and return options updated
+    options = database.miRNA_db(options)    
     
-    ## miRBase str: can be set as automatic to download from miRBase
-    if not options.miRBase_str:
-        print ("+ File miRBase str annotation")
-        if Debug:
-            print (colored("\t** ATTENTION: No miRBase_str file provided", 'yellow'))        
-        print (colored("\t** Download it form miRBase", 'green'))
-        ftp_site = "ftp://mirbase.org/pub/mirbase/CURRENT/miRNA.str.gz"
-        options.miRBase_str = functions.main_functions.urllib_request(options.database, ftp_site, "miRNA.str.gz", Debug)
-        ## extract
-        
-    else:
-        print ("+ miRBase_str file provided")
-        options.miRBase_str = os.path.abspath(options.miRBase_str)
-    ############################################################
-       
+    exit()
+    
+    ##############################################################
+    ## Start the analysis
+    ##############################################################
     ## generate output folder, if necessary
     if not options.project:
         print ("\n+ Create output folder(s):")
@@ -316,10 +270,6 @@ def miRNA_analysis(reads, folder, name, threads, miRNA_gff, soft_list,
             miRTop_folder = functions.files_functions.create_subfolder("sRNAbench_miRTop", folder)
             mirtop_caller.miRTop_caller(sRNAbench_folder, miRTop_folder, name, threads, miRNA_gff, hairpinFasta, 'sRNAbench', species, Debug)
             
-            ## save results in dataframe
-            #filename = os.path.join(miRTop_folder, 'counts', 'mirtop.tsv')
-            #results_df.loc[len(results_df)] = name, soft, filename
-            
         ###
         if (soft == "optimir"):
             ## create OptimiR analysis
@@ -329,10 +279,6 @@ def miRNA_analysis(reads, folder, name, threads, miRNA_gff, soft_list,
             ## create folder for Optimir results
             miRTop_folder = functions.files_functions.create_subfolder("OptimiR_miRTop", folder)
             mirtop_caller.miRTop_caller(optimir_folder, miRTop_folder, name, threads, miRNA_gff, hairpinFasta, 'optimir', species, Debug)
-            
-            ## save results in dataframe
-            #filename = os.path.join(miRTop_folder, 'counts', 'mirtop.tsv')
-            #results_df.loc[len(results_df)] = name, soft, filename
             
         ###
         if (soft == "miraligner"):
@@ -345,7 +291,3 @@ def miRNA_analysis(reads, folder, name, threads, miRNA_gff, soft_list,
             miRTop_folder = functions.files_functions.create_subfolder("miraligner_miRTop", folder)
             mirtop_caller.miRTop_caller(miraligner_folder, miRTop_folder, name, threads, miRNA_gff, hairpinFasta, 'seqbuster', species, Debug)
             
-            ## save results in dataframe
-            #filename = os.path.join(miRTop_folder, 'counts', 'mirtop.tsv')
-            #results_df.loc[len(results_df)] = name, soft, filename
-

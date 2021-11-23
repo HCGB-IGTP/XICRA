@@ -4,7 +4,7 @@
 ## Copyright (C) 2019-2020 Lauro Sumoy Lab, IGTP, Spain ##
 ##########################################################
 """
-Trimms sequence adapters within fastq reads.
+Trims sequence adapters within fastq reads.
 """
 ## import useful modules
 import os
@@ -26,7 +26,7 @@ from HCGB import functions
 from HCGB import sampleParser
 
 ##############################################
-def run_trimm(options):
+def run_trim(options):
     """Main function of the module, organizes the trimming process.
 
     First, checks if the adapter(s) sequence(s) have been provided by the user:
@@ -36,7 +36,7 @@ def run_trimm(options):
     If the adapters have been introduced, it calls cutadapt_caller() for each sample in parallel.
     Finally, generates a report using MultiQC module if desired.
     
-    :param options: input parameters introduced by the user. See XICRA trimm -h.
+    :param options: input parameters introduced by the user. See XICRA trim -h.
 
     :returns: None
     """
@@ -213,7 +213,7 @@ def run_trimm(options):
             print (my_outdir_list)
             print ("\n")
 
-        trimm_report = functions.files_functions.create_subfolder("trimm", outdir_report)
+        trimm_report = functions.files_functions.create_subfolder("trim", outdir_report)
         multiQC_report.multiQC_module_call(my_outdir_list, "Cutadapt", trimm_report,"")
         print ('\n+ A summary HTML report of each sample is generated in folder: %s' %trimm_report)
         
@@ -230,6 +230,6 @@ def run_trimm(options):
         
     print ("\n*************** Finish *******************")
     start_time_partial = functions.time_functions.timestamp(start_time_total)
-    print ("\n+ Exiting trimm module.")
+    print ("\n+ Exiting trim module.")
     exit()
 

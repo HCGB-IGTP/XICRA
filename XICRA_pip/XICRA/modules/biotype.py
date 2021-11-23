@@ -19,19 +19,14 @@ from termcolor import colored
 
 ## import my modules
 from XICRA.config import set_config
-from XICRA.modules import help_XICRA
-from XICRA.scripts import RNAbiotype
-from XICRA.scripts import mapReads
-from XICRA.scripts import multiQC_report
+from XICRA.modules import help_XICRA, map
+from XICRA.scripts import RNAbiotype, multiQC_report, get_length_distribution
 from XICRA.other_tools import tools
 
 from HCGB import sampleParser
 from HCGB.functions import fasta_functions, time_functions
 from HCGB.functions import aesthetics_functions, system_call_functions
 from HCGB.functions import files_functions, main_functions
-
-global mapping_results
-mapping_results = {}
 
 ##############################################
 def run_biotype(options):
@@ -41,7 +36,7 @@ def run_biotype(options):
     classification of the reads) have been provided by the user:
     fasta sequence + annotation or STAR index directory. 
 
-    First, it executes the maping calling mapReads_module().
+    First, it executes the maping calling map XICRA module.
     Then, it calls RNAbiotype_module_call() to execute featureCounts.
     
     Finally, generate the MultiQC featureCounts report of all samples.
@@ -102,19 +97,26 @@ def run_biotype(options):
     ## get files
     print ('+ Getting files from input folder... ')
        
-    ## get files
-    if options.noTrim:
-        print ('+ Mode: fastq.\n+ Extension: ')
-        print ("[ fastq, fq, fastq.gz, fq.gz ]\n")
-        pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ["fastq", "fq", "fastq.gz", "fq.gz"], options.debug)
-        
+    ## get files: use joined reads if paired-end data
+    if options.pair:
+        options.pair = False ## set paired-end to false for further prepocessing
+        if options.noTrim:
+            print ('+ Mode: fastq.\n+ Extension: ')
+            print ("[ fastq, fq, fastq.gz, fq.gz ]\n")
+            pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ["fastq", "fq", "fastq.gz", "fq.gz"], options.debug)
+        else:
+            print ('+ Mode: join.\n+ Extension: ')
+            print ("[_joined.fastq]\n")
+            pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "join", ['_joined.fastq'], options.debug)
     else:
-        print ('+ Mode: trim.\n+ Extension: ')
-        print ("[ _trim_ ]\n")
-        pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "trim", ['_trim_'], options.debug)
-        
-        ## Discard if joined reads: use trimmed single-end or paired-end
-        pd_samples_retrieved = pd_samples_retrieved[pd_samples_retrieved['ext'] != '_joined']   
+        if options.noTrim:
+            print ('+ Mode: fastq.\n+ Extension: ')
+            print ("[ fastq, fq, fastq.gz, fq.gz ]\n")
+            pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ["fastq", "fq", "fastq.gz", "fq.gz"], options.debug)
+        else:
+            print ('+ Mode: join.\n+ Extension: ')
+            print ("[_joined.fastq]\n")
+            pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "trim", ['_trim'], options.debug)
     
     ## debug message
     if (Debug):
@@ -151,7 +153,7 @@ def run_biotype(options):
     ##############################################
     ## map Reads
     ##############################################
-    start_time_partial = mapReads_module(options, pd_samples_retrieved, mapping_outdir_dict, 
+    (start_time_partial, mapping_results) = map.mapReads_module_STAR(options, pd_samples_retrieved, mapping_outdir_dict, 
                     options.debug, max_workers_int, threads_job, start_time_partial, outdir)
 
     ## debug message
@@ -243,207 +245,27 @@ def run_biotype(options):
         abs_csv_outfile = os.path.join(biotype_report, "summary.csv")
         all_data.to_csv(abs_csv_outfile)
        
-        ## create plot: call R [TODO: implement in python]
-        outfile_pdf = os.path.join(biotype_report, "RNAbiotypes_summary.pdf")
+        ## create plot: call R and XICRA::stats 
+        ## outfile_pdf = os.path.join(biotype_report, "RNAbiotypes_summary.pdf") ## creates automatically the name biotypes-plot.pdf
         
         ## R scripts
         biotype_R_script = tools.R_scripts('plot_RNAbiotype_sum', options.debug)
         rscript = set_config.get_exe("Rscript", options.debug)
-        cmd_R_plot = "%s %s -f %s -o %s" %(rscript, biotype_R_script, abs_csv_outfile, outfile_pdf)
+        cmd_R_plot = "%s %s -f %s -o %s" %(rscript, biotype_R_script, abs_csv_outfile, biotype_report)
         
         ##
         print ("+ Create summary plot for all samples")
         callCode = system_call_functions.system_call(cmd_R_plot)
-            
+    
+    ## Create length distribution analysis
+    ## get_length_distribution.get_length_dist()
+    
+    ## Add mirtrace analysis and report
+    
+    
+    
     print ("\n*************** Finish *******************")
     start_time_partial = time_functions.timestamp(start_time_total)
     print ("\n+ Exiting join module.")
     return()
 
-#########################################
-def mapReads_module(options, pd_samples_retrieved, outdir_dict, Debug, 
-                    max_workers_int, threads_job, start_time_partial, outdir):
-    
-    """Organizes the mapping of the samples, excuted in parallel.
-
-    First, checks if the files needed to do the mapping (and posterior
-    classification of the reads) have been provided by the user:
-    fasta sequence + annotation or STAR index directory. 
-
-    Then, sends the mapping in parallel for each sample calling mapReads_caller().    
-    
-    Finally, generate the MultiQC report  of the mapping for each sample.
-    
-    :param options: input parameters introduced by the user. See XICRA biotype -h.
-    :param pd_samples_retrieved: data frame with the information of the samples
-    :param outdir_dict: dictionary with the names of the samples and their files
-    :param Debug: show extra information of the process
-    :param max_workers_int: number of workers for each thread
-    :param threads_job: number of threads to do the computation
-    :param start_time_partial: time of the beggining of the process
-    :param outdir: directory to store the results
-
-    :type Debug: boolean
-    :type max_workers_int: int
-    :type threads_job: int 
-    :type start_time_partial: int
-    :type outdir: string
-
-
-    :returns: None
-    """
-
-    # Group dataframe by sample name
-    sample_frame = pd_samples_retrieved.groupby(["new_name"])
-    
-    ## options
-    STAR_exe = set_config.get_exe("STAR", Debug=Debug)
-    cwd_folder = os.path.abspath("./")
-    folder=files_functions.create_subfolder('STAR_files', cwd_folder)
-
-    ## For many samples it will have to load genome index in memory every time.
-    ## For a unique sample it will not matter. Take care genome might stay in memory.
-    ## Use before loop option LoadAndExit and then:
-        ## in loop
-        ## Use option LoadAndKeep, set shared memory > 30 Gb
-    ## when finished loop Remove memory        
-    
-    ## check reference
-    if (options.fasta):
-        print ("+ Genome fasta file provided")
-        print ("+ Create genomeDir for later usage...")
-        options.fasta = os.path.abspath(options.fasta)
-        
-        ## create genomeDir
-        options.genomeDir = mapReads.create_genomeDir(folder, STAR_exe, options.threads, options.fasta, options.limitRAM)
-        
-    elif (options.genomeDir):
-        print ("+ genomeDir provided.")
-        options.genomeDir = os.path.abspath(options.genomeDir)
-        
-    ## remove previous reference genome from memory
-    print ("+ Remove genome in memory from previous call... (if any)")
-    mapReads.remove_Genome(STAR_exe, options.genomeDir, folder, options.threads)
-    
-    ## load reference genome
-    mapReads.load_Genome(folder, STAR_exe, options.genomeDir, options.threads)
-
-    ## functions.time_functions.timestamp
-    start_time_partial = time_functions.timestamp(start_time_partial)
-    
-    print ("+ Mapping sequencing reads for each sample retrieved...")
-
-    ## send for each sample
-    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers_int) as executor:
-        commandsSent = { executor.submit(mapReads_caller, sorted(cluster["sample"].tolist()), 
-                                         outdir_dict[name], name, threads_job, STAR_exe, 
-                                         options.genomeDir, options.limitRAM, Debug): name for name, cluster in sample_frame }
-
-        for cmd2 in concurrent.futures.as_completed(commandsSent):
-            details = commandsSent[cmd2]
-            try:
-                data = cmd2.result()
-            except Exception as exc:
-                print ('***ERROR:')
-                print (cmd2)
-                print('%r generated an exception: %s' % (details, exc))
-
-    print ("\n\n+ Mapping reads has finished...")
-    
-    ## functions.time_functions.timestamp
-    start_time_partial = time_functions.timestamp(start_time_partial)
-
-    ## remove reference genome from memory
-    mapReads.remove_Genome(STAR_exe, options.genomeDir, folder, options.threads)
-    
-    ## functions.time_functions.timestamp
-    start_time_partial = time_functions.timestamp(start_time_partial)
-
-    if (options.skip_report):
-        print ("+ No report generation...")
-    else:
-        print ("\n+ Generating a report using MultiQC module.")
-        outdir_report = files_functions.create_subfolder("report", outdir)
-
-        ## get subdirs generated and call multiQC report module
-        givenList = []
-        print ("+ Detail information for each sample could be identified in separate folders:")
-        
-        ## call multiQC report module
-        givenList = [ v for v in outdir_dict.values() ]
-        my_outdir_list = set(givenList)
-
-        ## debug message
-        if (Debug):
-            print (colored("\n**DEBUG: my_outdir_list for multiqc report **", 'yellow'))
-            print (my_outdir_list)
-            print ("\n")
-        
-        map_report = files_functions.create_subfolder("STAR", outdir_report)
-        multiQC_report.multiQC_module_call(my_outdir_list, "STAR", map_report,"-dd 2")
-        print ('\n+ A summary HTML report of each sample is generated in folder: %s' %map_report)
-
-    return(start_time_partial)
-
-#################################
-def mapReads_caller(files, folder, name, threads, STAR_exe, genomeDir, limitRAM_option, Debug):
-    """Mapping of a given sample with STAR
-
-    First, checks if the trimmed unjoined files exist for the sample and also
-    if the calculation has not been done previously. 
-
-    Executes STAR and generate the BAM file of the sample with mapReads script. 
-    
-    :param files: unjoined trimmed files of the sample
-    :param folder: sample folder to store the results
-    :param name: sample name
-    :param threads: number of threads to do the computation
-    :param STAR_exe: check the STAR software is available
-    :param genomeDir: path to the genome directory to do the mappig
-    :param limitRAM_option: limit RAM bytes to be used in the computation
-    :param Debug: show extra information of the process
-
-
-    :type folder: string
-    :type name: string
-    :type threads: int 
-    :type start_exe: boolean
-    :type genomeDir: string
-    :type limitRAM_option: int
-    :type Debug: boolean
-
-    :returns: None
-    """
-
-    ## check if previously joined and succeeded
-    filename_stamp = folder + '/.success'
-    if os.path.isfile(filename_stamp):
-        stamp = time_functions.read_time_stamp(filename_stamp)
-        print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'STAR'), 'yellow'))
-    else:
-        ##
-        if Debug:
-            print ("\n** DEBUG: mapReads_caller options **\n")
-            print ("folder: " + folder) 
-            print ("name: " + name)
-            print ("threads: " + str(threads))
-            print ("STAR_exe: " + STAR_exe) 
-            print ("genomeDir: " + genomeDir) 
-            print ("limitRAM_option: " + str(limitRAM_option))
-            print ("files: ")
-            print (files)
-            
-        # Call STAR
-        code_returned = mapReads.mapReads("LoadAndKeep", files, folder, name, STAR_exe, genomeDir, limitRAM_option, threads, Debug)
-        
-        if (code_returned):
-            time_functions.print_time_stamp(filename_stamp)
-        else:
-            print ("+ Mapping sample %s failed..." %name)
-    
-    ## return results
-    bam_file = os.path.join(folder, 'Aligned.sortedByCoord.out.bam')
-    mapping_results[name] = bam_file
-
-    return()
-    

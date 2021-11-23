@@ -19,10 +19,20 @@ from termcolor import colored
 ## import my modules
 from HCGB import functions
 from XICRA.config import set_config
+from XICRA.modules import database
 import HCGB.functions.aesthetics_functions as HCGB_aes
 
 ############################
-def MINTmap_caller(MINTmap_folder, reads, name, num_threads, species, Debug):
+def download_MINTmap_db(database_folder, tRNA_db, debug):
+    """
+    Function that calls database module to retrieve tRNA database information required for MINTmap analysis
+    """
+    ## call database.tRNA_db(database_folder, tRNA_db, debug)
+    tRNA_db = database.tRNA_db(database_folder, tRNA_db, debug)
+    return (tRNA_db)
+
+############################
+def MINTmap_caller(MINTmap_folder, reads, name, num_threads, species, database, Debug):
     # check if previously generated and succeeded
     filename_stamp = MINTmap_folder + '/.success_all'
     if os.path.isfile(filename_stamp):
@@ -32,7 +42,7 @@ def MINTmap_caller(MINTmap_folder, reads, name, num_threads, species, Debug):
 
     else:
         # Call MINTMap_analysis
-        code_returned = MINTMap_analysis(MINTmap_folder, reads, name, num_threads, species, Debug)
+        code_returned = MINTMap_analysis(MINTmap_folder, reads, name, num_threads, species, database, Debug)
         if code_returned:
             functions.time_functions.print_time_stamp(filename_stamp)
             return True
@@ -41,7 +51,7 @@ def MINTmap_caller(MINTmap_folder, reads, name, num_threads, species, Debug):
             return(False)
 
 ############################
-def MINTMap_analysis(path_folder, reads, name, num_threads, species, Debug):
+def MINTMap_analysis(path_folder, reads, name, num_threads, species, database, Debug):
     
     ## check species
     species_code=""
@@ -69,7 +79,7 @@ def MINTMap_analysis(path_folder, reads, name, num_threads, species, Debug):
         print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'MINTmap call'), 'yellow'))
     else:
         # Call MINTMap_analysis
-        codeReturn = MINTmap(reads, path_folder, name, num_threads, species_code, Debug)
+        codeReturn = MINTmap(reads, path_folder, name, num_threads, species_code, database, Debug)
         os.chdir(path_here)
         
         if not codeReturn:
@@ -174,7 +184,7 @@ def parse_tRF(pathFile, sample_name, matrix_folder, ident, Debug):
         return(tsv_file)
 
 ##############
-def MINTmap(reads, outpath, name, num_threads, species_code, Debug):
+def MINTmap(reads, outpath, name, num_threads, species_code, database, Debug):
     
     outpath = os.path.abspath(outpath)
     functions.files_functions.create_folder(outpath)
@@ -191,6 +201,9 @@ def MINTmap(reads, outpath, name, num_threads, species_code, Debug):
     if (len(reads) > 1):
         print (colored("** ERROR: Only 1 fastq file is allowed please joined reads before...", 'red'))
         exit()
+    
+    ## TODO
+    ## use -m option with database provided
     
     ## species bundle
     if species_code == "default": 

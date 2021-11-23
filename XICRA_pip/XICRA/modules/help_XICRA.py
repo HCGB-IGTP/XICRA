@@ -175,9 +175,11 @@ def help_join_reads():
 def help_miRNA():
     print("Check the XICRA documentation of the module: ", "\033[4m"+ "https://xicra.readthedocs.io/en/latest/user_guide/modules/miRNA.html"+"\033[0m")
     return()
-    return ()
 
 ###############
 def help_tRNA():
     return ()
 
+###############
+def help_piRNA():
+    return ()

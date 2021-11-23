@@ -115,12 +115,24 @@ def run_tRNA(options):
     ## species
     print ("+ Species provided:", options.species)
 
-    ## set database path if necessary
+    ############################################################
+    ## Download tRNA information from MINTmap github site
+    ############################################################
     if not (options.database):
         install_path =  os.path.dirname(os.path.realpath(__file__))
         options.database = os.path.join(install_path, "db_files") 
     else:
         options.database = os.path.abspath(options.database)
+    
+    print ("+ Create folder to store results: ", options.database)
+    functions.files_functions.create_folder(options.database)
+    
+    ## call database module and return tRNA databse generated or updated
+    options.tRNA_db = database.tRNA_db(options.database, options.tRNA_db, options.debug)    
+    
+    ##############################################################
+    ## Start the analysis
+    ##############################################################
     
     ## generate output folder, if necessary
     if not options.project:
@@ -216,7 +228,7 @@ def tRNA_analysis(reads, folder, name, threads, soft_list, species, database, De
         if (soft == "mintmap"):
             ## create mintmap
             MINTmap_folder = functions.files_functions.create_subfolder('mintmap', folder)
-            code_success = MINTMap_caller.MINTmap_caller(MINTmap_folder, reads, name, threads, species, Debug)   
+            code_success = MINTMap_caller.MINTmap_caller(MINTmap_folder, reads, name, threads, species, database, Debug)   
             
             if not code_success:
                 print ('** Some error ocurred during MINTmap analysis for sample %s...' %name)
