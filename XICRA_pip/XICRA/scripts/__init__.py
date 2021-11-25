@@ -1,4 +1,5 @@
 __all__ = [
+    'BAMtoPILFER',
     'bedtools_caller',
     'cutadapt_caller',
     'fastqc_caller',
@@ -10,7 +11,8 @@ __all__ = [
     'optimir_caller',
     'pilfer_caller',
     'RNAbiotype',
-    'STAR_caller'
+    'STAR_caller',
+    'samtools_caller'
 ]
 
 from XICRA.scripts import *

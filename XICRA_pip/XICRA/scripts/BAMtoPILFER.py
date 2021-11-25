@@ -6,148 +6,216 @@ import io
 import os
 import re
 import sys
+import csv
 from sys import argv
 import subprocess
+from collections import defaultdict
+import argparse
+from termcolor import colored
+import concurrent.futures
 
 from XICRA.scripts import bedtools_caller
+from XICRA.scripts import samtools_caller
+from XICRA.config import set_config
+
+import HCGB.functions.fasta_functions as HCGB_fasta
+import HCGB.functions.time_functions as HCGB_time
+import HCGB.functions.system_call_functions as HCGB_sys
+import HCGB.functions.files_functions as HCGB_files
+import HCGB.functions.main_functions as HCGB_main
+
+import HCGB.format_conversion.file_splitter as HCGB_splitter
+
+##########################################################3
+def annotate_sam(seq_id, sam_file, Debug):
+           
+    ## create output
+    sam_file_out = sam_file + ".parsed"
+    sam_file_write = open(sam_file_out, "w")
+    
+    fileReader = open(sam_file, 'r')
+    
+    ## Give a minimum and maximum length
+    mini = 26
+    maxi = 33
+    
+    #csvin = csv.reader(fileReader, delimiter="\t")
+    #csvout = csv.writer(sam_file_write, delimiter="\t")
+    for row in open(sam_file):
+        ## Original
+        #f = row[0].split(":")
+        #row[0] = f[1]
+        field=row.strip().split('\t')
+        seq = field[9]
+        
+        if (int(field[1]) & (0x10)):
+            seq = HCGB_fasta.ReverseComplement(seq)
+        
+        ## Set putative (PU), known piRNA (PI) or none
+        if seq in seq_id:
+            field.append("XP:Z:PI")
+            field[9] = field[9] + '::PI'
+        #elif len(row[9])>=mini and len(field[9])<=maxi and int(f[0])>=100:
+        elif len(row[9])>=mini and len(field[9])<=maxi:
+            field.append("XP:Z:PU")
+            field[9] = field[9] + '::PU'
+        #else:
+        ## too big or not known piRNA 
+        
+        ## append length in all
+        field.append("XC:i:"+str(len(seq)))
+    
+        sam_file_write.write("\t".join(field) + "\n")
+        
+    ## close files
+    sam_file_write.close()
+    fileReader.close()
+
+##########################################################3
+def annotate_sam_call(sam_file, sam_file_out, gold_piRNA, ncpu, folder, Debug):
+    
+    """
+    This code is copy from PILFER software. See copyright and License details in https://github.com/rishavray/PILFER
+    Original code: June 2018
+    https://github.com/rishavray/PILFER/blob/master/tools/annotate_sam.py
+    
+    Modifications: November 2021
+    - Add some comments to understand code and clarify it.
+    - Add to read fasta file as dict and not as list as provided. 
+    
+    This particular scripts uses input in sam format and a file with gold piRNA sequences to identify putative and well-knonw piRNAs.
+    
+    """
+
+    ### Original code
+    # def ReverseComplement(seq):
+    #    seq_dict = {'A':'T','T':'A','G':'C','C':'G','N':'N'}
+    #    return "".join([seq_dict[base] for base in reversed(seq)])
+    #
+    # seq_id = []
+    # with open(sys.argv[1],"rb") as listin:
+    #    for seq in listin:
+    #        seq_id.append(seq.strip())
+    # seq_id = list(set(seq_id))
+    
+    
+    ## read fasta file and save results in list
+    seq_dict = HCGB_fasta.get_fasta_dict(gold_piRNA, Debug=Debug)
+    seq_id = list(seq_dict.keys())
+    
+    ## as it might be very big, we are splitting and processing in parallel
+    path_given = HCGB_files.create_folder(os.path.join(folder, "split_sam"))
+    HCGB_splitter.split_file_call(sam_file, ncpu*10, "spli_file", False, 'SAM', os.path.abspath(path_given), Debug)
+    
+    list_sam_files = HCGB_main.get_fullpath_list(path_given, Debug)
+    
+    ## send for each subset using multiple threads
+    with concurrent.futures.ThreadPoolExecutor(max_workers=ncpu*2) as executor:
+        commandsSent = { executor.submit(annotate_sam, seq_id, subset_sam, Debug): subset_sam for subset_sam in list_sam_files }
+
+        for cmd2 in concurrent.futures.as_completed(commandsSent):
+            details = commandsSent[cmd2]
+            try:
+                data = cmd2.result()
+            except Exception as exc:
+                print ('***ERROR:')
+                print (cmd2)
+                print('%r generated an exception: %s' % (details, exc))
+
+    return(True)
 
 ################################
-def process_call(bam_file, sample_folder, name, gold_piRNA, Debug):
+def process_call(bam_file, sample_folder, name, gold_piRNA, ncpu, Debug):
     
     ## check if previously trimmed and succeeded
     filename_stamp = sample_folder + '/.success'
     if os.path.isfile(filename_stamp):
-        stamp = functions.time_functions.read_time_stamp(filename_stamp)
+        print ("\n+ Converting BAM file into PILFER input file")
+        stamp = HCGB_time.read_time_stamp(filename_stamp)
         print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'BAMtoPILFER'), 'yellow'))
     else:
-        print ("\n+ Converting BAM file into PILFER input file")
-
-        code_returned = conversion(bam_file, out_folder, name, gold_piRNA, Debug)
+        code_returned = bam2pilfer(bam_file, sample_folder, name, gold_piRNA, ncpu, Debug)
         if code_returned:
-            functions.time_functions.print_time_stamp(filename_stamp)
+            HCGB_time.print_time_stamp(filename_stamp)
         else:
             print ('** Sample %s failed...' %name)
-            
-##########################################################
-def get_known_piRNA(fasta_file, Debug):
-    """
-    
-    """
-    
-    fasta_count = defaultdict(int)
-    with open(fasta_file, 'r') as fh:
-        lines = []
-        for line in fh:
-            lines.append(line.rstrip())
-            if len(lines) == 2:
-                record = HCGB_fasta.process_fasta(lines)
-                print(record)
-                #sys.stderr.write("Record: %s\n" % (str(record)))
-                lines = []
-                fasta_count[record['sequence']] = record['name'].split(">")[1]
-                
-    return fasta_count        
+
 
 ################################
-def conversion(bam_file, out_folder, name, gold_piRNA_file, Debug):
+def bam2pilfer(bam_file, out_folder, name, gold_piRNA_file, ncpu, Debug):
     
-    ## get known piRNA seqs
-    gold_piRNA = get_known_piRNA(gold_piRNA_file, Debug)
+    
+    print("+ Convert BAM to PILFER input file")
+    print("+ Several pro-processing steps are required:")
     
     ## convert BAM2bed
+    print("\t- Convert BAM to BED format file...")
     bed_file = bedtools_caller.convert_bam2bed(name, bam_file, out_folder, pilfer=True, debug=Debug)
     
     ## convert bamtosam
-    sam_file = samtools_caller.conversion(bam_file, "SAM", options="no_header", Debug)
-
-    ## Variables
-    dirname_name = os.path.dirname(bam_file)
-    split_name = os.path.splitext( os.path.basename(bam_file) )
-    bed_file = folder + '/' + split_name[0] + '.bed'
-    sam_file = folder + '/' + split_name[0] +  '.sam'
-    pilfer_tmp = folder + '/' + split_name[0] + '.tmp.pilfer.bed'
-    pilfer_file = folder + '/' + split_name[0] + '.pilfer.bed'
+    print("\t- Convert BAM to SAM format file...")
+    sam_file = samtools_caller.bam2sam(name, bam_file, out_folder, ncpu, header=False, Debug=Debug)
+    sam_file_out = sam_file + ".tmp"
     
+    ## New files
+    pilfer_tmp = os.path.join(out_folder, os.path.basename(sam_file) + ".pilfer.bed.tmp")
+    pilfer_file = os.path.join(out_folder, os.path.basename(sam_file) + ".pilfer.bed")
     
-    ## generate samtools
-    if (os.path.isfile(sam_file)):
-        print ("\t+ File %s already exists" %sam_file)
-    else:
-        cmd_samtools = "%s view %s > %s" %(samtools_exe, bam_file, sam_file)
-        output_file.write(cmd_samtools)
-        output_file.write("\n")        
-        try:
-            subprocess.check_output(cmd_samtools, shell = True)
-        except Exception as exc:
-            print ('***ERROR:')
-            print (cmd_samtools)
-            print('samtools view command generated an exception: %s' %exc)
-            exit()
+    ## Annotate reads using gold piRNA
+    print("\t- Annotate reads in BAM using gold piRNA information provided...")
     
     ## generate paste filter tmp file
-    if (os.path.isfile(pilfer_tmp)):
-        print ("\t+ File %s already exists" %pilfer_tmp)
+    filename_stamp = out_folder + '/.annotate_sam_success'
+    if HCGB_files.is_non_zero_file(sam_file_out) and os.path.isfile(filename_stamp):
+        stamp = HCGB_time.read_time_stamp(filename_stamp)
+        print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'annotate sam'), 'yellow'))
     else:
-        ## paste Aligned.sortedByCoord.out.bed Aligned.sortedByCoord.out.sam | awk -v "OFS=\t" '{print $1, $2, $3, $16, $6}' 
-        cmd_paste = "paste %s %s | awk -v \"OFS=\t\" \'{print $1, $2, $3, $16, $6}\' > %s" %(bed_file, sam_file, pilfer_tmp)
-        output_file.write(cmd_paste)
-        output_file.write("\n")        
-        try:
-            subprocess.check_output(cmd_paste, shell = True)
-        except Exception as exc:
-            print ('***ERROR:')
-            print (cmd_paste)
-            print('paste bed sam command generated an exception: %s' %exc)
-            exit()
+        annotate_sam_call(sam_file, sam_file_out, gold_piRNA_file, ncpu, out_folder, Debug)
+        ## print time stamp
+        HCGB_time.print_time_stamp(filename_stamp)
     
-    ## parse pilfer tmp file
-    counter = 1
-    previous_line = ()
+    ## generate paste filter tmp file
+    ## paste Aligned.sortedByCoord.out.bed Aligned.sortedByCoord.out.sam | awk -v "OFS=\t" '{print $1, $2, $3, $16, $6}'
     
-    # Open file OUT
-    output_file = open(pilfer_file, 'w')
+    print("\t- Create PILFER format file...")
     
-    # Open file IN
-    fileHandler = open (pilfer_tmp, "r")
-    while True:
-        # Get next line from file
-        line = fileHandler.readline().strip()
-           # If line is empty then end of file reached
-        if not line :
-            break;
-    
-        seq = line.split('\t')[3]
-        real_seq = seq.split('::PU')
-        seq_len = len(str(real_seq[0]))
-    
-        ## Discard smaller
-        if (previous_line):
-            if (previous_line == line):
-                line = previous_line
-                counter += 1
-            else:
-                line_split = previous_line.split('\t')
-                output_file.write('%s\t%s\t%s\t%s::PI\t%s\t%s\n' %(line_split[0], line_split[1], line_split[2], line_split[3], counter, line_split[4]))
-    
-        #counter += 1
-        while True:
-            #get next line
-            next_line = fileHandler.readline().strip()
-        
-            if (next_line == line):
-                counter += 1
-            else:
-                line_split = line.split('\t')
-                output_file.write('%s\t%s\t%s\t%s::PI\t%s\t%s\n' %(line_split[0], line_split[1], line_split[2], line_split[3], counter, line_split[4]))
-    
-                previous_line = next_line
-                counter = 1
-                break;
- 
-    ## close and finish
-    fileHandler.close()
-    output_file.close()
+    filename_stamp = out_folder + '/.convert_bam2pilfer_success'
+    if os.path.isfile(filename_stamp):
+        if (HCGB_files.is_non_zero_file(pilfer_tmp)):
+            print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'bam2pilfer'), 'yellow'))
+            return(pilfer_file)
 
+    ## TODO:
+    ## Linux only: find an alternative
+    
+    cmd_paste = "paste %s %s | awk -v \"OFS=\t\" \'{print $1, $2, $3, $16, $6}\' > %s" %(bed_file, sam_file_out, pilfer_tmp)
+    
+    paste_code = HCGB_sys.system_call(cmd_paste, False, True)
+    if paste_code:
+        ## print time stamp
+        HCGB_time.print_time_stamp(filename_stamp)
+    else:
+        print("Some error ocurred during the conversion from BAM to PILFER input...")
+        exit()
+        
+    ## parse pilfer tmp file
+    
+    ## create bed file summarized:
+    ## cat Aligned.sortedByCoord.out.sam.pilfer.bed.tmp | bedtools groupby -g 1,2,3,4,5 -c 4 -o count 
+
+    bedtools_exe = set_config.get_exe("bedtools", Debug)
+    cmd_bedtools = "cat %s | %s groupby -o count -g 1,2,3,4,5 -c 4 | grep '::P'> %s " %(pilfer_tmp, bedtools_exe,  pilfer_file)
+    bed_code = HCGB_sys.system_call(cmd_bedtools, False, True)
+    if not bed_code:
+        print("** Some error occurred while generating PILFER input file")
+        exit()
+
+    ## remove tmp files
+    os.remove(pilfer_tmp)
+    os.remove(sam_file_out)
+ 
+    return(pilfer_file)    
+ 
 ################################
 def main():
     ## this code runs when call as a single script
@@ -158,8 +226,23 @@ def main():
     parser.add_argument('--name', '-n',
                         help='Name of the sample. Default: use filename provided.', default="");
 
-    parser.add_argument('--known_piRNA', 
+    parser.add_argument('--path_given', '-p',
+                        help='Name of the path to store results. Default: use filename provided.', default="");
+
+    parser.add_argument('--gold_piRNA', 
                         help='Absolute path for piRBase gold piRNA sequences.', required=True);    
+
+    parser.add_argument("-t", "--threads", type=int, help="Number of CPUs to use [Default: 2].", default=2)
+
+
+    args=parser.parse_args();
+
+    
+    args.path_given = HCGB_files.create_folder(args.path_given)
+    
+    ### 
+    process_call(args.input, args.path_given, args.name, args.gold_piRNA, args.threads, True)
+    
 
 ################################
 if __name__== "__main__":

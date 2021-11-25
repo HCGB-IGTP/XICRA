@@ -3,7 +3,9 @@
 ## Jose F. Sanchez, Marta Lopez & Lauro Sumoy             ##
 ## Copyright (C) 2019-2021 Lauro Sumoy Lab, IGTP, Spain   ##
 ############################################################
+
 from HCGB.functions import aesthetics_functions
+
 """
 This module downloads data for genome annotation, miRNA, tRNA and piRNA analysis: 
 """
@@ -192,8 +194,6 @@ def tRNA_db(database, tRNA_db, debug):
              "https://raw.githubusercontent.com/TJU-CMC-Org/MINTmap/release/v2.0-alpha/src/mintmap/mappingbundle/v2/tRNAspace.Spliced.Sequences.With49ntFlank.MINTmap_v2.fa",
              "https://raw.githubusercontent.com/TJU-CMC-Org/MINTmap/release/v2.0-alpha/src/mintmap/mappingbundle/v2/tables.cfg"
              ]
-    
-    
      
     ## folder generated   
     return (tRNA_db)

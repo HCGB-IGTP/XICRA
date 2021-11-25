@@ -20,7 +20,44 @@ import HCGB.functions.files_functions as HCGB_files
 import HCGB.functions.system_call_functions as HCGB_sys
 import HCGB.functions.time_functions as HCGB_time
 
-import pybedtools
+#import pybedtools
+
+#######################################################
+def subtract_coordinates(file1, file2, path_given, name, options, debug):
+    """
+    Function to create a substraction call using bedtools
+    """
+        
+    ## create a name
+    bed_file = os.path.join(path_given, name + ".bed") 
+    #bed_file_tmp = bed_file + '_tmp' 
+    
+    ## check if previously done
+    filename_stamp = path_given + '/.' + name + '_subtract_success'
+    if os.path.isfile(filename_stamp):
+        if HCGB_files.is_non_zero_file(bed_file):
+            stamp = HCGB_time.read_time_stamp(filename_stamp)
+            print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'subtract bed annotations'), 'yellow'))
+            return (bed_file)
+    
+    ## subtract any overlap between feature taking into account strandness
+    string_options = " -s -f 0.5 -A " 
+    if options:
+        string_options = string_options + options
+    
+    ## Create call for bedtools intersect
+    bedtools_exe = set_config.get_exe("bedtools", debug)
+    cmd_bedtools = "%s subtract -a %s -b %s %s > %s" %(bedtools_exe, file1, file2, string_options, bed_file) 
+    
+    bed_code = HCGB_sys.system_call(cmd_bedtools, False, True)
+    if not bed_code:
+        print(colored("** ERROR: Something happen while calling bedtools subtract for job: " + name, "red"))
+        exit()
+        
+    ## print time stamp
+    HCGB_time.print_time_stamp(filename_stamp)
+
+    return (bed_file)    
 
 #######################################################
 def intersect_coordinates(file1, file2, path_given, name, options, debug):

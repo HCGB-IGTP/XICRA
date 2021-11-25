@@ -18,6 +18,8 @@ from collections import defaultdict
 
 from XICRA.config import set_config
 from XICRA.scripts import bedtools_caller
+from XICRA.scripts import BAMtoPILFER
+from XICRA.modules import database
 
 import HCGB.functions.aesthetics_functions as HCGB_aes
 import HCGB.functions.files_functions as HCGB_files
@@ -27,7 +29,7 @@ import HCGB.functions.time_functions as HCGB_time
 import HCGB.format_conversion
 
 ##########################################################
-def pilfer_module_call(sample_folder, name, bed_sample, annot_bed, Debug):
+def pilfer_module_call(sample_folder, name, bam_file, database_folder, gold_piRNA, threads, Debug):
     print()
     
     ## check if previously trimmed and succeeded
@@ -36,15 +38,32 @@ def pilfer_module_call(sample_folder, name, bed_sample, annot_bed, Debug):
         stamp = functions.time_functions.read_time_stamp(filename_stamp)
         print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'pilfer'), 'yellow'))
     else:
-        code_returned = pilfer_caller(sample_folder, name, bed_sample, annot_bed, Debug)
+        
+        ## retrieved piRNA information
+        annot_info = database.piRNA_info(database_folder, Debug)
+        
+        code_returned = pilfer_caller(sample_folder, name, bam_file, annot_info, gold_piRNA, threads, Debug)
         if code_returned:
             functions.time_functions.print_time_stamp(filename_stamp)
         else:
             print ('** Sample %s failed...' %name)
 
 ##########################################################
-def pilfer_caller(sample_folder, name, bed_sample, annot_bed, Debug):
-    print()
+def pilfer_caller(sample_folder, name, bam_file, annot_info, gold_piRNA, threads, Debug):
+    """
+    
+    """
+    
+    ## convert BAM to PILFER Input file
+    bam_pilfer = BAMtoPILFER.process_call(bam_file, sample_folder, name, gold_piRNA, threads, True)
+
+    ## substract ncRNA included (no piRNA)
+    bam_pilter_reduced = bedtools_caller.subtract_coordinates(bam_pilfer, annot_info.ncRNA_merged, sample_folder, name, "", Debug)
+    
+    ## create clusters using pilfer.py
+    
+    
+    return()
 
 
 #######################################################
@@ -60,29 +79,22 @@ def main():
     parser.add_argument('--path_given', '-p',
                         help='Path to save results generated. Default: use path from filename provided.', default="");
 
-    parser.add_argument('--annot', '-a',
-                        help='Absolute path for BED file.', default="");
+    parser.add_argument('--database', '-db',
+                        help='Absolute path for XICRA database containing piRNA files.', default="");
 
     parser.add_argument('--known_piRNA', 
                         help='Absolute path for piRBase gold piRNA sequences.', required=True);
+
+    parser.add_argument("-t", "--threads", type=int, help="Number of CPUs to use [Default: 2].", default=2)
 
     args=parser.parse_args();
     
     ## Lets convert bam2bed
     args.path_given = HCGB_files.create_folder(args.path_given)
     
-    ## 
-    known_piRNA = get_known_piRNA(args.known_piRNA, True)
-    
-    print(known_piRNA)
-    exit()
-        
-    ## converts BAM file in BED format
-    mapping_bed_file = bedtools_caller.convert_bam2bed(args.name, args.input, args.path_given, debug=True)
-    
     ## lets split the big file provided
-    files_generated = pilfer_module_call(args.path_given, args.name, mapping_bed_file, args.annot, Debug=True)
-    
+    files_generated = pilfer_module_call(args.path_given, args.name, args.input, 
+                                         args.database, args.known_piRNA, args.threads, Debug=True)
     
     return ()
 
