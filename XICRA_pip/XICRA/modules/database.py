@@ -5,6 +5,7 @@
 ############################################################
 
 from HCGB.functions import aesthetics_functions
+import HCGB
 
 """
 This module downloads data for genome annotation, miRNA, tRNA and piRNA analysis: 
@@ -24,6 +25,9 @@ from termcolor import colored
 ## import my modules
 from HCGB import sampleParser
 from HCGB import functions
+import HCGB.functions.main_functions as HCGB_main
+import HCGB.functions.files_functions as HCGB_files
+import HCGB.functions.aesthetics_functions as HCGB_aes
 
 from XICRA.config import set_config
 from XICRA.modules import help_XICRA
@@ -254,4 +258,128 @@ def piRNA_db(database, piRNA_db, debug):
     
     
     return()
+
+####################################################
+def piRNA_info(database_folder, species_name="hsa", Debug=False):
+    """
+    Given a folder it looks for piRNA_db subfolder and gets files
+    """
     
+    ## to return
+    annot_info = {}
+    annot_info["piRBase"] = {}
+    annot_info["TEsmall_db"] = {}
+    
+    ## See file in XICRA/config/database/database_structure.txt for tree structure details of this folder
+    
+    database_folder = os.path.abspath(database_folder)
+    piRNA_db = os.path.join( database_folder, "piRNA_db")
+    
+    ## 
+    list_files_piRNA = HCGB_main.get_fullpath_list(piRNA_db, Debug)
+    
+    ## debugging messages
+    if Debug:
+        HCGB_aes.debug_message("piRNA_db: " + piRNA_db, "yellow")
+        HCGB_aes.debug_message("list_files_piRNA: " + str(list_files_piRNA), "yellow")
+        print()
+    
+    ## loop to retrieve all files required
+    for piRNA_files in list_files_piRNA:
+        ## debugging messages
+        #if Debug:
+        #    HCGB_aes.debug_message("piRNA_file: " + piRNA_files, "yellow")
+        
+        ## get file name
+        file_name = os.path.basename(piRNA_files)
+        
+        ## get gold piRNA for given species
+        species_gold_file = str(species_name) + ".gold.fa"
+        ## might be some species
+        if file_name == species_gold_file:
+            if HCGB_files.is_non_zero_file(piRNA_files):
+                annot_info["piRBase"]["gold_piRNA"] = piRNA_files
+    
+        ## get all bed annotation for given species
+        if piRNA_files.endswith(".bed"):
+            ## store bed files from piRBase
+            bed_piRBase = re.search(".*piRBase.*", piRNA_files) ## piRBase db files
+            if bed_piRBase:
+                if file_name.startswith(species_name) and HCGB_files.is_non_zero_file(piRNA_files):
+                        annot_info["piRBase"]["bed_file"] = piRNA_files
+                
+            ## store bed files from TEsmall_db
+            bed_TEsmall_db = re.search(".*TEsmall_db.*", piRNA_files) ## TEsmall_db db files
+            if bed_TEsmall_db:
+                if species_name=="hsa":
+                    
+                    ## coding genes
+                    if file_name.startswith("exon") and HCGB_files.is_non_zero_file(piRNA_files):
+                        annot_info["TEsmall_db"]["exon"] = piRNA_files
+                    if file_name.startswith("intron") and HCGB_files.is_non_zero_file(piRNA_files):
+                        annot_info["TEsmall_db"]["intron"] = piRNA_files
+                    
+                    ## miRNA
+                    if file_name.startswith("miRNA") and HCGB_files.is_non_zero_file(piRNA_files):
+                        annot_info["TEsmall_db"]["miRNA"] = piRNA_files
+                    if file_name.startswith("hairpin") and HCGB_files.is_non_zero_file(piRNA_files):
+                        annot_info["TEsmall_db"]["hairpin"] = piRNA_files
+                    
+                    ## TE elements
+                    if file_name.startswith("TE") and HCGB_files.is_non_zero_file(piRNA_files):
+                        annot_info["TEsmall_db"]["TE"] = piRNA_files
+                    
+                    ## structural RNA
+                    if file_name.startswith("structural_RNA") and HCGB_files.is_non_zero_file(piRNA_files):
+                        annot_info["TEsmall_db"]["structural_RNA"] = piRNA_files
+        
+                    ## piRNA cluster
+                    if file_name.startswith("piRNA_cluster") and HCGB_files.is_non_zero_file(piRNA_files):
+                        annot_info["TEsmall_db"]["piRNA_cluster"] = piRNA_files
+
+    ## debugging messages
+    if Debug:
+        HCGB_aes.debug_message("annot_info: " + str(annot_info), "yellow")
+        print()
+    
+    ## concatenate all ncRNA annotation, except piRNA, and coding genes to substract later
+    ncRNA_bed = os.path.join(piRNA_db, "ncRNA_merged.bed")
+    ncRNA_timestamp = os.path.join(piRNA_db, ".merged_ncRNA_success")
+    
+    ## check if previously trimmed and succeeded
+    if os.path.isfile(ncRNA_timestamp):
+        stamp = functions.time_functions.read_time_stamp(ncRNA_timestamp)
+        print (colored("\tA previous command generated results on: %s [%s]" %(stamp, 'merged ncRNA'), 'yellow'))
+    
+    else:
+        ## merge
+        files_to_merge = [
+            annot_info["TEsmall_db"]["exon"], annot_info["TEsmall_db"]["intron"], 
+            annot_info["TEsmall_db"]["structural_RNA"], annot_info["TEsmall_db"]["hairpin"], 
+            annot_info["TEsmall_db"]["miRNA"]]
+        
+        ## 
+        original_stdout = sys.stdout # Save a reference to the original standard output
+        with open(ncRNA_bed, 'w') as f_out:
+            sys.stdout = f_out # Change the standard output to the file we created.
+            for f_in in files_to_merge:
+                for line in open(f_in):
+                    line=line.rstrip().split("\t")
+                    line[0] = line[0].split("chr")[1]                    
+                    print("\t".join(line))
+
+        sys.stdout = original_stdout
+        f_out.close()
+        HCGB.functions.time_functions.print_time_stamp(ncRNA_timestamp)
+
+    ## save into dictionary info
+    annot_info['general'] = {}
+    annot_info['general']['ncRNA'] = ncRNA_bed
+    annot_info['general']['timestamp'] = ncRNA_timestamp
+    
+    ## ---------------------------------
+    ## return when finished
+    return(annot_info)
+
+
+            

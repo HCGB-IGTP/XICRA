@@ -17,12 +17,14 @@ import concurrent.futures
 from XICRA.scripts import bedtools_caller
 from XICRA.scripts import samtools_caller
 from XICRA.config import set_config
+from XICRA.modules import database
 
 import HCGB.functions.fasta_functions as HCGB_fasta
 import HCGB.functions.time_functions as HCGB_time
 import HCGB.functions.system_call_functions as HCGB_sys
 import HCGB.functions.files_functions as HCGB_files
 import HCGB.functions.main_functions as HCGB_main
+import HCGB.functions.aesthetics_functions as HCGB_aes
 
 import HCGB.format_conversion.file_splitter as HCGB_splitter
 
@@ -72,7 +74,7 @@ def annotate_sam(seq_id, sam_file, Debug):
     fileReader.close()
 
 ##########################################################3
-def annotate_sam_call(sam_file, sam_file_out, gold_piRNA, ncpu, folder, Debug):
+def annotate_sam_call(sam_file, gold_piRNA, ncpu, folder, Debug):
     
     """
     This code is copy from PILFER software. See copyright and License details in https://github.com/rishavray/PILFER
@@ -105,10 +107,14 @@ def annotate_sam_call(sam_file, sam_file_out, gold_piRNA, ncpu, folder, Debug):
     
     ## as it might be very big, we are splitting and processing in parallel
     path_given = HCGB_files.create_folder(os.path.join(folder, "split_sam"))
-    HCGB_splitter.split_file_call(sam_file, ncpu*10, "spli_file", False, 'SAM', os.path.abspath(path_given), Debug)
+    HCGB_splitter.split_file_call(sam_file, ncpu*10, "split_file", False, 'SAM', os.path.abspath(path_given), Debug)
     
     list_sam_files = HCGB_main.get_fullpath_list(path_given, Debug)
     
+    ## remove non-desired files
+    list_sam_files = [s for s in list_sam_files if '.parsed' not in s]
+    list_sam_files = [s for s in list_sam_files if '.split_file_success' not in s]
+
     ## send for each subset using multiple threads
     with concurrent.futures.ThreadPoolExecutor(max_workers=ncpu*2) as executor:
         commandsSent = { executor.submit(annotate_sam, seq_id, subset_sam, Debug): subset_sam for subset_sam in list_sam_files }
@@ -122,7 +128,12 @@ def annotate_sam_call(sam_file, sam_file_out, gold_piRNA, ncpu, folder, Debug):
                 print (cmd2)
                 print('%r generated an exception: %s' % (details, exc))
 
-    return(True)
+    list_sam_files = (s + '.parsed' for s in list_sam_files)
+    
+    if Debug:
+        print(list_sam_files)
+
+    return(list_sam_files)
 
 ################################
 def process_call(bam_file, sample_folder, name, gold_piRNA, ncpu, Debug):
@@ -140,22 +151,73 @@ def process_call(bam_file, sample_folder, name, gold_piRNA, ncpu, Debug):
         else:
             print ('** Sample %s failed...' %name)
 
+################################
+def merge_sam_bed(bed_file, sam_file, pilfer_tmp_name, Debug):
+
+    ## TODO:
+    ## Linux only: find an alternative
+    ## paste Aligned.sortedByCoord.out.bed Aligned.sortedByCoord.out.sam | awk -v "OFS=\t" '{print $1, $2, $3, $16, $6}'
+
+    if Debug:
+        HCGB_aes.debug_message("bed_file: " + bed_file, "yellow")
+        HCGB_aes.debug_message("sam_file: " + sam_file, "yellow")
+        HCGB_aes.debug_message("pilfer_tmp_name: " + pilfer_tmp_name, "yellow")
+
+    pilfer_tmp = os.path.join(pilfer_tmp_name, os.path.basename(sam_file))
+    cmd_paste = "paste %s %s | awk -v \"OFS=\t\" \'{print $1, $2, $3, $16, $6}\' > %s" %(bed_file, sam_file, pilfer_tmp)
+    
+    paste_code = HCGB_sys.system_call(cmd_paste, False, Debug)
+    return paste_code
 
 ################################
-def bam2pilfer(bam_file, out_folder, name, gold_piRNA_file, ncpu, Debug):
+def bam2pilfer(bam_file, out_folder, name, annot_info, ncpu, Debug):
     
+    out_folder = os.path.abspath(out_folder)
     
     print("+ Convert BAM to PILFER input file")
-    print("+ Several pro-processing steps are required:")
+    print("+ Several pre-processing steps are required:")
     
     ## convert BAM2bed
-    print("\t- Convert BAM to BED format file...")
-    bed_file = bedtools_caller.convert_bam2bed(name, bam_file, out_folder, pilfer=True, debug=Debug)
+    print("\t- Convert original BAM to BED format file...")
+    bed_file = bedtools_caller.convert_bam2bed(name + '_original', bam_file, out_folder, pilfer=True, debug=Debug)
+    
+    ## substract ncRNA included (no piRNA)
+    print("\t- Subtract ncRNA annotated reads from BAM to reduce processing...")
+    bed_file_reduced = bedtools_caller.subtract_coordinates(bed_file, annot_info['general']['ncRNA'], out_folder, name + '_subtracted', "", Debug)
+    
+    ## get IDs and convert original bam to sam only with retained IDs
+    ## required samtools 1.12
+    print("\t- Get subtracted reads...")
+    ## generate paste filter tmp file
+    reads_to_get = os.path.join(out_folder, "reads2retain.txt")
+    filename_stamp = out_folder + '/.subtract_read_success'
+    if os.path.isfile(filename_stamp) and HCGB_files.is_non_zero_file(reads_to_get):
+        stamp = HCGB_time.read_time_stamp(filename_stamp)
+        print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'subtract reads'), 'yellow'))
+    else:
+        
+        original_stdout = sys.stdout # Save a reference to the original standard output
+        with open(reads_to_get, 'w') as f_out:
+            sys.stdout = f_out # Change the standard output to the file we created.
+            for line in open(bed_file_reduced):
+                line=line.rstrip().split("\t")
+                read=line[3].split("/")[0]
+                print(read)
+
+        sys.stdout = original_stdout
+        f_out.close()
     
     ## convert bamtosam
-    print("\t- Convert BAM to SAM format file...")
-    sam_file = samtools_caller.bam2sam(name, bam_file, out_folder, ncpu, header=False, Debug=Debug)
-    sam_file_out = sam_file + ".tmp"
+    print("\t- Convert BAM to SAM format file only including subtracted reads...")
+    sam_file = samtools_caller.bam2sam(name + '_reduced', bam_file, out_folder, ncpu, "-h -N " + reads_to_get, False, Debug)
+    #                                sample, input_file, path_given, ncpu, options, sam2bam=False, Debug=False):
+
+    ## convert sam to bam
+    print("\t- Convert SAM to BAM format file only including subtracted reads...")
+    bam_file_reduced = samtools_caller.bam2sam(name + '_reduced', sam_file, out_folder, ncpu, "", True, Debug)
+
+    print("\t- Convert reduced BAM to BED format file...")
+    bed_file_mapping = bedtools_caller.convert_bam2bed(name + '_reduced', bam_file_reduced, out_folder, pilfer=True, debug=Debug)
     
     ## New files
     pilfer_tmp = os.path.join(out_folder, os.path.basename(sam_file) + ".pilfer.bed.tmp")
@@ -166,39 +228,50 @@ def bam2pilfer(bam_file, out_folder, name, gold_piRNA_file, ncpu, Debug):
     
     ## generate paste filter tmp file
     filename_stamp = out_folder + '/.annotate_sam_success'
-    if HCGB_files.is_non_zero_file(sam_file_out) and os.path.isfile(filename_stamp):
+    if os.path.isfile(filename_stamp):
         stamp = HCGB_time.read_time_stamp(filename_stamp)
         print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'annotate sam'), 'yellow'))
+        
+        path_given = HCGB_files.create_folder(os.path.join(os.path.abspath(out_folder), "split_sam"))
+        list_sam_parsed = HCGB_main.get_fullpath_list(path_given, Debug)
+    
+        ## remove non-desired files
+        list_sam_parsed = [s for s in list_sam_parsed if not '.parsed' not in s]
+        list_sam_parsed = [s for s in list_sam_parsed if '.split_file_success' not in s]
+
     else:
-        annotate_sam_call(sam_file, sam_file_out, gold_piRNA_file, ncpu, out_folder, Debug)
+        list_sam_parsed = annotate_sam_call(sam_file, annot_info['piRBase']['gold_piRNA'], ncpu, out_folder, Debug)
         ## print time stamp
         HCGB_time.print_time_stamp(filename_stamp)
     
-    ## generate paste filter tmp file
-    ## paste Aligned.sortedByCoord.out.bed Aligned.sortedByCoord.out.sam | awk -v "OFS=\t" '{print $1, $2, $3, $16, $6}'
-    
+    if Debug:
+        HCGB_aes.debug_message("List of sam files parsed:")
+        print(list_sam_parsed)
+
+    #####
     print("\t- Create PILFER format file...")
-    
     filename_stamp = out_folder + '/.convert_bam2pilfer_success'
     if os.path.isfile(filename_stamp):
         if (HCGB_files.is_non_zero_file(pilfer_tmp)):
             print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'bam2pilfer'), 'yellow'))
             return(pilfer_file)
 
-    ## TODO:
-    ## Linux only: find an alternative
-    
-    cmd_paste = "paste %s %s | awk -v \"OFS=\t\" \'{print $1, $2, $3, $16, $6}\' > %s" %(bed_file, sam_file_out, pilfer_tmp)
-    
-    paste_code = HCGB_sys.system_call(cmd_paste, False, True)
-    if paste_code:
-        ## print time stamp
-        HCGB_time.print_time_stamp(filename_stamp)
-    else:
-        print("Some error ocurred during the conversion from BAM to PILFER input...")
-        exit()
-        
+    ## generate paste filter tmp file
+    ## send for each subset using multiple threads
+    with concurrent.futures.ThreadPoolExecutor(max_workers=ncpu*2) as executor:
+        commandsSent = { executor.submit(merge_sam_bed, bed_file, parsed_sam, pilfer_tmp, Debug): parsed_sam for parsed_sam in list_sam_parsed }
+
+        for cmd2 in concurrent.futures.as_completed(commandsSent):
+            details = commandsSent[cmd2]
+            try:
+                data = cmd2.result()
+            except Exception as exc:
+                print ('***ERROR:')
+                print (cmd2)
+                print('%r generated an exception: %s' % (details, exc))
+
     ## parse pilfer tmp file
+    exit()
     
     ## create bed file summarized:
     ## cat Aligned.sortedByCoord.out.sam.pilfer.bed.tmp | bedtools groupby -g 1,2,3,4,5 -c 4 -o count 
@@ -211,8 +284,8 @@ def bam2pilfer(bam_file, out_folder, name, gold_piRNA_file, ncpu, Debug):
         exit()
 
     ## remove tmp files
-    os.remove(pilfer_tmp)
-    os.remove(sam_file_out)
+    #os.remove(pilfer_tmp)
+    #os.remove(sam_file_out)
  
     return(pilfer_file)    
  
@@ -229,10 +302,12 @@ def main():
     parser.add_argument('--path_given', '-p',
                         help='Name of the path to store results. Default: use filename provided.', default="");
 
-    parser.add_argument('--gold_piRNA', 
-                        help='Absolute path for piRBase gold piRNA sequences.', required=True);    
+    parser.add_argument('--database', 
+                        help='Absolute path for database containing piRNA subfolder.', required=True);    
 
     parser.add_argument("-t", "--threads", type=int, help="Number of CPUs to use [Default: 2].", default=2)
+
+    parser.add_argument("-s", "--species", help="Species abbreviation. [Default: hsa].", default="hsa")
 
 
     args=parser.parse_args();
@@ -240,8 +315,14 @@ def main():
     
     args.path_given = HCGB_files.create_folder(args.path_given)
     
+    args.database = os.path.abspath(args.database)
+    args.input = os.path.abspath(args.input)
+    
+    ## retrieved piRNA information
+    annot_info = database.piRNA_info(args.database, args.species, True)
+    
     ### 
-    process_call(args.input, args.path_given, args.name, args.gold_piRNA, args.threads, True)
+    process_call(args.input, args.path_given, args.name, annot_info, args.threads, True)
     
 
 ################################

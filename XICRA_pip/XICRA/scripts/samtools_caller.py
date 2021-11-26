@@ -21,36 +21,44 @@ import HCGB.functions.system_call_functions as HCGB_sys
 import HCGB.functions.time_functions as HCGB_time
 
 ###################################################
-def bam2sam(sample, bam_file, path_given, ncpu, header=True, Debug=False):
+def bam2sam(sample, input_file, path_given, ncpu, options, sam2bam=False, Debug=False):
     """
     This functions calls samtools to generate a conversion from BAM to SAM format.
     """
     ## create sam_file
-    sam_file_tmp = HCGB_files.get_path_name(bam_file, path_given, os.path.basename(bam_file), debug=Debug)
-    sam_file = sam_file_tmp.split('.bam')[0] + '.sam'
+    outfile_tmp = HCGB_files.get_path_name(input_file, path_given, sample, debug=Debug)
+    
+    if sam2bam:
+        outfile = outfile_tmp.split('.sam')[0] + '.bam'
+    else:
+        outfile = outfile_tmp.split('.bam')[0] + '.sam'
     
     if not path_given:
         path_given = os.path.dirname(bam_file)
     
     filename_stamp = path_given + '/.convert_bam2sam_success'
     if os.path.isfile(filename_stamp):
-        if HCGB_files.is_non_zero_file(sam_file):
+        if HCGB_files.is_non_zero_file(outfile):
             stamp = HCGB_time.read_time_stamp(filename_stamp)
-            if HCGB_files.is_non_zero_file(sam_file):
-                print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, sample, 'convert_bam2sam'), 'yellow'))
-                return (sam_file)
+            print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, sample, 'samtools view conversion'), 'yellow'))
+            return (outfile)
 
     ## Create call 
     samtools_exe = set_config.get_exe("samtools", Debug)
-    if (header):
-        cmd_samtools = "%s view --threads %s -h %s > %s" %(samtools_exe, ncpu, bam_file, sam_file) ## include header
-    else:
-        cmd_samtools = "%s view --threads %s %s > %s" %(samtools_exe, ncpu, bam_file, sam_file)
-        
+    cmd_samtools = "%s view --threads %s -o %s" %(samtools_exe, ncpu, outfile)
+    
+    if (options):
+        cmd_samtools = cmd_samtools + " " + str(options)
+    
+    if (sam2bam):
+        cmd_samtools = cmd_samtools + " -b"
+    
+    cmd_samtools = cmd_samtools + " " + input_file
     samtools_code = HCGB_sys.system_call(cmd_samtools, False, True)
 
     if samtools_code:
         ## print time stamp
         HCGB_time.print_time_stamp(filename_stamp)
     
-        return (sam_file)
+        return (outfile)
+

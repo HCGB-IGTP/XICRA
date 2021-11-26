@@ -105,7 +105,7 @@ def convert_bam2bed(sample, bam_file, path_given, pilfer=False, debug=False):
     It converts, sorts and collapse information retaining counts for each feature in bed format
     """
 
-    bed_file = os.path.join(path_given, HCGB_files.get_file_name(bam_file) + ".bed") ## create a name
+    bed_file = os.path.join(os.path.abspath(path_given), sample + ".bed") ## create a name
     bed_file_tmp = bed_file + '_tmp' 
     
     filename_stamp = path_given + '/.convert_bam2bed_success'

@@ -29,7 +29,7 @@ import HCGB.functions.time_functions as HCGB_time
 import HCGB.format_conversion
 
 ##########################################################
-def pilfer_module_call(sample_folder, name, bam_file, database_folder, gold_piRNA, threads, Debug):
+def pilfer_module_call(sample_folder, name, bam_file, database_folder, threads, species, Debug):
     print()
     
     ## check if previously trimmed and succeeded
@@ -40,26 +40,22 @@ def pilfer_module_call(sample_folder, name, bam_file, database_folder, gold_piRN
     else:
         
         ## retrieved piRNA information
-        annot_info = database.piRNA_info(database_folder, Debug)
-        
-        code_returned = pilfer_caller(sample_folder, name, bam_file, annot_info, gold_piRNA, threads, Debug)
+        annot_info = database.piRNA_info(database_folder, species, Debug)
+        code_returned = pilfer_caller(sample_folder, name, bam_file, annot_info, threads, Debug)
         if code_returned:
             functions.time_functions.print_time_stamp(filename_stamp)
         else:
             print ('** Sample %s failed...' %name)
 
 ##########################################################
-def pilfer_caller(sample_folder, name, bam_file, annot_info, gold_piRNA, threads, Debug):
+def pilfer_caller(sample_folder, name, bam_file, annot_info, threads, Debug):
     """
     
     """
     
     ## convert BAM to PILFER Input file
-    bam_pilfer = BAMtoPILFER.process_call(bam_file, sample_folder, name, gold_piRNA, threads, True)
+    bam_pilfer = BAMtoPILFER.process_call(bam_file, sample_folder, name, annot_info.gold_piRNA, threads, True)
 
-    ## substract ncRNA included (no piRNA)
-    bam_pilter_reduced = bedtools_caller.subtract_coordinates(bam_pilfer, annot_info.ncRNA_merged, sample_folder, name, "", Debug)
-    
     ## create clusters using pilfer.py
     
     
@@ -82,9 +78,6 @@ def main():
     parser.add_argument('--database', '-db',
                         help='Absolute path for XICRA database containing piRNA files.', default="");
 
-    parser.add_argument('--known_piRNA', 
-                        help='Absolute path for piRBase gold piRNA sequences.', required=True);
-
     parser.add_argument("-t", "--threads", type=int, help="Number of CPUs to use [Default: 2].", default=2)
 
     args=parser.parse_args();
@@ -94,7 +87,7 @@ def main():
     
     ## lets split the big file provided
     files_generated = pilfer_module_call(args.path_given, args.name, args.input, 
-                                         args.database, args.known_piRNA, args.threads, Debug=True)
+                                         args.database, args.threads, "hsa", Debug=True)
     
     return ()
 
