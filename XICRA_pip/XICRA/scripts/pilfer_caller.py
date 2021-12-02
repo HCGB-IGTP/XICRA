@@ -54,7 +54,7 @@ def pilfer_caller(sample_folder, name, bam_file, annot_info, threads, Debug):
     """
     
     ## convert BAM to PILFER Input file
-    bam_pilfer = BAMtoPILFER.process_call(bam_file, sample_folder, name, annot_info.gold_piRNA, threads, True)
+    bam_pilfer = BAMtoPILFER.process_call(bam_file, sample_folder, name, annot_info['piRBase']['gold_piRNA'], threads, True)
 
     ## create clusters using pilfer.py
     

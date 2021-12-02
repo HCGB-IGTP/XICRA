@@ -1,6 +1,6 @@
 conda create -n XICRA_devel python==3.7.10
 conda activate XICRA_devel
-conda install -c bioconda -c defaults -c r -c conda-forge -c jfsanchezherrero fastqc mirtop optimir star fastq-join subread r-base r-ggplot2 r-optparse r-rcolorbrewer r-reshape r-stringr r-xicra.stats
+conda install -c bioconda -c defaults -c r -c conda-forge -c jfsanchezherrero fastqc mirtop optimir star fastq-join subread r-base r-ggplot2 r-optparse r-rcolorbrewer r-reshape r-stringr r-xicra.stats r-optparse
 conda list -e > requirements.txt
 
 ## Install XICRA

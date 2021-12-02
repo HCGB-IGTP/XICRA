@@ -48,6 +48,12 @@ def annotate_sam(seq_id, sam_file, Debug):
         #f = row[0].split(":")
         #row[0] = f[1]
         field=row.strip().split('\t')
+
+        ## take into account sam header
+        if (field[0].startswith('@')):
+            #sam_file_write.write(row)
+            continue
+
         seq = field[9]
         
         if (int(field[1]) & (0x10)):
@@ -58,7 +64,7 @@ def annotate_sam(seq_id, sam_file, Debug):
             field.append("XP:Z:PI")
             field[9] = field[9] + '::PI'
         #elif len(row[9])>=mini and len(field[9])<=maxi and int(f[0])>=100:
-        elif len(row[9])>=mini and len(field[9])<=maxi:
+        elif len(field[9])>=mini and len(field[9])<=maxi:
             field.append("XP:Z:PU")
             field[9] = field[9] + '::PU'
         #else:
@@ -107,7 +113,7 @@ def annotate_sam_call(sam_file, gold_piRNA, ncpu, folder, Debug):
     
     ## as it might be very big, we are splitting and processing in parallel
     path_given = HCGB_files.create_folder(os.path.join(folder, "split_sam"))
-    HCGB_splitter.split_file_call(sam_file, ncpu*10, "split_file", False, 'SAM', os.path.abspath(path_given), Debug)
+    HCGB_splitter.split_file_call(sam_file, ncpu*8, "split_file", False, 'SAM', os.path.abspath(path_given), Debug)
     
     list_sam_files = HCGB_main.get_fullpath_list(path_given, Debug)
     
@@ -116,7 +122,9 @@ def annotate_sam_call(sam_file, gold_piRNA, ncpu, folder, Debug):
     list_sam_files = [s for s in list_sam_files if '.split_file_success' not in s]
 
     ## send for each subset using multiple threads
-    with concurrent.futures.ThreadPoolExecutor(max_workers=ncpu*2) as executor:
+    cpus2use=ncpu*4 ## Each single process uses just 10% each cpu, we would increase speed by using x4 times more. 
+		    ## It might not be best way but it really speeds up the process and does not consum many RAM or CPUs
+    with concurrent.futures.ThreadPoolExecutor(max_workers=cpus2use) as executor:
         commandsSent = { executor.submit(annotate_sam, seq_id, subset_sam, Debug): subset_sam for subset_sam in list_sam_files }
 
         for cmd2 in concurrent.futures.as_completed(commandsSent):
@@ -152,7 +160,7 @@ def process_call(bam_file, sample_folder, name, gold_piRNA, ncpu, Debug):
             print ('** Sample %s failed...' %name)
 
 ################################
-def merge_sam_bed(bed_file, sam_file, pilfer_tmp_name, Debug):
+def merge_sam_bed(bed_file, sam_file, pilfer_tmp, Debug):
 
     ## TODO:
     ## Linux only: find an alternative
@@ -161,9 +169,8 @@ def merge_sam_bed(bed_file, sam_file, pilfer_tmp_name, Debug):
     if Debug:
         HCGB_aes.debug_message("bed_file: " + bed_file, "yellow")
         HCGB_aes.debug_message("sam_file: " + sam_file, "yellow")
-        HCGB_aes.debug_message("pilfer_tmp_name: " + pilfer_tmp_name, "yellow")
+        HCGB_aes.debug_message("pilfer_tmp: " + pilfer_tmp, "yellow")
 
-    pilfer_tmp = os.path.join(pilfer_tmp_name, os.path.basename(sam_file))
     cmd_paste = "paste %s %s | awk -v \"OFS=\t\" \'{print $1, $2, $3, $16, $6}\' > %s" %(bed_file, sam_file, pilfer_tmp)
     
     paste_code = HCGB_sys.system_call(cmd_paste, False, Debug)
@@ -234,7 +241,7 @@ def bam2pilfer(bam_file, out_folder, name, annot_info, ncpu, Debug):
         
         path_given = HCGB_files.create_folder(os.path.join(os.path.abspath(out_folder), "split_sam"))
         list_sam_parsed = HCGB_main.get_fullpath_list(path_given, Debug)
-    
+   
         ## remove non-desired files
         list_sam_parsed = [s for s in list_sam_parsed if not '.parsed' not in s]
         list_sam_parsed = [s for s in list_sam_parsed if '.split_file_success' not in s]
@@ -244,10 +251,22 @@ def bam2pilfer(bam_file, out_folder, name, annot_info, ncpu, Debug):
         ## print time stamp
         HCGB_time.print_time_stamp(filename_stamp)
     
+    ## merge annotated sam
+    parsed_sam = os.path.join(out_folder, name + '_reduced-annotated.sam')
+    list_sam_parsed = sorted(list_sam_parsed, key=lambda x: int("".join([i for i in x if i.isdigit()])))
+
     if Debug:
         HCGB_aes.debug_message("List of sam files parsed:")
         print(list_sam_parsed)
 
+    ## add annotated reads into asingle file
+    parsed_sam_file = open(parsed_sam, "w")
+    for l in list_sam_parsed:
+        for row in open(l, 'r'):
+            parsed_sam_file.write(row)
+
+    parsed_sam_file.close()
+    
     #####
     print("\t- Create PILFER format file...")
     filename_stamp = out_folder + '/.convert_bam2pilfer_success'
@@ -257,27 +276,16 @@ def bam2pilfer(bam_file, out_folder, name, annot_info, ncpu, Debug):
             return(pilfer_file)
 
     ## generate paste filter tmp file
-    ## send for each subset using multiple threads
-    with concurrent.futures.ThreadPoolExecutor(max_workers=ncpu*2) as executor:
-        commandsSent = { executor.submit(merge_sam_bed, bed_file, parsed_sam, pilfer_tmp, Debug): parsed_sam for parsed_sam in list_sam_parsed }
+    code_exec = merge_sam_bed(bed_file, parsed_sam, pilfer_tmp, Debug)
+    if not code_exec:
+        print ("** Some error ocurred while merging annotated SAM and BED file")
+        exit()
 
-        for cmd2 in concurrent.futures.as_completed(commandsSent):
-            details = commandsSent[cmd2]
-            try:
-                data = cmd2.result()
-            except Exception as exc:
-                print ('***ERROR:')
-                print (cmd2)
-                print('%r generated an exception: %s' % (details, exc))
-
-    ## parse pilfer tmp file
-    exit()
-    
     ## create bed file summarized:
     ## cat Aligned.sortedByCoord.out.sam.pilfer.bed.tmp | bedtools groupby -g 1,2,3,4,5 -c 4 -o count 
 
     bedtools_exe = set_config.get_exe("bedtools", Debug)
-    cmd_bedtools = "cat %s | %s groupby -o count -g 1,2,3,4,5 -c 4 | grep '::P'> %s " %(pilfer_tmp, bedtools_exe,  pilfer_file)
+    cmd_bedtools = "cat %s | grep '::P' | sort | %s groupby -o count -g 1,2,3,4,5 -c 4 > %s " %(pilfer_tmp, bedtools_exe,  pilfer_file)
     bed_code = HCGB_sys.system_call(cmd_bedtools, False, True)
     if not bed_code:
         print("** Some error occurred while generating PILFER input file")
@@ -286,9 +294,9 @@ def bam2pilfer(bam_file, out_folder, name, annot_info, ncpu, Debug):
     ## remove tmp files
     #os.remove(pilfer_tmp)
     #os.remove(sam_file_out)
- 
-    return(pilfer_file)    
- 
+
+    return(pilfer_file)
+
 ################################
 def main():
     ## this code runs when call as a single script
@@ -319,10 +327,10 @@ def main():
     args.input = os.path.abspath(args.input)
     
     ## retrieved piRNA information
-    annot_info = database.piRNA_info(args.database, args.species, True)
+    annot_info = database.piRNA_info(args.database, args.species, False)
     
     ### 
-    process_call(args.input, args.path_given, args.name, annot_info, args.threads, True)
+    process_call(args.input, args.path_given, args.name, annot_info, args.threads, False)
     
 
 ################################
