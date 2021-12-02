@@ -90,15 +90,20 @@ def annotate_sam_call(sam_file, gold_piRNA, ncpu, folder, Debug):
 def process_call(bam_file, sample_folder, name, gold_piRNA, ncpu, Debug):
     
     ## check if previously trimmed and succeeded
-    filename_stamp = sample_folder + '/.success'
+    filename_stamp = sample_folder + '/.success_BAM2PILFER'
     if os.path.isfile(filename_stamp):
         print ("\n+ Converting BAM file into PILFER input file")
         stamp = HCGB_time.read_time_stamp(filename_stamp)
         print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'BAMtoPILFER'), 'yellow'))
+        
+        pilfer_file = os.path.join(sample_folder, os.path.basename(bam_file) + ".pilfer.bed")
+        return (pilfer_file)
+
     else:
         code_returned = bam2pilfer(bam_file, sample_folder, name, gold_piRNA, ncpu, Debug)
         if code_returned:
             HCGB_time.print_time_stamp(filename_stamp)
+            return (code_returned) ## file name
         else:
             print ('** Sample %s failed...' %name)
 
@@ -133,7 +138,8 @@ def bam2pilfer(bam_file, out_folder, name, annot_info, ncpu, Debug):
     
     ## substract ncRNA included (no piRNA)
     print("\t- Subtract ncRNA annotated reads from BAM to reduce processing...")
-    bed_file_reduced = bedtools_caller.subtract_coordinates(bed_file, annot_info['general']['ncRNA'], out_folder, name + '_subtracted', "", Debug)
+    bed_file_reduced = bedtools_caller.subtract_coordinates(bed_file, annot_info['general']['ncRNA'], 
+                                                            out_folder, name + '_subtracted', "", Debug)
     
     ## get IDs and convert original bam to sam only with retained IDs
     ## required samtools 1.12

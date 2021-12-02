@@ -66,17 +66,18 @@ def pilfer_code(infile, outfile):
     results = []
 
     infile_pt = open(infile, "rb")
-    csvin = csv.reader(infile_pt, delimiter = "\t")
+    #csvin = csv.reader(infile_pt, delimiter = "\t")
     
     #Reading the BED records
-    for row in csvin:
+    for row in infile_pt:
+        field=row.strip().split('\t')
         count_reads.append(float(row[4]))
         
         ## classify in a dictionary by reference sequence
-        if row[0] in chrom_dict:
-            chrom_dict[row[0]].append(row)
+        if field[0] in chrom_dict:
+            chrom_dict[field[0]].append(field)
         else:
-            chrom_dict[row[0]] = [row]
+            chrom_dict[field[0]] = [field]
         
     #Mean and SD calculations
     mean = np.mean(count_reads)
@@ -215,7 +216,7 @@ def pilfer_module_call(sample_folder, name, bam_file, database_folder, threads, 
     ## check if previously trimmed and succeeded
     filename_stamp = sample_folder + '/.success'
     if os.path.isfile(filename_stamp):
-        stamp = functions.time_functions.read_time_stamp(filename_stamp)
+        stamp = HCGB_time.read_time_stamp(filename_stamp)
         print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'pilfer'), 'yellow'))
     else:
         
@@ -223,7 +224,7 @@ def pilfer_module_call(sample_folder, name, bam_file, database_folder, threads, 
         annot_info = database.piRNA_info(database_folder, species, Debug)
         code_returned = pilfer_caller(sample_folder, name, bam_file, annot_info, threads, Debug)
         if code_returned:
-            functions.time_functions.print_time_stamp(filename_stamp)
+            HCGB_time.print_time_stamp(filename_stamp)
         else:
             print ('** Sample %s failed...' %name)
 
@@ -234,14 +235,16 @@ def pilfer_caller(sample_folder, name, bam_file, annot_info, threads, Debug):
     """
     
     ## convert BAM to PILFER Input file
-    bam_pilfer = BAMtoPILFER.process_call(bam_file, sample_folder, name, annot_info['piRBase']['gold_piRNA'], threads, True)
-
+    bam_pilfer = BAMtoPILFER.process_call(bam_file, sample_folder, name, annot_info, threads, Debug)
+    
     ## create clusters using pilfer.py
     outfile = os.path.join(sample_folder, "pilfer_clusters.bed")
+    ## Call pilfer
     pilfer_code(bam_pilfer, outfile)
     
     ## intersect with Transposon data
     bedtools_caller.intersect_coordinates(bam_pilfer, annot_info["TEsmall_db"]["TE"], sample_folder, 'transposon_intersect', '', Debug)
+    
     
     return()
 
