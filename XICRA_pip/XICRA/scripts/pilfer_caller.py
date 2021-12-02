@@ -65,7 +65,7 @@ def pilfer_code(infile, outfile):
     chrom_dict = {}
     results = []
 
-    infile_pt = open(infile, "rb")
+    infile_pt = open(infile, "r")
     #csvin = csv.reader(infile_pt, delimiter = "\t")
     
     #Reading the BED records

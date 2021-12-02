@@ -96,7 +96,7 @@ def process_call(bam_file, sample_folder, name, gold_piRNA, ncpu, Debug):
         stamp = HCGB_time.read_time_stamp(filename_stamp)
         print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'BAMtoPILFER'), 'yellow'))
         
-        pilfer_file = os.path.join(sample_folder, os.path.basename(bam_file) + ".pilfer.bed")
+        pilfer_file = os.path.join(sample_folder, name + ".pilfer.bed")
         return (pilfer_file)
 
     else:
@@ -176,8 +176,8 @@ def bam2pilfer(bam_file, out_folder, name, annot_info, ncpu, Debug):
     bed_file_mapping = bedtools_caller.convert_bam2bed(name + '_reduced', bam_file_reduced, out_folder, pilfer=True, debug=Debug)
     
     ## New files
-    pilfer_tmp = os.path.join(out_folder, os.path.basename(sam_file) + ".pilfer.bed.tmp")
-    pilfer_file = os.path.join(out_folder, os.path.basename(sam_file) + ".pilfer.bed")
+    pilfer_tmp = os.path.join(out_folder, name + ".pilfer.bed.tmp")
+    pilfer_file = os.path.join(out_folder, name + ".pilfer.bed")
     
     ## Annotate reads using gold piRNA
     print("\t- Annotate reads in BAM using gold piRNA information provided...")
