@@ -110,7 +110,14 @@ def annotate_sam_call(sam_file, gold_piRNA, ncpu, folder, Debug):
     ## read fasta file and save results in list
     seq_dict = HCGB_fasta.get_fasta_dict(gold_piRNA, Debug=Debug)
     seq_id = list(seq_dict.keys())
-    
+
+    if Debug:
+        print("seq_dict gold piRNA")
+        print(seq_dict)
+
+        print("seq_id gold piRNA")
+        print(seq_id)
+
     ## as it might be very big, we are splitting and processing in parallel
     path_given = HCGB_files.create_folder(os.path.join(folder, "split_sam"))
     HCGB_splitter.split_file_call(sam_file, ncpu*8, "split_file", False, 'SAM', os.path.abspath(path_given), Debug)
@@ -171,9 +178,9 @@ def merge_sam_bed(bed_file, sam_file, pilfer_tmp, Debug):
         HCGB_aes.debug_message("sam_file: " + sam_file, "yellow")
         HCGB_aes.debug_message("pilfer_tmp: " + pilfer_tmp, "yellow")
 
-    cmd_paste = "paste %s %s | awk -v \"OFS=\t\" \'{print $1, $2, $3, $16, $6}\' > %s" %(bed_file, sam_file, pilfer_tmp)
-    
-    paste_code = HCGB_sys.system_call(cmd_paste, False, Debug)
+    cmd_paste = "paste %s %s | grep \':P\' | awk -v \"OFS=\t\" \'{print $1, $2, $3, $16, $6}\' > %s" %(bed_file, sam_file, pilfer_tmp)
+        
+    paste_code = HCGB_sys.system_call(cmd_paste, False, True)
     return paste_code
 
 ################################
@@ -276,7 +283,7 @@ def bam2pilfer(bam_file, out_folder, name, annot_info, ncpu, Debug):
             return(pilfer_file)
 
     ## generate paste filter tmp file
-    code_exec = merge_sam_bed(bed_file, parsed_sam, pilfer_tmp, Debug)
+    code_exec = merge_sam_bed(bed_file_mapping, parsed_sam, pilfer_tmp, Debug)
     if not code_exec:
         print ("** Some error ocurred while merging annotated SAM and BED file")
         exit()
@@ -285,7 +292,7 @@ def bam2pilfer(bam_file, out_folder, name, annot_info, ncpu, Debug):
     ## cat Aligned.sortedByCoord.out.sam.pilfer.bed.tmp | bedtools groupby -g 1,2,3,4,5 -c 4 -o count 
 
     bedtools_exe = set_config.get_exe("bedtools", Debug)
-    cmd_bedtools = "cat %s | grep '::P' | sort | %s groupby -o count -g 1,2,3,4,5 -c 4 > %s " %(pilfer_tmp, bedtools_exe,  pilfer_file)
+    cmd_bedtools = "%s sort -chrThenSizeA -i %s | %s groupby -o count -g 1,2,3,4,5 -c 4 | awk -v \"OFS=\t\" \'{print $1, $2, $3, $4, $6, $5}\' > %s " %(bedtools_exe, pilfer_tmp, bedtools_exe,  pilfer_file)
     bed_code = HCGB_sys.system_call(cmd_bedtools, False, True)
     if not bed_code:
         print("** Some error occurred while generating PILFER input file")
