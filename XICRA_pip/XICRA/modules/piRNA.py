@@ -300,8 +300,4 @@ def piRNA_analysis(bam_file, folder, name, threads, soft_list, species, database
             if not code_success:
                 print ('** Some error ocurred during pilfer analysis for sample %s...' %name)
                 return ()
-            
-            
-            
-            
                 

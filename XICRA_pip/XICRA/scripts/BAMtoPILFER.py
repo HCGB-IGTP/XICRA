@@ -16,6 +16,7 @@ import concurrent.futures
 
 from XICRA.scripts import bedtools_caller
 from XICRA.scripts import samtools_caller
+from XICRA.scripts import pilfer_caller
 from XICRA.config import set_config
 from XICRA.modules import database
 
@@ -25,76 +26,11 @@ import HCGB.functions.system_call_functions as HCGB_sys
 import HCGB.functions.files_functions as HCGB_files
 import HCGB.functions.main_functions as HCGB_main
 import HCGB.functions.aesthetics_functions as HCGB_aes
-
 import HCGB.format_conversion.file_splitter as HCGB_splitter
-
-##########################################################3
-def annotate_sam(seq_id, sam_file, Debug):
-           
-    ## create output
-    sam_file_out = sam_file + ".parsed"
-    sam_file_write = open(sam_file_out, "w")
-    
-    fileReader = open(sam_file, 'r')
-    
-    ## Give a minimum and maximum length
-    mini = 26
-    maxi = 33
-    
-    #csvin = csv.reader(fileReader, delimiter="\t")
-    #csvout = csv.writer(sam_file_write, delimiter="\t")
-    for row in open(sam_file):
-        ## Original
-        #f = row[0].split(":")
-        #row[0] = f[1]
-        field=row.strip().split('\t')
-
-        ## take into account sam header
-        if (field[0].startswith('@')):
-            #sam_file_write.write(row)
-            continue
-
-        seq = field[9]
-        
-        if (int(field[1]) & (0x10)):
-            seq = HCGB_fasta.ReverseComplement(seq)
-        
-        ## Set putative (PU), known piRNA (PI) or none
-        if seq in seq_id:
-            field.append("XP:Z:PI")
-            field[9] = field[9] + '::PI'
-        #elif len(row[9])>=mini and len(field[9])<=maxi and int(f[0])>=100:
-        elif len(field[9])>=mini and len(field[9])<=maxi:
-            field.append("XP:Z:PU")
-            field[9] = field[9] + '::PU'
-        #else:
-        ## too big or not known piRNA 
-        
-        ## append length in all
-        field.append("XC:i:"+str(len(seq)))
-    
-        sam_file_write.write("\t".join(field) + "\n")
-        
-    ## close files
-    sam_file_write.close()
-    fileReader.close()
 
 ##########################################################3
 def annotate_sam_call(sam_file, gold_piRNA, ncpu, folder, Debug):
     
-    """
-    This code is copy from PILFER software. See copyright and License details in https://github.com/rishavray/PILFER
-    Original code: June 2018
-    https://github.com/rishavray/PILFER/blob/master/tools/annotate_sam.py
-    
-    Modifications: November 2021
-    - Add some comments to understand code and clarify it.
-    - Add to read fasta file as dict and not as list as provided. 
-    
-    This particular scripts uses input in sam format and a file with gold piRNA sequences to identify putative and well-knonw piRNAs.
-    
-    """
-
     ### Original code
     # def ReverseComplement(seq):
     #    seq_dict = {'A':'T','T':'A','G':'C','C':'G','N':'N'}
@@ -132,7 +68,7 @@ def annotate_sam_call(sam_file, gold_piRNA, ncpu, folder, Debug):
     cpus2use=ncpu*4 ## Each single process uses just 10% each cpu, we would increase speed by using x4 times more. 
 		    ## It might not be best way but it really speeds up the process and does not consum many RAM or CPUs
     with concurrent.futures.ThreadPoolExecutor(max_workers=cpus2use) as executor:
-        commandsSent = { executor.submit(annotate_sam, seq_id, subset_sam, Debug): subset_sam for subset_sam in list_sam_files }
+        commandsSent = { executor.submit(pilfer_caller.annotate_sam, seq_id, subset_sam, Debug): subset_sam for subset_sam in list_sam_files }
 
         for cmd2 in concurrent.futures.as_completed(commandsSent):
             details = commandsSent[cmd2]
