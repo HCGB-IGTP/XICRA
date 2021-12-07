@@ -49,10 +49,8 @@ def annotate_sam_call(sam_file, gold_piRNA, ncpu, folder, Debug):
 
     if Debug:
         print("seq_dict gold piRNA")
-        print(seq_dict)
-
-        print("seq_id gold piRNA")
-        print(seq_id)
+        ##print(seq_dict)
+        print ("ATTENTION: Very big file. See file provided for details: " + gold_piRNA)
 
     ## as it might be very big, we are splitting and processing in parallel
     path_given = HCGB_files.create_folder(os.path.join(folder, "split_sam"))

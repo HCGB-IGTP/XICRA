@@ -328,14 +328,6 @@ subparser_tRNA.set_defaults(func=XICRA.modules.tRNA.run_tRNA)
 ##-------------------------------------------------------------##
 
 ##------------------------------ piRNA ----------------------- ##
-##subparser_piRNA = subparsers.add_parser(
-##    'piRNA',
-##    help='piRNA analysis.',
-##    description='This module generates a piRNA analysis',
-##)
-##-------------------------------------------------------------##
-
-##------------------------------ piRNA ----------------------- ##
 subparser_piRNA = subparsers.add_parser(
     'piRNA',
     help='piRNA analysis.',
@@ -372,9 +364,6 @@ info_group_piRNA.add_argument("--debug", action="store_true", help="Show additio
 
 subparser_piRNA.set_defaults(func=XICRA.modules.piRNA.run_piRNA)
 ##-------------------------------------------------------------##
-
-
-
 
 ## space
 subparser_space = subparsers.add_parser(' ', help='')

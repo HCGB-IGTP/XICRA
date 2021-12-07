@@ -48,16 +48,16 @@ def pilfer_code(infile, outfile):
     """
     
     ## Input example
-    ##1    997178    997194    CGGGTTCATTTCCCGGATGATGCACCA::PU    1    +
-    ##1    1312232    1312248    GGCGAATAGTCGGTGGCTGTAGACGCGAAACCT::PU    1    +
+    ##1    997178      997194    CGGGTTCATTTCCCGGATGATGCACCA::PU         1    +
+    ##1    1312232    1312248    GGCGAATAGTCGGTGGCTGTAGACGCGAAACCT::PU   1    +
     ##1    1355449    1355465    ATTCGCGGATGAGCAGCGAAATGCGCAGCGTC::PU    1    +
-    ##1    1909803    1909819    TTGAATTTGCCGAACCGGCTTTATGGAACC::PU    2    +
-    ##1    2527004    2527020    GTGCAGATCGGCACGCCAGGGCGAAT::PU    1    -
-    ##1    3473028    3473044    GCCCGACCACCAGGCCAGACCGTCAAT::PU    1    -
-    ##1    3707624    3707640    AGCACGCCGCCAGCGTTCATCCTGAG::PU    5    -
-    ##1    3772285    3772301    TCGGCCCACGGGCTCGTGGCGTCGGA::PU    3    +
-    ##1    3772450    3772466    ATTCCGGACGAGGCGTCGCTCGATCAA::PU    1    +
-    ##1    4353091    4353107    TTTCGCTTGAGGACGCTACCGATTTCATTC::PU    1    +
+    ##1    1909803    1909819    TTGAATTTGCCGAACCGGCTTTATGGAACC::PU      2    +
+    ##1    2527004    2527020    GTGCAGATCGGCACGCCAGGGCGAAT::PU          1    -
+    ##1    3473028    3473044    GCCCGACCACCAGGCCAGACCGTCAAT::PU         1    -
+    ##1    3707624    3707640    AGCACGCCGCCAGCGTTCATCCTGAG::PU          5    -
+    ##1    3772285    3772301    TCGGCCCACGGGCTCGTGGCGTCGGA::PU          3    +
+    ##1    3772450    3772466    ATTCCGGACGAGGCGTCGCTCGATCAA::PU         1    +
+    ##1    4353091    4353107    TTTCGCTTGAGGACGCTACCGATTTCATTC::PU      1    +
     
     #Variables
     sd_factor=3 ## "The factor by which the read should be away from standard deviation to be called a peak"
@@ -71,7 +71,7 @@ def pilfer_code(infile, outfile):
     #Reading the BED records
     for row in infile_pt:
         field=row.strip().split('\t')
-        count_reads.append(float(row[4]))
+        count_reads.append(float(field[4]))
         
         ## classify in a dictionary by reference sequence
         if field[0] in chrom_dict:
@@ -94,11 +94,11 @@ def pilfer_code(infile, outfile):
         j = 0
         while j < len(chrom_dict[key]):
             row = chrom_dict[key][j]
-            if (row[4] - mean)/sd >= sd_factor:
-                start_bp = row[2] - 100000
+            if ((int(row[4]) - mean)/sd >= sd_factor):
+                start_bp = int(row[2]) - 100000
                 if start_bp < 0:
                     start_bp = 0
-                end_bp = row[2]
+                end_bp = int(row[2])
                 score = 0
                 new_score = 0
                 start_read_index = -1
@@ -108,11 +108,11 @@ def pilfer_code(infile, outfile):
     
                 #Calculate the initial score and start index
                 for read in chrom_dict[key]:
-                    if read[1] >= start_bp and read[1] <= start_bp + 100000:
-                        score += read[4]
+                    if int(read[1]) >= int(start_bp) and int(read[1]) <= int(start_bp) + 100000:
+                        score += int(read[4])
                         if start_read_index == -1:
                             start_read_index = chrom_dict[key].index(read)
-                            start_bp = read[1]
+                            start_bp = int(read[1])
                         end_read_index = chrom_dict[key].index(read)
     
                 new_score = score
@@ -121,9 +121,9 @@ def pilfer_code(infile, outfile):
                 #calculating optimum 100KB window
                 ##for i in xrange(start_read_index+1,cur_read_index+1): ## xrange not available in python3
                 for i in range(start_read_index+1,cur_read_index+1): 
-                    new_score = score - chrom_dict[key][i-1][4]
-                    while  end_read_index+1 < len(chrom_dict[key]) and chrom_dict[key][end_read_index +1][1] <= chrom_dict[key][i][1] + 100000 :
-                        new_score += chrom_dict[key][end_read_index+1][4]
+                    new_score = score - int(chrom_dict[key][i-1][4])
+                    while  end_read_index+1 < len(chrom_dict[key]) and int(chrom_dict[key][end_read_index +1][1]) <= int(chrom_dict[key][i][1]) + 100000 :
+                        new_score += int(chrom_dict[key][end_read_index+1][4])
                         end_read_index += 1
                     
                     if new_score > score:
@@ -132,7 +132,11 @@ def pilfer_code(infile, outfile):
                         max_end = end_read_index
     
                 #print (key + ":" + str(chrom_dict[key][max_start][1]) + "-" + str(chrom_dict[key][max_end][2]) + "\t" + str(score)) ## pilfer default format
-                string2print = key + "\t" + str(chrom_dict[key][max_start][1]) + "\t" + str(chrom_dict[key][max_end][2]) + "\t" + str(score) ## bed format
+                if int(chrom_dict[key][max_start][1]) < int(chrom_dict[key][max_end][2]):
+                    string2print = "chr" + key + "\t" + str(chrom_dict[key][max_start][1]) + "\t" + str(chrom_dict[key][max_end][2]) + "\t" + str(score) + '\t+\n' ## bed format
+                else:
+                    string2print = "chr" + key + "\t" + str(chrom_dict[key][max_end][1]) + "\t" + str(chrom_dict[key][max_start][2]) + "\t" + str(score) + '\t-\n' ## bed format
+                    
                 results.append(string2print)
                 j = max_end
             j += 1
@@ -239,14 +243,14 @@ def pilfer_caller(sample_folder, name, bam_file, annot_info, threads, Debug):
     
     ## create clusters using pilfer.py
     outfile = os.path.join(sample_folder, "pilfer_clusters.bed")
+    
     ## Call pilfer
     pilfer_code(bam_pilfer, outfile)
     
     ## intersect with Transposon data
-    bedtools_caller.intersect_coordinates(bam_pilfer, annot_info["TEsmall_db"]["TE"], sample_folder, 'transposon_intersect', '', Debug)
+    bedtools_caller.intersect_coordinates(outfile, annot_info["TEsmall_db"]["TE"], sample_folder, 'transposon_intersect', '', Debug)
     
-    
-    return()
+    return(True)
 
 
 #######################################################
