@@ -242,33 +242,31 @@ def run_piRNA(options):
         piRNA_analysis(sorted(cluster["sample"].tolist())[0], outdir_dict[name], name, threads_job, 
                                          options.soft_name, options.species, options.database, Debug)
 
-    print ("\n\n+ piRNA analysis is finished...")
-    print ("+ Let's summarize all results...")
-    
-    
-    exit()
-    
     ## outdir
     outdir_report = HCGB_files.create_subfolder("report", outdir)
     expression_folder = HCGB_files.create_subfolder("piRNA", outdir_report)
+    
+    ## TODO: control if any other software implemented
+    ## if pilfer
+    pilfer_folder = HCGB_files.create_subfolder("pilfer", expression_folder)
+    
+    ## get results
+    results_pilfer = sampleParser.files.get_files(options, input_dir, "piRNA", ["pilfer_clusters.bed"], options.debug, bam=False)
+    del results_pilfer['dirname']
+    del results_pilfer['ext']
+    del results_pilfer['tag']
+    results_pilfer = results_pilfer.set_index('name')
+    pilfer_results = results_pilfer.to_dict()['sample']
 
-    ## merge all parse gtf files created
+    ## merge clusters generated
     print ("+ Summarize piRNA analysis for all samples...")
+    pilfer_caller.pilfer_merge_samples_call(pilfer_results, pilfer_folder, options.debug)
+        
+    print ("\n\n+ piRNA analysis is finished...")
+    print ("+ Let's summarize all results...")
     
-    ## dictionary results
-    results_SampleParser = sampleParser.files.get_files(options, input_dir, "piRNA", ["xxx.tsv"], options.debug)
-    results_df = pd.DataFrame(columns=("name", "soft", "filename"))
-    results_df['name'] = results_SampleParser['name']
-    results_df['soft'] = results_SampleParser['ext']
-    results_df['filename'] = results_SampleParser['sample']
-
-    ## debugging messages
-    if options.debug:
-        print (results_df)
+    exit()
     
-    print ("\n\n+ Parsing piRNA analysis for all samples...")
-    generate_DE.generate_DE(results_df, options.debug, expression_folder,  type_analysis="piRNA")
-
     print ("\n*************** Finish *******************")
     start_time_partial = HCGB_time.timestamp(start_time_total)
     

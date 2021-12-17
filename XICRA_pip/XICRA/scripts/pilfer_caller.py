@@ -9,6 +9,7 @@ import io
 import os
 import re
 import sys
+import csv
 from sys import argv
 import subprocess
 import argparse
@@ -31,6 +32,124 @@ import HCGB.functions.system_call_functions as HCGB_sys
 import HCGB.functions.fasta_functions as HCGB_fasta
 import HCGB.functions.time_functions as HCGB_time
 import HCGB.format_conversion
+
+##########################################################3
+def pilfer_merge_samples_call(pilfer_results, pilfer_folder, debug):
+    
+    ## create output
+    clusters_union = os.path.join(pilfer_folder, "clusters.union.tsv") 
+    clusters_bed = os.path.join(pilfer_folder, "merge_clusters.bed")
+    clusters_merge_union = os.path.join(pilfer_folder, "merge_clusters.union.tsv")
+
+    ## Get clusters obtained
+    pilfer_code_union(pilfer_results, clusters_union)
+    ## 
+    bedtools_exe = set_config.get_exe("bedtools", debug)
+    system_merge = "cat %s | awk \'{print $1}\' | tr \':\' \'\\t\' | tr \'-\' \'\\t\' | sort -V -k1,1 -k2,2 | grep -v \'_\' | %s merge > %s" %(clusters_union, bedtools_exe, clusters_bed)
+    
+    bed_merge_code = HCGB_sys.system_call(system_merge, False, True)
+    if not bed_merge_code:
+        print(colored("** ERROR: Something happen while calling bedtools merge for piRNA results", "red"))
+        exit()
+    
+    ## merge clusters    
+    sample_n = len(list(pilfer_results.values()))
+    pilfer_code_merge(clusters_bed, clusters_union, sample_n, clusters_merge_union)
+        
+    ## print time stamp
+    return (clusters_merge_union)
+
+###########################################
+def pilfer_code_merge(bed_file, cluster_file, sample_n, outfile):
+    """
+    Merges piRNA clusters from an input BED file
+    
+    This code is copy from PILFER software. See copyright and License details in https://github.com/rishavray/PILFER
+    Original code: June 2018
+    https://github.com/rishavray/PILFER/blob/master/tools/merge_cluster.py
+    
+    Modifications: November 2021
+    - Add some comments to understand code and clarify it.
+    """
+    
+    empty = [0 for x in range(0,sample_n)]
+
+    clusters=[]
+    for line in open(bed_file, "r"):
+        line = line.strip()
+        clusters.append(line.split() + empty)
+    
+    header=[]
+    for row in open(cluster_file, "r"):
+        if row.startswith("__"):
+            header=row.strip().split("\t")
+            header[0] = "piRNA_cluster"
+            continue
+    
+        ## Split row 
+        row = row.strip().split("\t")
+            
+        field = row[0].split(":")
+        pos = field[1].split("-")
+        pos = [int(x) for x in pos]
+        for clust in clusters:
+            if field[0] == clust[0] and int(clust[1]) <= pos[0] and int(clust[2]) >= pos[1]:
+                for i in range(3, sample_n+3):
+                    clust[i] = float(clust[i]) + float(row[i-2])
+    
+    outfile_hd = open(outfile, "w")
+    outfile_hd.write("\t".join(header))
+    outfile_hd.write("\n")
+    for row in clusters:
+        row[0] = row[0] + ":" + str(row[1]) + "-" + str(row[2])
+        del row[1:3]
+        
+        outfile_hd.write("\t".join(str(elem) for elem in row))
+        outfile_hd.write("\n")
+    
+    outfile_hd.close()
+
+    return(True)
+
+##########################################################3
+def pilfer_code_union(list_samples_dict, outfile):
+    """
+    Creates union of piRNA clusters from an input BED file
+    
+    This code is copy from PILFER software. See copyright and License details in https://github.com/rishavray/PILFER
+    Original code: June 2018
+    https://github.com/rishavray/PILFER/blob/master/tools/union.py
+    
+    Modifications: November 2021
+    - Add some comments to understand code and clarify it.
+    - Add to read BED file     
+    """
+    
+    union = {}
+    i=0
+    
+    for idx in list_samples_dict.values():
+        csvin = csv.reader(open(idx,"r"), delimiter="\t")
+        for row in csvin:
+            if row[0] in union:
+                union[row[0]].append(row[1])
+            else:
+                union[row[0]] = [0 for x in range(0,i)]
+                union[row[0]].append(row[1])
+        for key in union:
+            if len(union[key]) < i+1 :
+                union[key].append(0)
+        ##
+        i += 1
+
+    ## write output    
+    outfile_hd = open(outfile, "w")
+    csvout = csv.writer(outfile_hd, delimiter="\t")
+    csvout.writerow(["__"]+ list(list_samples_dict.keys()))
+    for key in union:
+        csvout.writerow([key]+union[key])
+    
+    return(True)
 
 ##########################################################3
 def pilfer_code(infile, outfile):
@@ -133,9 +252,9 @@ def pilfer_code(infile, outfile):
     
                 #print (key + ":" + str(chrom_dict[key][max_start][1]) + "-" + str(chrom_dict[key][max_end][2]) + "\t" + str(score)) ## pilfer default format
                 if int(chrom_dict[key][max_start][1]) < int(chrom_dict[key][max_end][2]):
-                    string2print = "chr" + key + "\t" + str(chrom_dict[key][max_start][1]) + "\t" + str(chrom_dict[key][max_end][2]) + "\t" + str(score) + '\t+\n' ## bed format
+                    string2print = "chr" + key + ":" + str(chrom_dict[key][max_start][1]) + "-" + str(chrom_dict[key][max_end][2]) + "\t" + str(score) + '\t+\n' ## bed format
                 else:
-                    string2print = "chr" + key + "\t" + str(chrom_dict[key][max_end][1]) + "\t" + str(chrom_dict[key][max_start][2]) + "\t" + str(score) + '\t-\n' ## bed format
+                    string2print = "chr" + key + ":" + str(chrom_dict[key][max_end][1]) + "-" + str(chrom_dict[key][max_start][2]) + "\t" + str(score) + '\t-\n' ## bed format
                     
                 results.append(string2print)
                 j = max_end
@@ -239,8 +358,7 @@ def pilfer_caller(sample_folder, name, bam_file, annot_info, threads, Debug):
         return False
     
     ## intersect with Transposon data
-    bedtools_caller.intersect_coordinates(outfile, annot_info["TEsmall_db"]["TE"], sample_folder, 'transposon_intersect', '', Debug)
-    
+    #bedtools_caller.intersect_coordinates(outfile, annot_info["TEsmall_db"]["TE"], sample_folder, 'transposon_intersect', '', Debug)
     
     ## control if errors produced
     # return(False)
