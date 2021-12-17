@@ -21,7 +21,7 @@ So far, XICRA produces a miRNA or tRNA analysis at the isomiR or tRF level using
 [XICRA.stats](https://github.com/HCGB-IGTP/XICRA.stats). Although the pipeline is designed to take paired-end reads, it also accepts single-end reads. 
 
 See additional details on the code [here](https://github.com/HCGB-IGTP/XICRA/tree/master/XICRA_pip). The workflow of the pipeline is described in the following image.
-<img src="workflow/XICRA_pipeline.png" alt="Workflow" width="950"/>
+<img src="XICRA_pip/docs/source/images/workflow/XICRA_pipeline.png" alt="Workflow" width="950"/>
 
 ### Installation
 
