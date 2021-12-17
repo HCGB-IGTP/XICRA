@@ -214,14 +214,49 @@ def annotate_sam(seq_id, sam_file, Debug):
     fileReader.close()
 
 ##########################################################
+
+
+##########################################################
+def pilfer_caller(sample_folder, name, bam_file, annot_info, threads, Debug):
+    """
+    Create required input files, calls pilfer to create clusters and intersect with transposon information coordinates.
+    """
+    
+    ## create clusters using pilfer.py
+    outfile = os.path.join(sample_folder, name + "-pilfer_clusters.bed")
+    
+    if Debug:
+        HCGB_aes.debug_message("OUTFILE: " + outfile, "yellow")
+        return(True)
+    
+    ## convert BAM to PILFER Input file
+    bam_pilfer = BAMtoPILFER.process_call(bam_file, sample_folder, name, annot_info, threads, Debug)
+    
+    ## Call pilfer
+    if bam_pilfer:
+        pilfer_code(bam_pilfer, outfile)
+    else:
+        return False
+    
+    ## intersect with Transposon data
+    bedtools_caller.intersect_coordinates(outfile, annot_info["TEsmall_db"]["TE"], sample_folder, 'transposon_intersect', '', Debug)
+    
+    
+    ## control if errors produced
+    # return(False)
+    
+    return(True)
+
+
+#######################################################
 def pilfer_module_call(sample_folder, name, bam_file, database_folder, threads, species, Debug):
-    print()
     
     ## check if previously trimmed and succeeded
     filename_stamp = sample_folder + '/.success'
     if os.path.isfile(filename_stamp):
         stamp = HCGB_time.read_time_stamp(filename_stamp)
         print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'pilfer'), 'yellow'))
+        return(True)
     else:
         
         ## retrieved piRNA information
@@ -232,28 +267,7 @@ def pilfer_module_call(sample_folder, name, bam_file, database_folder, threads, 
         else:
             print ('** Sample %s failed...' %name)
 
-##########################################################
-def pilfer_caller(sample_folder, name, bam_file, annot_info, threads, Debug):
-    """
-    Create required input files, calls pilfer to create clusters and intersect with transposon information coordinates.
-    """
-    
-    ## convert BAM to PILFER Input file
-    bam_pilfer = BAMtoPILFER.process_call(bam_file, sample_folder, name, annot_info, threads, Debug)
-    
-    ## create clusters using pilfer.py
-    outfile = os.path.join(sample_folder, "pilfer_clusters.bed")
-    
-    ## Call pilfer
-    pilfer_code(bam_pilfer, outfile)
-    
-    ## intersect with Transposon data
-    bedtools_caller.intersect_coordinates(outfile, annot_info["TEsmall_db"]["TE"], sample_folder, 'transposon_intersect', '', Debug)
-    
-    return(True)
-
-
-#######################################################
+#########################################
 def main():
     ## this code runs when call as a single script
     parser=argparse.ArgumentParser(description='''Create piRNA analysis using PILFER''');
