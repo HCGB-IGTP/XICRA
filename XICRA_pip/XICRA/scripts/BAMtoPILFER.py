@@ -49,10 +49,8 @@ def annotate_sam_call(sam_file, gold_piRNA, ncpu, folder, Debug):
 
     if Debug:
         print("seq_dict gold piRNA")
-        print(seq_dict)
-
-        print("seq_id gold piRNA")
-        print(seq_id)
+        ##print(seq_dict)
+        print ("ATTENTION: Very big file. See file provided for details: " + gold_piRNA)
 
     ## as it might be very big, we are splitting and processing in parallel
     path_given = HCGB_files.create_folder(os.path.join(folder, "split_sam"))
@@ -68,7 +66,8 @@ def annotate_sam_call(sam_file, gold_piRNA, ncpu, folder, Debug):
     cpus2use=ncpu*4 ## Each single process uses just 10% each cpu, we would increase speed by using x4 times more. 
 		    ## It might not be best way but it really speeds up the process and does not consum many RAM or CPUs
     with concurrent.futures.ThreadPoolExecutor(max_workers=cpus2use) as executor:
-        commandsSent = { executor.submit(pilfer_caller.annotate_sam, seq_id, subset_sam, Debug): subset_sam for subset_sam in list_sam_files }
+        commandsSent = { executor.submit(pilfer_caller.annotate_sam, seq_id, 
+                                         subset_sam, Debug): subset_sam for subset_sam in list_sam_files }
 
         for cmd2 in concurrent.futures.as_completed(commandsSent):
             details = commandsSent[cmd2]
@@ -106,6 +105,7 @@ def process_call(bam_file, sample_folder, name, gold_piRNA, ncpu, Debug):
             return (code_returned) ## file name
         else:
             print ('** Sample %s failed...' %name)
+            return(False)
 
 ################################
 def merge_sam_bed(bed_file, sam_file, pilfer_tmp, Debug):
@@ -234,7 +234,7 @@ def bam2pilfer(bam_file, out_folder, name, annot_info, ncpu, Debug):
     ## cat Aligned.sortedByCoord.out.sam.pilfer.bed.tmp | bedtools groupby -g 1,2,3,4,5 -c 4 -o count 
 
     bedtools_exe = set_config.get_exe("bedtools", Debug)
-    cmd_bedtools = "%s sort -chrThenSizeA -i %s | %s groupby -o count -g 1,2,3,4,5 -c 4 | awk -v \"OFS=\t\" \'{print $1, $2, $3, $4, $6, $5}\' > %s " %(bedtools_exe, pilfer_tmp, bedtools_exe,  pilfer_file)
+    cmd_bedtools = "%s sort -chrThenSizeA -i %s | sort -k 4 | %s groupby -o count -g 1,2,3,4,5 -c 4 | awk -v \"OFS=\t\" \'{print $1, $2, $3, $4, $6, $5}\' > %s " %(bedtools_exe, pilfer_tmp, bedtools_exe,  pilfer_file)
     bed_code = HCGB_sys.system_call(cmd_bedtools, False, True)
     if not bed_code:
         print("** Some error occurred while generating PILFER input file")
@@ -244,6 +244,7 @@ def bam2pilfer(bam_file, out_folder, name, annot_info, ncpu, Debug):
     #os.remove(pilfer_tmp)
     #os.remove(sam_file_out)
 
+    HCGB_time.print_time_stamp(filename_stamp)
     return(pilfer_file)
 
 ################################

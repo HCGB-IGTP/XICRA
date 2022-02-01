@@ -9,6 +9,7 @@ import io
 import os
 import re
 import sys
+import csv
 from sys import argv
 import subprocess
 import argparse
@@ -33,6 +34,124 @@ import HCGB.functions.time_functions as HCGB_time
 import HCGB.format_conversion
 
 ##########################################################3
+def pilfer_merge_samples_call(pilfer_results, pilfer_folder, debug):
+    
+    ## create output
+    clusters_union = os.path.join(pilfer_folder, "clusters.union.tsv") 
+    clusters_bed = os.path.join(pilfer_folder, "merge_clusters.bed")
+    clusters_merge_union = os.path.join(pilfer_folder, "merge_clusters.union.tsv")
+
+    ## Get clusters obtained
+    pilfer_code_union(pilfer_results, clusters_union)
+    ## 
+    bedtools_exe = set_config.get_exe("bedtools", debug)
+    system_merge = "cat %s | awk \'{print $1}\' | tr \':\' \'\\t\' | tr \'-\' \'\\t\' | sort -V -k1,1 -k2,2 | grep -v \'_\' | %s merge > %s" %(clusters_union, bedtools_exe, clusters_bed)
+    
+    bed_merge_code = HCGB_sys.system_call(system_merge, False, True)
+    if not bed_merge_code:
+        print(colored("** ERROR: Something happen while calling bedtools merge for piRNA results", "red"))
+        exit()
+    
+    ## merge clusters    
+    sample_n = len(list(pilfer_results.values()))
+    pilfer_code_merge(clusters_bed, clusters_union, sample_n, clusters_merge_union)
+        
+    ## print time stamp
+    return (clusters_merge_union)
+
+###########################################
+def pilfer_code_merge(bed_file, cluster_file, sample_n, outfile):
+    """
+    Merges piRNA clusters from an input BED file
+    
+    This code is copy from PILFER software. See copyright and License details in https://github.com/rishavray/PILFER
+    Original code: June 2018
+    https://github.com/rishavray/PILFER/blob/master/tools/merge_cluster.py
+    
+    Modifications: November 2021
+    - Add some comments to understand code and clarify it.
+    """
+    
+    empty = [0 for x in range(0,sample_n)]
+
+    clusters=[]
+    for line in open(bed_file, "r"):
+        line = line.strip()
+        clusters.append(line.split() + empty)
+    
+    header=[]
+    for row in open(cluster_file, "r"):
+        if row.startswith("__"):
+            header=row.strip().split("\t")
+            header[0] = "piRNA_cluster"
+            continue
+    
+        ## Split row 
+        row = row.strip().split("\t")
+            
+        field = row[0].split(":")
+        pos = field[1].split("-")
+        pos = [int(x) for x in pos]
+        for clust in clusters:
+            if field[0] == clust[0] and int(clust[1]) <= pos[0] and int(clust[2]) >= pos[1]:
+                for i in range(3, sample_n+3):
+                    clust[i] = float(clust[i]) + float(row[i-2])
+    
+    outfile_hd = open(outfile, "w")
+    outfile_hd.write("\t".join(header))
+    outfile_hd.write("\n")
+    for row in clusters:
+        row[0] = row[0] + ":" + str(row[1]) + "-" + str(row[2])
+        del row[1:3]
+        
+        outfile_hd.write("\t".join(str(elem) for elem in row))
+        outfile_hd.write("\n")
+    
+    outfile_hd.close()
+
+    return(True)
+
+##########################################################3
+def pilfer_code_union(list_samples_dict, outfile):
+    """
+    Creates union of piRNA clusters from an input BED file
+    
+    This code is copy from PILFER software. See copyright and License details in https://github.com/rishavray/PILFER
+    Original code: June 2018
+    https://github.com/rishavray/PILFER/blob/master/tools/union.py
+    
+    Modifications: November 2021
+    - Add some comments to understand code and clarify it.
+    - Add to read BED file     
+    """
+    
+    union = {}
+    i=0
+    
+    for idx in list_samples_dict.values():
+        csvin = csv.reader(open(idx,"r"), delimiter="\t")
+        for row in csvin:
+            if row[0] in union:
+                union[row[0]].append(row[1])
+            else:
+                union[row[0]] = [0 for x in range(0,i)]
+                union[row[0]].append(row[1])
+        for key in union:
+            if len(union[key]) < i+1 :
+                union[key].append(0)
+        ##
+        i += 1
+
+    ## write output    
+    outfile_hd = open(outfile, "w")
+    csvout = csv.writer(outfile_hd, delimiter="\t")
+    csvout.writerow(["__"]+ list(list_samples_dict.keys()))
+    for key in union:
+        csvout.writerow([key]+union[key])
+    
+    return(True)
+
+##########################################################3
 def pilfer_code(infile, outfile):
     """
     Predicts piRNA clusters from an input BED file
@@ -48,16 +167,16 @@ def pilfer_code(infile, outfile):
     """
     
     ## Input example
-    ##1    997178    997194    CGGGTTCATTTCCCGGATGATGCACCA::PU    1    +
-    ##1    1312232    1312248    GGCGAATAGTCGGTGGCTGTAGACGCGAAACCT::PU    1    +
+    ##1    997178      997194    CGGGTTCATTTCCCGGATGATGCACCA::PU         1    +
+    ##1    1312232    1312248    GGCGAATAGTCGGTGGCTGTAGACGCGAAACCT::PU   1    +
     ##1    1355449    1355465    ATTCGCGGATGAGCAGCGAAATGCGCAGCGTC::PU    1    +
-    ##1    1909803    1909819    TTGAATTTGCCGAACCGGCTTTATGGAACC::PU    2    +
-    ##1    2527004    2527020    GTGCAGATCGGCACGCCAGGGCGAAT::PU    1    -
-    ##1    3473028    3473044    GCCCGACCACCAGGCCAGACCGTCAAT::PU    1    -
-    ##1    3707624    3707640    AGCACGCCGCCAGCGTTCATCCTGAG::PU    5    -
-    ##1    3772285    3772301    TCGGCCCACGGGCTCGTGGCGTCGGA::PU    3    +
-    ##1    3772450    3772466    ATTCCGGACGAGGCGTCGCTCGATCAA::PU    1    +
-    ##1    4353091    4353107    TTTCGCTTGAGGACGCTACCGATTTCATTC::PU    1    +
+    ##1    1909803    1909819    TTGAATTTGCCGAACCGGCTTTATGGAACC::PU      2    +
+    ##1    2527004    2527020    GTGCAGATCGGCACGCCAGGGCGAAT::PU          1    -
+    ##1    3473028    3473044    GCCCGACCACCAGGCCAGACCGTCAAT::PU         1    -
+    ##1    3707624    3707640    AGCACGCCGCCAGCGTTCATCCTGAG::PU          5    -
+    ##1    3772285    3772301    TCGGCCCACGGGCTCGTGGCGTCGGA::PU          3    +
+    ##1    3772450    3772466    ATTCCGGACGAGGCGTCGCTCGATCAA::PU         1    +
+    ##1    4353091    4353107    TTTCGCTTGAGGACGCTACCGATTTCATTC::PU      1    +
     
     #Variables
     sd_factor=3 ## "The factor by which the read should be away from standard deviation to be called a peak"
@@ -71,7 +190,7 @@ def pilfer_code(infile, outfile):
     #Reading the BED records
     for row in infile_pt:
         field=row.strip().split('\t')
-        count_reads.append(float(row[4]))
+        count_reads.append(float(field[4]))
         
         ## classify in a dictionary by reference sequence
         if field[0] in chrom_dict:
@@ -99,11 +218,11 @@ def pilfer_code(infile, outfile):
         j = 0
         while j < len(chrom_dict[key]):
             row = chrom_dict[key][j]
-            if (row[4] - mean)/sd >= sd_factor:
-                start_bp = row[2] - 100000
+            if ((int(row[4]) - mean)/sd >= sd_factor):
+                start_bp = int(row[2]) - 100000
                 if start_bp < 0:
                     start_bp = 0
-                end_bp = row[2]
+                end_bp = int(row[2])
                 score = 0
                 new_score = 0
                 start_read_index = -1
@@ -113,11 +232,11 @@ def pilfer_code(infile, outfile):
     
                 #Calculate the initial score and start index
                 for read in chrom_dict[key]:
-                    if read[1] >= start_bp and read[1] <= start_bp + 100000:
-                        score += read[4]
+                    if int(read[1]) >= int(start_bp) and int(read[1]) <= int(start_bp) + 100000:
+                        score += int(read[4])
                         if start_read_index == -1:
                             start_read_index = chrom_dict[key].index(read)
-                            start_bp = read[1]
+                            start_bp = int(read[1])
                         end_read_index = chrom_dict[key].index(read)
     
                 new_score = score
@@ -126,9 +245,9 @@ def pilfer_code(infile, outfile):
                 #calculating optimum 100KB window
                 ##for i in xrange(start_read_index+1,cur_read_index+1): ## xrange not available in python3
                 for i in range(start_read_index+1,cur_read_index+1): 
-                    new_score = score - chrom_dict[key][i-1][4]
-                    while  end_read_index+1 < len(chrom_dict[key]) and chrom_dict[key][end_read_index +1][1] <= chrom_dict[key][i][1] + 100000 :
-                        new_score += chrom_dict[key][end_read_index+1][4]
+                    new_score = score - int(chrom_dict[key][i-1][4])
+                    while  end_read_index+1 < len(chrom_dict[key]) and int(chrom_dict[key][end_read_index +1][1]) <= int(chrom_dict[key][i][1]) + 100000 :
+                        new_score += int(chrom_dict[key][end_read_index+1][4])
                         end_read_index += 1
                     
                     if new_score > score:
@@ -137,7 +256,11 @@ def pilfer_code(infile, outfile):
                         max_end = end_read_index
     
                 #print (key + ":" + str(chrom_dict[key][max_start][1]) + "-" + str(chrom_dict[key][max_end][2]) + "\t" + str(score)) ## pilfer default format
-                string2print = key + "\t" + str(chrom_dict[key][max_start][1]) + "\t" + str(chrom_dict[key][max_end][2]) + "\t" + str(score) ## bed format
+                if int(chrom_dict[key][max_start][1]) < int(chrom_dict[key][max_end][2]):
+                    string2print = "chr" + key + ":" + str(chrom_dict[key][max_start][1]) + "-" + str(chrom_dict[key][max_end][2]) + "\t" + str(score) + '\t+\n' ## bed format
+                else:
+                    string2print = "chr" + key + ":" + str(chrom_dict[key][max_end][1]) + "-" + str(chrom_dict[key][max_start][2]) + "\t" + str(score) + '\t-\n' ## bed format
+                    
                 results.append(string2print)
                 j = max_end
             j += 1
@@ -215,14 +338,48 @@ def annotate_sam(seq_id, sam_file, Debug):
     fileReader.close()
 
 ##########################################################
+
+
+##########################################################
+def pilfer_caller(sample_folder, name, bam_file, annot_info, threads, Debug):
+    """
+    Create required input files, calls pilfer to create clusters and intersect with transposon information coordinates.
+    """
+    
+    ## create clusters using pilfer.py
+    outfile = os.path.join(sample_folder, name + "-pilfer_clusters.bed")
+    
+    if Debug:
+        HCGB_aes.debug_message("OUTFILE: " + outfile, "yellow")
+        return(True)
+    
+    ## convert BAM to PILFER Input file
+    bam_pilfer = BAMtoPILFER.process_call(bam_file, sample_folder, name, annot_info, threads, Debug)
+    
+    ## Call pilfer
+    if bam_pilfer:
+        pilfer_code(bam_pilfer, outfile)
+    else:
+        return False
+    
+    ## intersect with Transposon data
+    #bedtools_caller.intersect_coordinates(outfile, annot_info["TEsmall_db"]["TE"], sample_folder, 'transposon_intersect', '', Debug)
+    
+    ## control if errors produced
+    # return(False)
+    
+    return(True)
+
+
+#######################################################
 def pilfer_module_call(sample_folder, name, bam_file, database_folder, threads, species, Debug):
-    print()
     
     ## check if previously trimmed and succeeded
     filename_stamp = sample_folder + '/.success'
     if os.path.isfile(filename_stamp):
         stamp = HCGB_time.read_time_stamp(filename_stamp)
         print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'pilfer'), 'yellow'))
+        return(True)
     else:
         
         ## retrieved piRNA information
@@ -233,28 +390,7 @@ def pilfer_module_call(sample_folder, name, bam_file, database_folder, threads, 
         else:
             print ('** Sample %s failed...' %name)
 
-##########################################################
-def pilfer_caller(sample_folder, name, bam_file, annot_info, threads, Debug):
-    """
-    Create required input files, calls pilfer to create clusters and intersect with transposon information coordinates.
-    """
-    
-    ## convert BAM to PILFER Input file
-    bam_pilfer = BAMtoPILFER.process_call(bam_file, sample_folder, name, annot_info, threads, Debug)
-    
-    ## create clusters using pilfer.py
-    outfile = os.path.join(sample_folder, "pilfer_clusters.bed")
-    ## Call pilfer
-    pilfer_code(bam_pilfer, outfile)
-    
-    ## intersect with Transposon data
-    bedtools_caller.intersect_coordinates(bam_pilfer, annot_info["TEsmall_db"]["TE"], sample_folder, 'transposon_intersect', '', Debug)
-    
-    
-    return()
-
-
-#######################################################
+#########################################
 def main():
     ## this code runs when call as a single script
     parser=argparse.ArgumentParser(description='''Create piRNA analysis using PILFER''');

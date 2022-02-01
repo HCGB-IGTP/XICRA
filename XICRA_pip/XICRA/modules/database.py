@@ -213,7 +213,7 @@ def piRNA_db(database, piRNA_db, debug):
     if not piRNA_db:
         piRNA_db = os.path.join(database, "piRNA_db")
     
-    print ("+ Create folder to store tRNA information: ", piRNA_db, debug)
+    print ("+ Create folder to store piRNA information: ", piRNA_db, debug)
     functions.files_functions.create_folder(piRNA_db)
     
     ## First check if already provided files
