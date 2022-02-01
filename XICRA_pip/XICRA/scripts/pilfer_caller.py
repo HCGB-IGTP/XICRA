@@ -90,6 +90,11 @@ def pilfer_code(infile, outfile):
     
     #print "Chromosome\tStart\tEnd\tScore"
     #Cluster calculation
+    
+    ## Fix error when I changed row -> field
+    ##if (row[4] - mean)/sd >= sd_factor:
+    ##    numpy.core._exceptions.UFuncTypeError: ufunc 'subtract' did not contain a loop with signature matching types (dtype('<U1'), dtype('float64')) -> None
+
     for key in chrom_dict:
         j = 0
         while j < len(chrom_dict[key]):
