@@ -21,12 +21,15 @@ from termcolor import colored
 
 ## import my modules
 from HCGB import sampleParser
-from HCGB import functions
+
+import HCGB.functions.files_functions as HCGB_files
+import HCGB.functions.aesthetics_functions as HCGB_aes
+import HCGB.functions.time_functions as HCGB_time
+import HCGB.functions.main_functions as HCGB_main
+
 from XICRA.config import set_config
-from XICRA.modules import help_XICRA
-from XICRA.scripts import generate_DE, bedtools_caller
-from XICRA.scripts import MINTMap_caller
-from XICRA.scripts import get_length_distribution
+from XICRA.modules import help_XICRA, map, database
+from XICRA.scripts import pilfer_caller
 
 ##############################################
 def run_piRNA(options):
@@ -66,10 +69,10 @@ def run_piRNA(options):
     else:
         options.pair = True
     
-    functions.aesthetics_functions.pipeline_header('XICRA')
-    functions.aesthetics_functions.boxymcboxface("piRNA analysis")
+    HCGB_aes.pipeline_header('XICRA')
+    HCGB_aes.boxymcboxface("piRNA analysis")
     print ("--------- Starting Process ---------")
-    functions.time_functions.print_time()
+    HCGB_time.print_time()
 
     ## absolute path for in & out
     input_dir = os.path.abspath(options.input)
@@ -92,18 +95,29 @@ def run_piRNA(options):
     print ('+ Check if previously mapping was generated...')
     
     ## retrieve mapping files
-    results_SampleParser = sampleParser.files.get_files(options, input_dir, "map", ["Aligned.sortedByCoord.out.bam"], options.debug, bam=True)
+    results_SampleParser = sampleParser.files.get_files(options, input_dir, "map", ["bam"], options.debug, bam=True)
     pd_samples_retrieved = results_SampleParser
     del results_SampleParser['dirname']
     del results_SampleParser['ext']
     del results_SampleParser['tag']
-    del results_SampleParser['new_name']
 
     results_SampleParser = results_SampleParser.set_index('name')
     mapping_results = results_SampleParser.to_dict()['sample']
+    
+    ##
+    if Debug:
+        HCGB_aes.debug_message("results_SampleParser", "yellow")
+        print(results_SampleParser)
+        
+        HCGB_aes.debug_message("mapping_results", "yellow")
+        print(mapping_results)        
 
     ## Call mapping if mapping_results is empty
     if not mapping_results:
+        
+        if Debug:
+            HCGB_aes.debug_message("********************")
+            HCGB_aes.debug_message("mapping samples")
 
         ## get files: use joined reads if paired-end data
         if options.pair:
@@ -137,7 +151,7 @@ def run_piRNA(options):
             files_functions.create_folder(outdir)
     
         ## for samples
-        mapping_outdir_dict = files_functions.outdir_project(outdir, options.project, pd_samples_retrieved, "map", options.debug)
+        mapping_outdir_dict = HCGB_files.outdir_project(outdir, options.project, pd_samples_retrieved, "map", options.debug)
         
         ## debug message
         if (Debug):
@@ -145,11 +159,11 @@ def run_piRNA(options):
             print (mapping_outdir_dict)
     
         # time stamp
-        start_time_partial = time_functions.timestamp(start_time_total)
+        start_time_partial = HCGB_time.timestamp(start_time_total)
     
         ## optimize threads
         name_list = set(pd_samples_retrieved["new_name"].tolist())
-        threads_job = main_functions.optimize_threads(options.threads, len(name_list)) ## threads optimization
+        threads_job = HCGB_main.optimize_threads(options.threads, len(name_list)) ## threads optimization
         max_workers_int = int(options.threads/threads_job)
         
         ## debug message
@@ -161,6 +175,8 @@ def run_piRNA(options):
         ##############################################
         ## map Reads
         ##############################################
+        
+        ## TODO: Fix options require options.fasta, provided it or options.genomeDir
         (start_time_partial, mapping_results) = map.mapReads_module_STAR(options, pd_samples_retrieved, mapping_outdir_dict, 
                         options.debug, max_workers_int, threads_job, start_time_partial, outdir)
     
@@ -170,7 +186,7 @@ def run_piRNA(options):
              print (mapping_results)
         
         # time stamp
-        start_time_partial = time_functions.timestamp(start_time_partial)
+        start_time_partial = HCGB_time.timestamp(start_time_partial)
 
     ############################################################
     ## Download piRNA information: piRBase
@@ -182,10 +198,10 @@ def run_piRNA(options):
         options.database = os.path.abspath(options.database)
     
     print ("+ Create folder to store results: ", options.database)
-    functions.files_functions.create_folder(options.database)
+    HCGB_files.create_folder(options.database)
     
-    ## call database module and return options updated
-    options = database.piRNA_db(options)    
+    ## call database module and return information updated
+    db_info = database.piRNA_info(options.database, options.species, Debug)
 
     ##############################################################
     ## Start the analysis
@@ -193,115 +209,90 @@ def run_piRNA(options):
     ## generate output folder, if necessary
     if not options.project:
         print ("\n+ Create output folder(s):")
-        functions.files_functions.create_folder(outdir)
+        HCGB_files.create_folder(outdir)
     
     ## for samples
-    outdir_dict = functions.files_functions.outdir_project(outdir, options.project, pd_samples_retrieved, "piRNA", options.debug)
+    outdir_dict = HCGB_files.outdir_project(outdir, options.project, pd_samples_retrieved, "piRNA", options.debug)
     
     ## Mapping is done, process bam files
     print ("+ Create a piRNA analysis for each sample retrieved...")    
+    print("+ Intersecting annotation file and mapping file...")
     
-    ############################################# 
-    ## Get user software selection: 
-    #############################################
-    # TODO
-    
-    #############################################
-    ## Parse annotation provided    
-    ## convert annotation in GTF to BED
-    #############################################
-    
-    folder_GTF = os.path.join(options.database, 'GTF_annot') 
-    functions.files_functions.create_folder(folder_GTF)
-    
-    print("+ Converting GTF annotation file into BED...")
-    (bed_files, gtf_files) = get_length_distribution.convert_GTF2bed(options.GTF_info, folder_GTF, debug=options.debug)
+    ## optimize threads
+    name_list = set(pd_samples_retrieved["new_name"].tolist())
+    #threads_job = HCGB_main.optimize_threads(options.threads, len(name_list)) ## threads optimization
+    threads_job = options.threads ## So far all CPUs provided for each sample at a time
+    max_workers_int = 1
 
-    ## debugging messages
-    if debug:
-        HCGB_aes.debug_message("bed_files", color="yellow")
-        print(bed_files)        
-        print()
-        HCGB_aes.debug_message("gtf_files", color="yellow")
-        print(gtf_files)
-        
-    ## Loop for each reference sequence BED file
-    ## and intersect with mapping BAM->BED file
-    
-    print("+ Intersecting GTF annotation file and mapping BED file...")
-    
+    ## debug message
+    if (Debug):
+        print (colored("**DEBUG: options.threads " +  str(options.threads) + " **", 'yellow'))
+        print (colored("**DEBUG: max_workers " +  str(max_workers_int) + " **", 'yellow'))
+        print (colored("**DEBUG: cpu_here " +  str(threads_job) + " **", 'yellow'))
     # Group dataframe by sample name
     sample_frame = pd_samples_retrieved.groupby(["new_name"])
     
-    ## send for each sample
-    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers_int) as executor:
-        commandsSent = { executor.submit(piRNA_analysis, 
-                                         sorted(cluster["sample"].tolist()), 
-                                         outdir_dict[name], name, threads_job, 
-                                         options.soft_name, options.species, 
-                                         options.database, bed_files, Debug): name for name, cluster in sample_frame }
+    ## for each sample do piRNA analysis
+    for name, cluster in sample_frame:
+        if Debug:
+            print(name)
+            print(cluster)
+            
+        ## send for each sample        
+        piRNA_analysis(sorted(cluster["sample"].tolist())[0], outdir_dict[name], name, threads_job, 
+                                         options.soft_name, options.species, options.database, Debug)
 
-        for cmd2 in concurrent.futures.as_completed(commandsSent):
-            details = commandsSent[cmd2]
-            try:
-                data = cmd2.result()
-            except Exception as exc:
-                print ('***ERROR:')
-                print (cmd2)
-                print('%r generated an exception: %s' % (details, exc))
+    ## outdir
+    outdir_report = HCGB_files.create_subfolder("report", outdir)
+    expression_folder = HCGB_files.create_subfolder("piRNA", outdir_report)
+    
+    ## TODO: control if any other software implemented
+    ## if pilfer
+    pilfer_folder = HCGB_files.create_subfolder("pilfer", expression_folder)
+    
+    ## get results
+    results_pilfer = sampleParser.files.get_files(options, input_dir, "piRNA", ["pilfer_clusters.bed"], options.debug, bam=False)
+    del results_pilfer['dirname']
+    del results_pilfer['ext']
+    del results_pilfer['tag']
+    results_pilfer = results_pilfer.set_index('name')
+    pilfer_results = results_pilfer.to_dict()['sample']
 
+    ## merge clusters generated
+    print ("+ Summarize piRNA analysis for all samples...")
+    pilfer_caller.pilfer_merge_samples_call(pilfer_results, pilfer_folder, options.debug)
+        
     print ("\n\n+ piRNA analysis is finished...")
     print ("+ Let's summarize all results...")
     
-    ## outdir
-    outdir_report = functions.files_functions.create_subfolder("report", outdir)
-    expression_folder = functions.files_functions.create_subfolder("piRNA", outdir_report)
-
-    ## merge all parse gtf files created
-    print ("+ Summarize piRNA analysis for all samples...")
+    exit()
     
-    ## dictionary results
-    results_SampleParser = sampleParser.files.get_files(options, input_dir, "piRNA", ["xxx.tsv"], options.debug)
-    results_df = pd.DataFrame(columns=("name", "soft", "filename"))
-    results_df['name'] = results_SampleParser['name']
-    results_df['soft'] = results_SampleParser['ext']
-    results_df['filename'] = results_SampleParser['sample']
-
-    ## debugging messages
-    if options.debug:
-        print (results_df)
-    
-    print ("\n\n+ Parsing piRNA analysis for all samples...")
-    generate_DE.generate_DE(results_df, options.debug, expression_folder,  type_analysis="piRNA")
-
     print ("\n*************** Finish *******************")
-    start_time_partial = functions.time_functions.timestamp(start_time_total)
+    start_time_partial = HCGB_time.timestamp(start_time_total)
     
     print ("\n+ Exiting piRNA module.")
     return()
 
-
 #########################################
-def piRNA_analysis(bam_file, folder, name, threads, soft_list, species, database, bed_files, Debug):
+def piRNA_analysis(bam_file, folder, name, threads, soft_list, species, database, Debug):
     
-    
-    bed_folder = functions.files_functions.create_subfolder('bed', folder)
-    
-    ## conversion from BAM -> BED
-    mapping_bed_file = bedtools_caller.convert_bam2bed(name, bam_file, bed_folder, debug=Debug)
+    if Debug:
+        HCGB_aes.debug_message("BAM_FILE: " + bam_file, "yellow")
+        HCGB_aes.debug_message("folder: " + folder, "yellow")
+        HCGB_aes.debug_message("name: " + name, "yellow")
+        HCGB_aes.debug_message("threads: " + str(threads), "yellow")
+        HCGB_aes.debug_message("soft_list: ", "yellow")
+        print(soft_list)
+        HCGB_aes.debug_message("species: " + species, "yellow")
     
     ##
     for soft in soft_list:
         if (soft == "pilfer"):
             ## create pilfer analysis
-            pilfer_folder = functions.files_functions.create_subfolder('pilfer', folder)
-            code_success = pilfer_caller.pilfer_caller(pilfer_folder, bam_file, name, threads, species, database, Debug)   
+            pilfer_folder = HCGB_files.create_subfolder('pilfer', folder)
+            code_success = pilfer_caller.pilfer_module_call(pilfer_folder, name, bam_file, database, threads, species, Debug)   
             
             if not code_success:
                 print ('** Some error ocurred during pilfer analysis for sample %s...' %name)
                 return ()
-            
-            
-            
-            
                 

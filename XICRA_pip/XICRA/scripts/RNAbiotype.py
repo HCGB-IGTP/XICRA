@@ -24,7 +24,7 @@ from HCGB.functions import files_functions, math_functions
 ## plots
 import pandas as pd
 import matplotlib
-from build.lib.HCGB.functions.aesthetics_functions import debug_message
+from HCGB.functions.aesthetics_functions import debug_message
 
 matplotlib.use('agg')
 import matplotlib.pyplot as plt

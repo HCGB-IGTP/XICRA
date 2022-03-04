@@ -1,0 +1,40 @@
+database/
+├── miRNA_db
+│   ├── hairpin.fa
+│   ├── hsa.gff3
+│   ├── mature.fa
+│   └── miRNA.str
+└── piRNA_db
+    ├── TEsmall_db
+    │   └── genomes
+    │       └── hg38
+    │           ├── annotation
+    │           │   ├── TE.bed
+    │           │   ├── exon.bed
+    │           │   ├── hairpin.bed
+    │           │   ├── intron.bed
+    │           │   ├── miRNA.bed
+    │           │   ├── piRNA_cluster.bed
+    │           │   └── structural_RNA.bed
+    │           └── sequence
+    │               ├── bowtie_index
+    │               │   ├── genome.1.ebwt
+    │               │   ├── genome.2.ebwt
+    │               │   ├── genome.3.ebwt
+    │               │   ├── genome.4.ebwt
+    │               │   ├── genome.rev.1.ebwt
+    │               │   ├── genome.rev.2.ebwt
+    │               │   ├── rDNA.1.ebwt
+    │               │   ├── rDNA.2.ebwt
+    │               │   ├── rDNA.3.ebwt
+    │               │   ├── rDNA.4.ebwt
+    │               │   ├── rDNA.rev.1.ebwt
+    │               │   └── rDNA.rev.2.ebwt
+    │               ├── genome.fa
+    │               ├── genome.fa.fai
+    │               ├── rDNA.fa
+    │               └── rDNA.fa.fai
+    └── piRBase
+        ├── hsa.gold.fa
+        ├── hsa.hg19.bed
+        └── hsa.v3.0.fa

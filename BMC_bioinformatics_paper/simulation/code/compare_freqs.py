@@ -67,7 +67,7 @@ def count_miRNA_fastq (fastq_file):
                 fastq_ID = record['name'].split('::')[0].replace('@', '')
                 fastq_count[fastq_ID] += 1
                 
-    return fastq_count        
+    return fastq_count
 
 ###################
 def analysis_observed_expected(name, given_tag, counts_observed, count_R1_reads, expected_counts_given, seqs_observed, isomiRDict):

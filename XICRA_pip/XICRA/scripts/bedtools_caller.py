@@ -20,7 +20,44 @@ import HCGB.functions.files_functions as HCGB_files
 import HCGB.functions.system_call_functions as HCGB_sys
 import HCGB.functions.time_functions as HCGB_time
 
-import pybedtools
+#import pybedtools
+
+#######################################################
+def subtract_coordinates(file1, file2, path_given, name, options, debug):
+    """
+    Function to create a substraction call using bedtools
+    """
+        
+    ## create a name
+    bed_file = os.path.join(path_given, name + ".bed") 
+    #bed_file_tmp = bed_file + '_tmp' 
+    
+    ## check if previously done
+    filename_stamp = path_given + '/.' + name + '_subtract_success'
+    if os.path.isfile(filename_stamp):
+        if HCGB_files.is_non_zero_file(bed_file):
+            stamp = HCGB_time.read_time_stamp(filename_stamp)
+            print (colored("\tA previous command generated results on: %s [%s -- %s]" %(stamp, name, 'subtract bed annotations'), 'yellow'))
+            return (bed_file)
+    
+    ## subtract any overlap between feature taking into account strandness
+    string_options = " -s -f 0.5 -A " 
+    if options:
+        string_options = string_options + options
+    
+    ## Create call for bedtools intersect
+    bedtools_exe = set_config.get_exe("bedtools", debug)
+    cmd_bedtools = "%s subtract -a %s -b %s %s > %s" %(bedtools_exe, file1, file2, string_options, bed_file) 
+    
+    bed_code = HCGB_sys.system_call(cmd_bedtools, False, True)
+    if not bed_code:
+        print(colored("** ERROR: Something happen while calling bedtools subtract for job: " + name, "red"))
+        exit()
+        
+    ## print time stamp
+    HCGB_time.print_time_stamp(filename_stamp)
+
+    return (bed_file)    
 
 #######################################################
 def intersect_coordinates(file1, file2, path_given, name, options, debug):
@@ -61,14 +98,14 @@ def intersect_coordinates(file1, file2, path_given, name, options, debug):
     return (bed_file)    
 
 #######################################################
-def convert_bam2bed(sample, bam_file, path_given, debug):
+def convert_bam2bed(sample, bam_file, path_given, pilfer=False, debug=False):
     """
     This functions calls bedtools to generate a conversion from BAM to BED format.
     
     It converts, sorts and collapse information retaining counts for each feature in bed format
     """
 
-    bed_file = os.path.join(path_given, HCGB_files.get_file_name(bam_file) + ".bed") ## create a name
+    bed_file = os.path.join(os.path.abspath(path_given), sample + ".bed") ## create a name
     bed_file_tmp = bed_file + '_tmp' 
     
     filename_stamp = path_given + '/.convert_bam2bed_success'
@@ -83,27 +120,42 @@ def convert_bam2bed(sample, bam_file, path_given, debug):
     ## bedtools sort -chrThenSizeA -i bed_file > bed_sort.file
     ## bedtools groupby -i bed_sort.file -o count -g 1,2,3 -c 4 > counts.bed 
     
-    ## Create call in two separate calls to reduce RAM requirement
-    bedtools_exe = set_config.get_exe("bedtools", debug)
-    cmd_bedtools = "%s bamtobed -i %s | %s groupby -o count -g 1,2,3 -c 4 > %s" %(bedtools_exe, bam_file, bedtools_exe, bed_file_tmp)
-    bed_code = HCGB_sys.system_call(cmd_bedtools, False, True)
-
-    if bed_code:
-        cmd_bedtools2 = "%s sort -chrThenSizeA -i %s | %s groupby -o count -g 1,2,3 -c 4 > %s" %(bedtools_exe, bed_file_tmp, 
-                                                                                                                bedtools_exe, bed_file)
-        bed_code2 = HCGB_sys.system_call(cmd_bedtools2, False, True)
+    if pilfer:
+        ## Create call in two separate calls to reduce RAM requirement
+        bedtools_exe = set_config.get_exe("bedtools", debug)
+        cmd_bedtools = "%s bamtobed -i %s > %s" %(bedtools_exe, bam_file, bed_file)
+        bed_code = HCGB_sys.system_call(cmd_bedtools, False, True)
     
-    ## -----------------------------------------------
-    ## Pybedtools
-    ## -----------------------------------------------
-    ## It might be possible to use pybedtools. We need to load bam, bed or whatever file. it is not possible to use string to absolute path
-    #bed_info = pybedtools.bedtool.BedTool.bam_to_bed(bam_file)
+        if bed_code:
+            ## print time stamp
+            HCGB_time.print_time_stamp(filename_stamp)
+        
+            return (bed_file)
+        else:
+            print ("** ERROR: Some error occurred during conversion from BAM to BED... **")
+            exit()
+    else:
+        ## Create call in two separate calls to reduce RAM requirement
+        bedtools_exe = set_config.get_exe("bedtools", debug)
+        cmd_bedtools = "%s bamtobed -i %s | %s groupby -o count -g 1,2,3 -c 4 > %s" %(bedtools_exe, bam_file, bedtools_exe, bed_file_tmp)
+        bed_code = HCGB_sys.system_call(cmd_bedtools, False, True)
     
-    ## We might try but I guess to many RAM would be required.
-    
-    if not bed_code or not bed_code2:
-        print ("** ERROR: Some error occurred during conversion from BAM to BED... **")
-        exit()
+        if bed_code:
+            cmd_bedtools2 = "%s sort -chrThenSizeA -i %s | %s groupby -o count -g 1,2,3 -c 4 > %s" %(bedtools_exe, bed_file_tmp, 
+                                                                                                                    bedtools_exe, bed_file)
+            bed_code2 = HCGB_sys.system_call(cmd_bedtools2, False, True)
+        
+        ## -----------------------------------------------
+        ## Pybedtools
+        ## -----------------------------------------------
+        ## It might be possible to use pybedtools. We need to load bam, bed or whatever file. it is not possible to use string to absolute path
+        #bed_info = pybedtools.bedtool.BedTool.bam_to_bed(bam_file)
+        
+        ## We might try but I guess to many RAM would be required.
+        
+        if not bed_code or not bed_code2:
+            print ("** ERROR: Some error occurred during conversion from BAM to BED... **")
+            exit()
     
     ## print time stamp
     HCGB_time.print_time_stamp(filename_stamp)
