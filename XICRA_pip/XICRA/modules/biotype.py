@@ -48,7 +48,7 @@ def run_biotype(options):
 
     ## init time
     start_time_total = time.time()
-
+    
     ##################################
     ### show help messages if desired    
     ##################################
@@ -153,8 +153,15 @@ def run_biotype(options):
     ##############################################
     ## map Reads
     ##############################################
+    
+    ## multimapping:
+    if options.no_multiMapping:
+        multimapping = False
+    else:
+        multimapping = True
+    
     (start_time_partial, mapping_results) = map.mapReads_module_STAR(options, pd_samples_retrieved, mapping_outdir_dict, 
-                    options.debug, max_workers_int, threads_job, start_time_partial, outdir)
+                    options.debug, max_workers_int, threads_job, start_time_partial, outdir, multimapping)
 
     ## debug message
     if (Debug):
@@ -171,12 +178,6 @@ def run_biotype(options):
     if (Debug):
         print (colored("**DEBUG: biotype_outdir_dict **", 'yellow'))
         print (biotype_outdir_dict)
-    
-    ## multimapping:
-    if options.no_multiMapping:
-        multimapping = False
-    else:
-        multimapping = True    
     
     ##############################################
     ## feature counts

@@ -101,7 +101,7 @@ def remove_Genome(STAR_exe, genomeDir, folder, num_threads):
     return (remove_code)
 
 ############################################################
-def mapReads(option, reads, folder, name, STAR_exe, genomeDir, limitRAM_option, num_threads, Debug):
+def mapReads(option, reads, folder, name, STAR_exe, genomeDir, limitRAM_option, num_threads, Debug, multimapping):
     """
     Map reads using STAR software. Some parameters are set for small RNA Seq.
 
@@ -116,7 +116,8 @@ def mapReads(option, reads, folder, name, STAR_exe, genomeDir, limitRAM_option, 
     :param genomeDir: path to the genome directory
     :param limitRAM_option: maximum available RAM (bytes) for map reads process. Default: 40000000000
     :param num_threads: number of threads to do the computation
-    
+    :param multimapping: Flag to say whether to use multimapping reads or not
+
     :type option: string
     :type reads: list
     :type folder: string 
@@ -125,6 +126,7 @@ def mapReads(option, reads, folder, name, STAR_exe, genomeDir, limitRAM_option, 
     :type genomeDir: string 
     :type limitRAM_option: int
     :type num_threads: int
+    :type multimapping: boolean
     
     :returns: mapping_code
     """
@@ -143,8 +145,13 @@ def mapReads(option, reads, folder, name, STAR_exe, genomeDir, limitRAM_option, 
     cmd = "%s --genomeDir %s --runThreadN %s " %(STAR_exe, genomeDir, num_threads)
     cmd = cmd + "--limitBAMsortRAM %s --outFileNamePrefix %s " %(limitRAM_option, folder + '/')
 
+    if multimapping:
+        cmd = cmd + " --outFilterMultimapNmax 10 "
+    else:
+        cmd = cmd + " --outFilterMultimapNmax 1 "
+
     ## some common options
-    cmd = cmd + "--alignSJDBoverhangMin 1000 --outFilterMultimapNmax 1 --outFilterMismatchNoverLmax 0.03 "
+    cmd = cmd + "--alignSJDBoverhangMin 1000 --outFilterMismatchNoverLmax 0.03 "
     cmd = cmd + "--outFilterScoreMinOverLread 0 --outFilterMatchNminOverLread 0 --outFilterMatchNmin 16 "
     cmd = cmd + "--alignIntronMax 1 --outSAMheaderHD @HD VN:1.4 SO:coordinate --outSAMtype BAM SortedByCoordinate "
     

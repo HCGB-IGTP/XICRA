@@ -38,7 +38,7 @@ def run_mapping(options):
 
 #########################################
 def mapReads_module_STAR(options, pd_samples_retrieved, outdir_dict, Debug, 
-                    max_workers_int, threads_job, start_time_partial, outdir):
+                    max_workers_int, threads_job, start_time_partial, outdir, multimapping):
     
     """Organizes the mapping of the samples, executed in parallel.
 
@@ -113,7 +113,7 @@ def mapReads_module_STAR(options, pd_samples_retrieved, outdir_dict, Debug,
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers_int) as executor:
         commandsSent = { executor.submit(mapReads_caller_STAR, sorted(cluster["sample"].tolist()), 
                                          outdir_dict[name], name, threads_job, STAR_exe, 
-                                         options.genomeDir, options.limitRAM, Debug): name for name, cluster in sample_frame }
+                                         options.genomeDir, options.limitRAM, Debug, multimapping): name for name, cluster in sample_frame }
 
         for cmd2 in concurrent.futures.as_completed(commandsSent):
             details = commandsSent[cmd2]
@@ -136,12 +136,16 @@ def mapReads_module_STAR(options, pd_samples_retrieved, outdir_dict, Debug,
     start_time_partial = time_functions.timestamp(start_time_partial)
 
     ## retrieve mapping files
-    input_dir = os.path.abspath(options.input)
+    if options.detached:
+        input_dir = outdir
+    else:
+        input_dir = os.path.abspath(options.input)
+    
     results_SampleParser = sampleParser.files.get_files(options, input_dir, "map", ["Aligned.sortedByCoord.out.bam"], options.debug, bam=True)
     del results_SampleParser['dirname']
     del results_SampleParser['ext']
     del results_SampleParser['tag']
-    del results_SampleParser['new_name']
+    #del results_SampleParser['new_name']
 
     results_SampleParser = results_SampleParser.set_index('name')
     mapping_results = results_SampleParser.to_dict()['sample']
@@ -174,7 +178,7 @@ def mapReads_module_STAR(options, pd_samples_retrieved, outdir_dict, Debug,
     return(start_time_partial, mapping_results)
 
 #################################
-def mapReads_caller_STAR(files, folder, name, threads, STAR_exe, genomeDir, limitRAM_option, Debug):
+def mapReads_caller_STAR(files, folder, name, threads, STAR_exe, genomeDir, limitRAM_option, Debug, multimapping):
     """Mapping of a given sample with STAR
 
     First, checks if the trimmed unjoined files exist for the sample and also
@@ -190,8 +194,8 @@ def mapReads_caller_STAR(files, folder, name, threads, STAR_exe, genomeDir, limi
     :param genomeDir: path to the genome directory to do the mappig
     :param limitRAM_option: limit RAM bytes to be used in the computation
     :param Debug: show extra information of the process
-
-
+    :param multimapping: Flag to say whether to use multimapping reads or not
+    
     :type folder: string
     :type name: string
     :type threads: int 
@@ -199,6 +203,7 @@ def mapReads_caller_STAR(files, folder, name, threads, STAR_exe, genomeDir, limi
     :type genomeDir: string
     :type limitRAM_option: int
     :type Debug: boolean
+    :type multimapping: boolean
 
     :returns: None
     """
@@ -222,7 +227,7 @@ def mapReads_caller_STAR(files, folder, name, threads, STAR_exe, genomeDir, limi
             print (files)
             
         # Call STAR
-        code_returned = STAR_caller.mapReads("LoadAndKeep", files, folder, name, STAR_exe, genomeDir, limitRAM_option, threads, Debug)
+        code_returned = STAR_caller.mapReads("LoadAndKeep", files, folder, name, STAR_exe, genomeDir, limitRAM_option, threads, Debug, multimapping)
         
         if (code_returned):
             time_functions.print_time_stamp(filename_stamp)
