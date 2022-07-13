@@ -8,7 +8,6 @@ import argparse
 import os
 import sys
 import XICRA.modules
-from email.policy import default
 
 ## initiate parser
 parser = argparse.ArgumentParser(prog='XICRA', description='Paired-end small RNA sequence analysis pipeline.'
