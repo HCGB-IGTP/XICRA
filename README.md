@@ -37,24 +37,41 @@ Unfortunately, a couple of executables are not available neither as a `conda` or
 
 To create a new conda environment, install third party software, install XICRA and missing dependencies, do as follows:
 
+
 ```sh
-## clone repo
-git clone https://github.com/HCGB-IGTP/XICRA.git
+1) Get requirements file from XICRA git repo
 
-## move to folder
-cd XICRA
+```sh
+wget https://raw.githubusercontent.com/HCGB-IGTP/XICRA/master/XICRA_pip/devel/conda/environment.yml
+```
 
-## create conda environemt
-conda env create -n XICRA -f XICRA_pip/devel/conda/requirements.txt
+2) Create environment and install required packages using conda: 
 
+```sh
+conda env create -n XICRA -f environment.yml
+```
+
+3) Activate environment and install XICRA
+```sh
 ## activate
 conda activate XICRA
 
 ## install latest python code
 pip install XICRA
+```
 
+4) Install missing software:  Unfortunately, a couple of executables are not available neither as a `conda` or `pip` packages. These packages are `miraligner` and `sRNAbench`. We have generated a `shell` script to retrieve and include within your `conda environment`.
+
+```sh
 ## install missing software
-sh XICRA_pip/XICRA/config/software/installer.sh
+wget https://raw.githubusercontent.com/HCGB-IGTP/XICRA/master/XICRA_pip/XICRA/config/software/installer.sh
+sh installer.sh
+```
+
+To check everything is fine, try executing the `config` module:
+
+```sh
+XICRA config
 ```
 
 To check everything is fine, try executing the `config` module:
@@ -94,7 +111,7 @@ See a brief example on how to install and run XICRA [here](https://github.com/HC
 
 MIT License
 
-Copyright (c) 2020 HCGB-IGTP
+Copyright (c) 2020-2022 HCGB-IGTP
 
 See additional details [here](XICRA_pip/LICENSE)
 

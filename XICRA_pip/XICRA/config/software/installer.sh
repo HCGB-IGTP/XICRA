@@ -37,6 +37,14 @@ echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++ "
 wget https://github.com/lpantano/seqbuster/raw/miraligner/modules/miraligner/miraligner.jar
 echo ""
 
+echo ""
+echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++ "
+echo "## Downloading MINTmap"
+echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++ "
+wget -O MINTmap-v2.0-alpha.zip "https://cm.jefferson.edu/?smd_process_download=1&download_id=8044"
+unzip MINTmap-v2.0-alpha.zip
+pip install markupsafe==2.0.1
+pip install MINTmap-v2.0-alpha/dist/MINTmap-2.0a0-py3-none-any.whl
 
 echo ""
 ## mv files to conda enviornment folder

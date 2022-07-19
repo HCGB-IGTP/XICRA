@@ -15,6 +15,6 @@ optimir,,,na,optimir
 miraligner,,,na,miraligner.jar
 STAR,--version,([0-9\.]+).*,2.6.1,STAR
 featureCounts,-v,v([0-9\.]+).*,1.5.1,featureCounts
-MINTmap,,,na,MINTmap.pl
+MINTmap,,,na,MINTmap
 bedtools,-h,v([0-9\.]+).*,2.29.2,bedtools
 samtools,--version,samtools ([0-9\.]+).*,1.12,samtools

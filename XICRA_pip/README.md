@@ -59,30 +59,13 @@ pip install XICRA
 
 ```sh
 ## install missing software
-sh XICRA_pip/XICRA/config/software/installer.sh
+wget https://raw.githubusercontent.com/HCGB-IGTP/XICRA/master/XICRA_pip/XICRA/config/software/installer.sh
+sh installer.sh
 ```
 
 To check everything is fine, try executing the `config` module:
 ```sh
 XICRA config
-```
-
-### Python environment
-
-If you are not using a `conda` environment as you might have previously installed all dependencies, we encourage you to create a python environment containing all python modules required for XICRA. See as an example this code:
-
-```sh
-## create enviroment
-python3 -m venv XICRA_env
-
-## activate it
-source XICRA_env/bin/activate
-
-## install XICRA and dependencies
-pip install XICRA
-
-## execute XICRA
-XICRA -h
 ```
 
 ## Documentation
@@ -121,7 +104,7 @@ See a brief example on how to install and run XICRA [here](https://github.com/HC
 
 MIT License
 
-Copyright (c) 2020 HCGB-IGTP
+Copyright (c) 2020-2022 HCGB-IGTP
 
 See additional details [here](XICRA_pip/LICENSE)
 
