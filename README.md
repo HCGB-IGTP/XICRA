@@ -25,7 +25,7 @@ See additional details on the code [here](https://github.com/HCGB-IGTP/XICRA/tre
 
 ### Installation
 
-XICRA will require python v3.6 and java (we tested in openjdk 14 2020-03-17).
+XICRA will require python v3.7 and java (we tested in openjdk 14 2020-03-17).
 
 The XICRA python pipeline is available in `pip` and also available using `conda`.   
 
@@ -37,18 +37,16 @@ Unfortunately, a couple of executables are not available neither as a `conda` or
 
 To create a new conda environment, install third party software, install XICRA and missing dependencies, do as follows:
 
-
-```sh
 1) Get requirements file from XICRA git repo
 
 ```sh
 wget https://raw.githubusercontent.com/HCGB-IGTP/XICRA/master/XICRA_pip/devel/conda/environment.yml
 ```
 
-2) Create environment and install required packages using conda: 
+2) Create environment named XICRA and install required packages using conda: 
 
 ```sh
-conda env create -n XICRA -f environment.yml
+conda env create -f environment.yml
 ```
 
 3) Activate environment and install XICRA
@@ -60,7 +58,7 @@ conda activate XICRA
 pip install XICRA
 ```
 
-4) Install missing software:  Unfortunately, a couple of executables are not available neither as a `conda` or `pip` packages. These packages are `miraligner` and `sRNAbench`. We have generated a `shell` script to retrieve and include within your `conda environment`.
+4) Install missing software:  Unfortunately, a couple of executables are not available neither as a `conda` or `pip` packages. These packages are `miraligner`, `sRNAbench` and 'MINTmap'. We have generated a `bash` script to retrieve and include within your `conda environment`.
 
 ```sh
 ## install missing software
@@ -69,15 +67,11 @@ sh installer.sh
 ```
 
 To check everything is fine, try executing the `config` module:
-
 ```sh
 XICRA config
 ```
 
-To check everything is fine, try executing the `config` module:
-```sh
-XICRA config
-```
+
 
 On the other hand, if you might have already installed software and available within your path, you might only need to install it using the [XICRA pip](https://pypi.org/project/XICRA/) module. We encourage you to installed it within a python environment. See as an example the description [here](https://github.com/HCGB-IGTP/XICRA/blob/master/XICRA_pip/README.md#python-environment)
  
