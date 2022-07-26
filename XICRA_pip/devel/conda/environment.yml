@@ -20,6 +20,9 @@ dependencies:
   - cairo=1.16.0=h18b612c_1001
   - certifi=2022.6.15=py37h89c1867_0
   - curl=7.76.1=h979ede3_1
+  - cutadapt=1.18=py37h14c3975_1
+  - fastqc=0.11.9=hdfd78af_1
+  - font-ttf-dejavu-sans-mono=2.37=hab24e00_0
   - fontconfig=2.13.1=h6c09931_0
   - freetype=2.10.4=h0708190_1
   - fribidi=1.0.10=h36c2ea0_0
@@ -73,6 +76,8 @@ dependencies:
   - lz4-c=1.9.3=h9c3ff4c_1
   - make=4.3=hd18ef5c_1
   - ncurses=6.2=he6710b0_1
+  - numpy=1.21.1=py37h038b26d_0
+  - openjdk=8.0.332=h166bdaf_0
   - openssl=1.1.1k=h7f98852_0
   - optimir=1.2=pyh5e36f6f_0
   - pango=1.42.4=h7062337_4
@@ -82,6 +87,7 @@ dependencies:
   - pip=21.0.1=py37h06a4308_0
   - pixman=0.38.0=h516909a_1003
   - pthread-stubs=0.4=h36c2ea0_1001
+  - pysam=0.16.0.1=py37h45aed0b_3
   - python=3.7.11=h12debd9_0
   - python_abi=3.7=2_cp37m
   - r-assertthat=0.2.1=r35h6115d3f_1
