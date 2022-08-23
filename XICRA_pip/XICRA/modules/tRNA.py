@@ -25,6 +25,7 @@ from HCGB import sampleParser
 from HCGB import functions
 from XICRA.config import set_config
 from XICRA.modules import help_XICRA
+from XICRA.modules import database
 from XICRA.scripts import generate_DE
 from XICRA.scripts import MINTMap_caller
 
