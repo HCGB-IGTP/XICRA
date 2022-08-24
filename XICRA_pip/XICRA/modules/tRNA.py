@@ -128,8 +128,8 @@ def run_tRNA(options):
     print ("+ Create folder to store results: ", options.database)
     functions.files_functions.create_folder(options.database)
     
-    ## call database module and return tRNA databse generated or updated
-    options.tRNA_db = database.tRNA_db(options.database, options.tRNA_db, options.debug)    
+    ## call database module and return tRNA database generated or updated
+    options.tRNA_db = database.tRNA_db(options.database, options.debug)    
     
     ##############################################################
     ## Start the analysis

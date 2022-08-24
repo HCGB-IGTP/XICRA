@@ -152,8 +152,6 @@ def run_miRNA(options):
     ## call database module and return options updated
     options = database.miRNA_db(options)    
     
-
-    
     ##############################################################
     ## Start the analysis
     ##############################################################
@@ -190,7 +188,7 @@ def run_miRNA(options):
         commandsSent = { executor.submit(miRNA_analysis, sorted(cluster["sample"].tolist()), 
                                          outdir_dict[name], name, threads_job, options.miRNA_gff,
                                          options.soft_name, options.matureFasta, options.hairpinFasta, 
-                                         options.miRBase_str, options.species, options.database, Debug): name for name, cluster in sample_frame }
+                                         options.miRBase_str, options.species, options.miRNA_db, Debug): name for name, cluster in sample_frame }
 
         for cmd2 in concurrent.futures.as_completed(commandsSent):
             details = commandsSent[cmd2]

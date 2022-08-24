@@ -124,7 +124,7 @@ def miRNA_db(options):
             options.hairpinFasta = os.path.abspath(options.hairpinFasta)
         else:
             print ("\t+ hairpin fasta file available")
-            options.miRNA_gff = miRBase_files_dict['hairpin.fa']
+            options.hairpinFasta = miRBase_files_dict['hairpin.fa']
             
    
     ## -------------------------------
@@ -168,40 +168,39 @@ def miRNA_db(options):
     return (options)    
 
 ##############################################
-def tRNA_db(database, tRNA_db, debug):
+def tRNA_db(database, debug):
     
     print ("+ Create folder to store several databases: ", database)
     functions.files_functions.create_folder(database)
     
-    if not tRNA_db:
-        tRNA_db = os.path.join(database, "tRNA_db")
+    tRNA_db = os.path.join(database, "tRNA_db")
+    if os.path.isdir(tRNA_db):
+        code = check_tRNA_db(tRNA_db)
+        if code:
+            return tRNA_db
     
+    ## If missing, download them, if all files ok, return!
     print ("+ Create folder to store tRNA information: ", tRNA_db)
     functions.files_functions.create_folder(tRNA_db)
     
-    ## First check if already provided files
-    list_files = functions.main_functions.get_fullpath_list(tRNA_db, debug)
     
+     
+    ## folder and database generated   
+    return (tRNA_db)
+
+##############################################
+def check_tRNA_db(path2test):
     ## Check for
     # LookupTable.tRFs.MINTmap_v2.txt
     # OtherAnnotations.MINTmap_v2.txt
     # tRNAspace.Spliced.Sequences.With49ntFlank.MINTmap_v2.fa
     # tables.cfg
     
-    ## If missing, download them, if all files ok, return!
-    ## TODO    
+    ## First check if already provided files
+    list_files = functions.main_functions.get_fullpath_list(tRNA_db, debug)
     
-    ## Download information
-    ## github repo data: https://github.com/TJU-CMC-Org/MINTmap/tree/release/v2.0-alpha/src/mintmap/mappingbundle/v2
-    files = ["https://raw.githubusercontent.com/TJU-CMC-Org/MINTmap/release/v2.0-alpha/src/mintmap/mappingbundle/v2/LookupTable.tRFs.MINTmap_v2.txt",
-             "https://raw.githubusercontent.com/TJU-CMC-Org/MINTmap/release/v2.0-alpha/src/mintmap/mappingbundle/v2/OtherAnnotations.MINTmap_v2.txt",
-             "https://raw.githubusercontent.com/TJU-CMC-Org/MINTmap/release/v2.0-alpha/src/mintmap/mappingbundle/v2/tRNAspace.Spliced.Sequences.With49ntFlank.MINTmap_v2.fa",
-             "https://raw.githubusercontent.com/TJU-CMC-Org/MINTmap/release/v2.0-alpha/src/mintmap/mappingbundle/v2/tables.cfg"
-             ]
-     
-    ## folder generated   
-    return (tRNA_db)
-    
+    print()
+    return True
 
 ##############################################
 def piRNA_db(database, piRNA_db, debug):
