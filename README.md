@@ -71,7 +71,20 @@ To check everything is fine, try executing the `config` module:
 XICRA config
 ```
 
+To additionally check XICRA is working try to run a test example which is available within XICRA git repository 
 
+```
+cd XICRA_pip/test_subset/
+sh test_subset.sh
+```
+
+or available to download by executing the following command:
+
+```
+wget ...
+sh downloader_test_subset.sh
+sh test_subset.sh
+```
 
 On the other hand, if you might have already installed software and available within your path, you might only need to install it using the [XICRA pip](https://pypi.org/project/XICRA/) module. We encourage you to installed it within a python environment. See as an example the description [here](https://github.com/HCGB-IGTP/XICRA/blob/master/XICRA_pip/README.md#python-environment)
  
