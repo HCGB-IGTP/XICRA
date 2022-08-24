@@ -8,6 +8,7 @@ dependencies:
   - _libgcc_mutex=0.1=main
   - _openmp_mutex=4.5=1_gnu
   - _r-mutex=1.0.1=anacondar_1
+  - bedtools=2.30.0=h7d7f7ad_1
   - binutils_impl_linux-64=2.33.1=he6710b0_7
   - binutils_linux-64=2.33.1=h9595d00_15
   - biopython=1.79=py37h5e8e339_0
@@ -156,6 +157,7 @@ dependencies:
   - setuptools=58.0.4=py37h06a4308_0
   - sqlite=3.36.0=hc218d9a_0
   - star=2.7.9a=h9ee0642_0
+  - subread=2.0.1=h5bf99c6_1
   - sysroot_linux-64=2.12=he073ed8_15
   - tk=8.6.11=h1ccaba5_0
   - tktable=2.10=hb7b940f_3
