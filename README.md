@@ -58,7 +58,7 @@ conda activate XICRA
 pip install XICRA
 ```
 
-4) Install missing software:  Unfortunately, a couple of executables are not available neither as a `conda` or `pip` packages. These packages are `miraligner`, `sRNAbench` and 'MINTmap'. We have generated a `bash` script to retrieve and include within your `conda environment`.
+4) Install missing software:  Unfortunately, a couple of executables are not available neither as a `conda` or `pip` packages. These packages are `miraligner`, `sRNAbench` and `MINTmap`. We have generated a `bash` script to retrieve and include within your `conda environment`.
 
 ```sh
 ## install missing software
