@@ -1,0 +1,18 @@
+# I used example reads provided from MintMAP v2 to create random susbets
+# https://cm.jefferson.edu/mintmap/
+# https://cm.jefferson.edu/?smd_process_download=1&download_id=8044
+
+for i in {1..5}; 
+do 
+	sample="s"$i".fastq.gz"; 
+	echo "seqtk sample -s"$i" MINTmap-v2.0-alpha/ExampleRun/exampleInput.trimmed.fastq.gz 20000 | gzip > $sample"; 
+done
+
+seqtk sample -s1 MINTmap-v2.0-alpha/ExampleRun/exampleInput.trimmed.fastq.gz 20000 | gzip > s1.fastq.gz
+seqtk sample -s2 MINTmap-v2.0-alpha/ExampleRun/exampleInput.trimmed.fastq.gz 20000 | gzip > s2.fastq.gz
+seqtk sample -s3 MINTmap-v2.0-alpha/ExampleRun/exampleInput.trimmed.fastq.gz 20000 | gzip > s3.fastq.gz
+seqtk sample -s4 MINTmap-v2.0-alpha/ExampleRun/exampleInput.trimmed.fastq.gz 20000 | gzip > s4.fastq.gz
+seqtk sample -s5 MINTmap-v2.0-alpha/ExampleRun/exampleInput.trimmed.fastq.gz 20000 | gzip > s5.fastq.gz
+
+# Use random seed each time to create different susbsets
+
