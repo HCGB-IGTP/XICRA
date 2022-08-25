@@ -170,6 +170,13 @@ def miRNA_db(options):
 ##############################################
 def tRNA_db(database, debug):
     
+    ## Mintmap automatically installs and generates database in python path
+    ## ../anaconda3/envs/XICRA/lib/python3.7/site-packages/mintmap/mappingbundle/v2/
+    
+    return True
+
+    # We can try to check if it correctly generated...
+    ## TODO
     print ("+ Create folder to store several databases: ", database)
     functions.files_functions.create_folder(database)
     
@@ -184,7 +191,7 @@ def tRNA_db(database, debug):
     functions.files_functions.create_folder(tRNA_db)
     
     
-     
+    
     ## folder and database generated   
     return (tRNA_db)
 
@@ -197,7 +204,7 @@ def check_tRNA_db(path2test):
     # tables.cfg
     
     ## First check if already provided files
-    list_files = functions.main_functions.get_fullpath_list(tRNA_db, debug)
+    list_files = functions.main_functions.get_fullpath_list(path2test, debug)
     
     print()
     return True
