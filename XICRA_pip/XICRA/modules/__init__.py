@@ -11,7 +11,8 @@ __all__ = [
 	'trim',
 	'tRNA',
 	'piRNA',
-	'map'
+	'map',
+	'test'
 	
 ]
 

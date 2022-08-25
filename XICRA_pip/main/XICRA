@@ -42,10 +42,24 @@ subparser_config.add_argument("--debug", action="store_true", help="Show additio
 subparser_config.set_defaults(func=XICRA.modules.config.run_config)
 ##-------------------------------------------------------------##
 
+####################
+#### Test XICRA ####
+####################
+##------------------------------ test ---------------------- ##
+subparser_test = subparsers.add_parser(
+    'test',
+    help='Test the pipeline',
+    description='Test XICRA pipeline with real/simulated data examples.',
+)
+subparser_test.add_argument("--debug", action="store_true", help="Show additional message for debugging purposes.")
+subparser_test.set_defaults(func=XICRA.modules.test.run_test)
+##-------------------------------------------------------------##
+
+
+
 ## add fake module blank to add space
 subparser_space = subparsers.add_parser(' ', help='')
 ##-------------------------------------------------------------##
-
 
 #########################
 #### Prepare samples ####

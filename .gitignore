@@ -28,3 +28,5 @@ XICRA_pip/XICRA/modules/db_files/
 
 ## test subset
 XICRA_pip/test_subset
+subset2test/XICRA*
+subset2test/logs

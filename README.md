@@ -74,15 +74,14 @@ XICRA config
 To additionally check XICRA is working try to run a test example which is available within XICRA git repository 
 
 ```
-cd XICRA_pip/test_subset/
+cd subset2test/
 sh test_subset.sh
 ```
 
 or available to download by executing the following command:
 
 ```
-wget ...
-sh downloader_test_subset.sh
+XICRA test
 sh test_subset.sh
 ```
 

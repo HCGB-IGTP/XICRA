@@ -353,7 +353,9 @@ def get_python_packages(Debug):
 	## get import names for packages:
 	## some modules do not have the same name when install from pip and called from import
 	file_module_dependecies = extern_progs.file_list("python_requirements")
-	print(file_module_dependecies)
+	
+	if Debug:
+		print(file_module_dependecies)
 	module_dependencies = functions.main_functions.file2dictionary(file_module_dependecies, ',')
 
 	my_packages_installed = {}
