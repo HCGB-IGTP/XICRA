@@ -10,3 +10,4 @@ HCGB
 future
 networkx
 numpy
+gitdir
