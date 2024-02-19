@@ -342,7 +342,7 @@ def get_python_packages(Debug):
 	"""
 	Retrieves the version of the python packages installed in the system.
 
-	It retrieves the dependencies name conversion from file :file:`XICRA/config/python/module_dependencies.csv`
+	It retrieves the dependencies name conversion from file :file:`XICRA/config/python/python_requirements.csv`
 	using function :func:`XICRA.config.extern_progs.file_list` and :func:`XICRA.scripts.functions.main_functions.get_data`.
 	For each module it retrieves the package version installed in the system using 
 	:func:`XICRA.config.set_config.check_package_version`.	

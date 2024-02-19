@@ -96,7 +96,7 @@ def run_biotype(options):
     
     ## get files
     print ('+ Getting files from input folder... ')
-       
+    
     ## get files: use joined reads if paired-end data
     if options.pair:
         options.pair = False ## set paired-end to false for further prepocessing
@@ -104,18 +104,22 @@ def run_biotype(options):
             print ('+ Mode: fastq.\n+ Extension: ')
             print ("[ fastq, fq, fastq.gz, fq.gz ]\n")
             pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ["fastq", "fq", "fastq.gz", "fq.gz"], options.debug)
+        elif options.noJoin:
+            print ('+ Mode: fastq.\n+ Extension: ')
+            print ("[ fastq, fq, fastq.gz, fq.gz ]\n")
+            pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "trim", ["_trim"], options.debug)
         else:
             print ('+ Mode: join.\n+ Extension: ')
             print ("[_joined.fastq]\n")
-            pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "join", ['_joined.fastq'], options.debug)
+            pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "join", ['trim_joined.fastq'], options.debug)
     else:
         if options.noTrim:
             print ('+ Mode: fastq.\n+ Extension: ')
             print ("[ fastq, fq, fastq.gz, fq.gz ]\n")
             pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "fastq", ["fastq", "fq", "fastq.gz", "fq.gz"], options.debug)
         else:
-            print ('+ Mode: join.\n+ Extension: ')
-            print ("[_joined.fastq]\n")
+            print ('+ Mode: trim.\n+ Extension: ')
+            print ("[_trim.fastq]\n")
             pd_samples_retrieved = sampleParser.files.get_files(options, input_dir, "trim", ['_trim'], options.debug)
     
     ## debug message

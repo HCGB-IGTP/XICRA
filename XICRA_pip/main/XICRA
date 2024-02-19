@@ -8,6 +8,8 @@ import argparse
 import os
 import sys
 import XICRA.modules
+import HCGB.functions.aesthetics_functions as HCGB_aes
+
 
 ## initiate parser
 parser = argparse.ArgumentParser(prog='XICRA', description='Paired-end small RNA sequence analysis pipeline.'
@@ -232,6 +234,7 @@ options_group_RNAbiotype.add_argument("-t", "--threads", type=int, help="Number 
 options_group_RNAbiotype.add_argument("--annotation", help="Reference genome annotation in GTF format.", required=True)
 options_group_RNAbiotype.add_argument("--limitRAM", type=int, help="limitRAM parameter for STAR mapping. Default 20 Gbytes.", default=20000000000)
 options_group_RNAbiotype.add_argument("--noTrim", action='store_true', help="Use non-trimmed reads [or not containing '_trim' in the name].")
+options_group_RNAbiotype.add_argument("--noJoin", action='store_true', help="Use paired-end trimmed reads for the assignment of biotypes.")
 options_group_RNAbiotype.add_argument("--skip_report", action="store_true", help="Do not report statistics using MultiQC report module [Default OFF]. See details in --help_multiqc")
 options_group_RNAbiotype.add_argument("--database", help="Path to store annotation files downloaded, converted, etc")
 
@@ -395,5 +398,8 @@ args = parser.parse_args()
 if hasattr(args, 'func'):
     args.func(args)
 else:
+    HCGB_aes.pipeline_header('XICRA')
+    print("")
+    
     parser.print_help()
 

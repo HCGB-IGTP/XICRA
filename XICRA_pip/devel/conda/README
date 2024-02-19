@@ -3,6 +3,8 @@ conda activate XICRA_devel
 conda install -c bioconda -c defaults -c r -c conda-forge -c jfsanchezherrero fastqc mirtop optimir star fastq-join subread r-base r-ggplot2 r-optparse r-rcolorbrewer r-reshape r-stringr r-xicra.stats r-optparse
 conda list -e > requirements.txt
 
+## mintmap is installed via pip
+
 ## Install XICRA
 
 # from pip
