@@ -40,7 +40,7 @@ To create a new conda environment, install third party software, install XICRA a
 1) Get requirements file from XICRA git repo
 
 ```sh
-wget https://raw.githubusercontent.com/HCGB-IGTP/XICRA/master/XICRA_pip/devel/conda/latest_environment.yml
+wget https://raw.githubusercontent.com/HCGB-IGTP/XICRA/master/XICRA_pip/devel/conda/environment.yml
 ```
 
 2) Create environment named XICRA and install required packages using conda: 
