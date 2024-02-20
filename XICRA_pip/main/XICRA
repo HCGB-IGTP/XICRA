@@ -19,8 +19,8 @@ subparsers = parser.add_subparsers(title='Available modules', help='', metavar='
 
 ## help options list
 help_options = ('--help_format',
-				'--help_project',
-				'--help_trimm_adapters',
+		'--help_project',
+		'--help_trimm_adapters',
                 '--help_join_reads',
                 '--help_miRNA',
                 '--help_tRNA',
@@ -56,7 +56,6 @@ subparser_test = subparsers.add_parser(
 subparser_test.add_argument("--debug", action="store_true", help="Show additional message for debugging purposes.")
 subparser_test.set_defaults(func=XICRA.modules.test.run_test)
 ##-------------------------------------------------------------##
-
 
 
 ## add fake module blank to add space
@@ -210,7 +209,7 @@ subparser_map.set_defaults(func=XICRA.modules.map.run_mapping)
 
 
 ## space
-subparser_space = subparsers.add_parser(' ', help='')
+subparser_space = subparsers.add_parser('   ', help='')
 
 ##------------------------------ RNAbiotype ----------------------- ##
 subparser_RNAbiotype = subparsers.add_parser(
@@ -257,7 +256,7 @@ subparser_RNAbiotype.set_defaults(func=XICRA.modules.biotype.run_biotype)
 ##-------------------------------------------------------------##
 
 ## space
-subparser_space = subparsers.add_parser(' ', help='')
+subparser_space = subparsers.add_parser('  ', help='')
 
 ##------------------------------ miRNA ----------------------- ##
 subparser_miRNA = subparsers.add_parser(
@@ -382,7 +381,7 @@ subparser_piRNA.set_defaults(func=XICRA.modules.piRNA.run_piRNA)
 ##-------------------------------------------------------------##
 
 ## space
-subparser_space = subparsers.add_parser(' ', help='')
+subparser_space = subparsers.add_parser('     ', help='')
 
 ##--------------------------- citation ------------------------##
 subparser_citation = subparsers.add_parser(

@@ -10,13 +10,7 @@ Show a description of piRNA molecules here: http://pirnabank.ibab.ac.in/about.ht
 """
 ## import useful modules
 import os
-import sys
-import re
 import time
-from io import open
-import shutil
-import concurrent.futures
-import pandas as pd
 from termcolor import colored
 
 ## import my modules
@@ -27,7 +21,6 @@ import HCGB.functions.aesthetics_functions as HCGB_aes
 import HCGB.functions.time_functions as HCGB_time
 import HCGB.functions.main_functions as HCGB_main
 
-from XICRA.config import set_config
 from XICRA.modules import help_XICRA, map, database
 from XICRA.scripts import pilfer_caller
 
@@ -148,7 +141,7 @@ def run_piRNA(options):
         ## generate output folder, if necessary
         print ("\n+ Create output folder(s):")
         if not options.project:
-            files_functions.create_folder(outdir)
+            HCGB_files.create_folder(outdir)
     
         ## for samples
         mapping_outdir_dict = HCGB_files.outdir_project(outdir, options.project, pd_samples_retrieved, "map", options.debug)
@@ -235,12 +228,14 @@ def run_piRNA(options):
     ## for each sample do piRNA analysis
     for name, cluster in sample_frame:
         if Debug:
-            print(name)
+            print(name[0])
             print(cluster)
             
         ## send for each sample        
-        piRNA_analysis(sorted(cluster["sample"].tolist())[0], outdir_dict[name], name, threads_job, 
-                                         options.soft_name, options.species, options.database, Debug)
+        piRNA_analysis(sorted(cluster["sample"].tolist())[0], outdir_dict[name[0]], 
+                       name[0], threads_job, 
+                       options.soft_name, 
+                       options.species, options.database, Debug)
 
     ## outdir
     outdir_report = HCGB_files.create_subfolder("report", outdir)

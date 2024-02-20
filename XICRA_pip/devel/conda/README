@@ -1,3 +1,4 @@
+#### python 3.7
 conda create -n XICRA_devel python==3.7.10
 conda activate XICRA_devel
 conda install -c bioconda -c defaults -c r -c conda-forge -c jfsanchezherrero fastqc mirtop optimir star fastq-join subread r-base r-ggplot2 r-optparse r-rcolorbrewer r-reshape r-stringr r-xicra.stats r-optparse
@@ -13,3 +14,21 @@ pip install XICRA
 # from source
 cd ../..
 sh devel/pip/test_module.sh
+
+
+
+### python >3.8
+# There is a modification in the way pandas.groupby works and now the keys are tuple with 1 or several items ??
+# The variable we use to groupby now is returned as a tuple. We will only need the first element in the tuple.
+
+# All the code and some functions on HCGB depend on that and need to be tested and debugged.
+
+conda create -n test python
+#install python3.12
+
+conda install -y -c conda-forge -c bioconda fastqc star fastq-join subread
+pip install XICRA
+
+sh XICRA_pip/XICRA/config/software/installer.sh
+
+## MINTmap produces errors and optimir was discarded as no longer supported or unavailable in conda

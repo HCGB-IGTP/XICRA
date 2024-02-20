@@ -11,11 +11,7 @@ It shows results unifiying formats by using the miRTop nomenclature.
 """
 ## import useful modules
 import os
-import sys
-import re
 import time
-from io import open
-import shutil
 import concurrent.futures
 import pandas as pd
 from termcolor import colored
@@ -23,9 +19,7 @@ from termcolor import colored
 ## import my modules
 from HCGB import sampleParser
 from HCGB import functions
-from XICRA.config import set_config
 from XICRA.modules import help_XICRA
-from XICRA.modules import database
 from XICRA.scripts import generate_DE
 from XICRA.scripts import MINTMap_caller
 
@@ -175,9 +169,10 @@ def run_tRNA(options):
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers_int) as executor:
         commandsSent = { executor.submit(tRNA_analysis, 
                                          sorted(cluster["sample"].tolist()), 
-                                         outdir_dict[name], name, threads_job, 
+                                         outdir_dict[name[0]], name[0], threads_job, 
                                          options.soft_name, options.species, 
-                                         options.database, Debug): name for name, cluster in sample_frame }
+                                         options.database, 
+                                         Debug): name[0] for name, cluster in sample_frame }
 
         for cmd2 in concurrent.futures.as_completed(commandsSent):
             details = commandsSent[cmd2]
@@ -218,7 +213,7 @@ def run_tRNA(options):
         generate_DE.generate_DE(results_df, options.debug, expression_folder,  type_analysis="tRNA")
 
     print ("\n*************** Finish *******************")
-    start_time_partial = functions.time_functions.timestamp(start_time_total)
+    functions.time_functions.timestamp(start_time_total)
     print ("\n+ Exiting tRNA module.")
     return()
 

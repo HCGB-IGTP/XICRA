@@ -3,16 +3,11 @@
 ## Jose F. Sanchez                                        ##
 ## Copyright (C) 2019-2020 Lauro Sumoy Lab, IGTP, Spain   ##
 ############################################################
-import time
-import io
 import os
 import re
 import sys
-from io import open
-from sys import argv
 import pandas as pd
 import csv
-from termcolor import colored
 
 from HCGB import functions
 import HCGB.functions.aesthetics_functions as HCGB_aes
@@ -194,7 +189,7 @@ def generate_matrix(dict_files, soft_name, Debug, type_analysis="miRNA"):
 		elif "tRF" in type_analysis: ## tRF-amb; tRF-exc, tRF
 
 			if Debug:
-				HCGB_aes.debug_message(type_analysis + " analysis: ", color)
+				HCGB_aes.debug_message(type_analysis + " analysis: ")
 
 			## ------------------------------------------ ##
 			## Create matrix for tRNA results
@@ -224,21 +219,25 @@ def generate_matrix(dict_files, soft_name, Debug, type_analysis="miRNA"):
 		## sequence information
 		seq_data = data.filter(['UID', 'Read'], axis=1)	
 		seq_data = seq_data.set_index('UID')
-		seq_all_data = seq_all_data.append(seq_data, sort=True).drop_duplicates('Read')
-
-		## debugging messages
+        
+        ## debugging messages
 		if Debug:
-			print ("*** DEBUG: data for sample ***")
+			HCGB_aes.debug_message("Data for samples: " + sample)
 			print (new_data)
-		
+			HCGB_aes.debug_message("Sequence data for samples: " + sample)
+			print (seq_data)
+            
+		#seq_all_data = seq_all_data.append(seq_data, sort=True).drop_duplicates('Read')
+		seq_all_data = pd.concat([seq_all_data, seq_data], axis=1, sort=True).drop_duplicates('Read')
+        
 		all_data = pd.concat([all_data, new_data], axis=1, sort=True)
 
 	##
 	## debugging messages
 	if Debug:
-		print ("*** DEBUG: data for all samples ***")
+		HCGB_aes.debug_message("Data for all samples: ")
 		print (all_data)
-		print ("*** DEBUG: data for sequences all samples ***")
+		HCGB_aes.debug_message("Data for sequences all samples: ")
 		print (seq_all_data)
 	
 	return (all_data, seq_all_data)	

@@ -8,18 +8,13 @@ Creates Quality check sequence adapters within fastq reads.
 """
 ## import useful modules
 import os
-import sys
-import re
 import time
-from io import open
-import shutil
 import concurrent.futures
 from termcolor import colored
 
 ## import my modules
 from XICRA.scripts import multiQC_report
 from XICRA.scripts import fastqc_caller
-from XICRA.config import set_config
 from XICRA.modules import help_XICRA
 from HCGB import sampleParser
 from HCGB import functions
@@ -39,7 +34,7 @@ def run_QC(options):
         exit()
     elif (options.help_project):
         ## information for project
-        help_info.project_help()
+        help_XICRA.project_help()
         exit()
     elif (options.help_multiqc):
         ## information for Multiqc
@@ -89,7 +84,7 @@ def run_QC(options):
     fastqc(pd_samples_retrieved, outdir, options, "", start_time_total, Debug)
 
     print ("\n*************** Finish *******************")
-    start_time_partial = functions.time_functions.timestamp(start_time_total)
+    functions.time_functions.timestamp(start_time_total)
 
     print ("+ Exiting qc module.")
     exit()
@@ -157,8 +152,8 @@ def fastqc(pd_samples_retrieved, outdir, options, name_analysis, time_stamp, Deb
     print ("+ Calling fastqc for samples...")    
     with concurrent.futures.ThreadPoolExecutor(max_workers=int(max_workers_int)) as executor:
         commandsSent = { executor.submit(fastqc_caller.run_module_fastqc, 
-                                         outdir_dict[name], sorted( cluster["sample"].tolist() ), 
-                                         name, threads_job): name for name, cluster in sample_frame }
+                                         outdir_dict[name[0]], sorted( cluster["sample"].tolist() ), 
+                                         name[0], threads_job): name[0] for name, cluster in sample_frame }
         
         for cmd2 in concurrent.futures.as_completed(commandsSent):
             details = commandsSent[cmd2]

@@ -8,18 +8,14 @@ Trims sequence adapters within fastq reads.
 """
 ## import useful modules
 import os
-import sys
 import re
 import time
-from io import open
-import shutil
 import concurrent.futures
 from termcolor import colored
 
 ## import my modules
 from XICRA.scripts import multiQC_report
 from XICRA.scripts import cutadapt_caller
-from XICRA.config import set_config
 from XICRA.modules import help_XICRA
 from XICRA.modules import qc
 from HCGB import functions
@@ -157,8 +153,9 @@ def run_trim(options):
     ## send for each sample
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers_int) as executor:
         commandsSent = { executor.submit(cutadapt_caller.caller, sorted(cluster["sample"].tolist()), 
-                                         outdir_dict[name], name, threads_job, 
-                                         options.min_read_len, Debug, adapters_dict, options.extra): name for name, cluster in sample_frame }
+                                         outdir_dict[name[0]], name[0], threads_job, 
+                                         options.min_read_len, Debug, 
+                                         adapters_dict, options.extra): name[0] for name, cluster in sample_frame }
 
         for cmd2 in concurrent.futures.as_completed(commandsSent):
             details = commandsSent[cmd2]

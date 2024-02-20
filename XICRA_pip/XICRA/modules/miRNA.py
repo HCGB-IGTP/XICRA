@@ -10,11 +10,7 @@ formats by using the miRTop nomenclature.
 """
 ## import useful modules
 import os
-import sys
-import re
 import time
-from io import open
-import shutil
 import concurrent.futures
 import pandas as pd
 from termcolor import colored
@@ -23,7 +19,6 @@ from termcolor import colored
 from HCGB import sampleParser
 from HCGB import functions
 
-from XICRA.config import set_config
 from XICRA.modules import help_XICRA
 from XICRA.modules import database
 from XICRA.scripts import generate_DE
@@ -186,9 +181,10 @@ def run_miRNA(options):
     ## send for each sample
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers_int) as executor:
         commandsSent = { executor.submit(miRNA_analysis, sorted(cluster["sample"].tolist()), 
-                                         outdir_dict[name], name, threads_job, options.miRNA_gff,
+                                         outdir_dict[name[0]], name[0], threads_job, options.miRNA_gff,
                                          options.soft_name, options.matureFasta, options.hairpinFasta, 
-                                         options.miRBase_str, options.species, options.miRNA_db, Debug): name for name, cluster in sample_frame }
+                                         options.miRBase_str, options.species, 
+                                         options.miRNA_db, Debug): name[0] for name, cluster in sample_frame }
 
         for cmd2 in concurrent.futures.as_completed(commandsSent):
             details = commandsSent[cmd2]
@@ -224,7 +220,7 @@ def run_miRNA(options):
     generate_DE.generate_DE(results_df, options.debug, expression_folder)
 
     print ("\n*************** Finish *******************")
-    start_time_partial = functions.time_functions.timestamp(start_time_total)
+    functions.time_functions.timestamp(start_time_total)
     print ("\n+ Exiting miRNA module.")
     return()
 

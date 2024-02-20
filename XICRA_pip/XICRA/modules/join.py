@@ -8,11 +8,7 @@ Joins paired-end sequence reads that overlap.
 """
 ## import useful modules
 import os
-import sys
-import re
 import time
-from io import open
-import shutil
 import concurrent.futures
 from termcolor import colored
 
@@ -119,8 +115,8 @@ def run_join(options):
     ## send for each sample
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers_int) as executor:
         commandsSent = { executor.submit(fastqjoin_caller, sorted(cluster["sample"].tolist()), 
-                                         outdir_dict[name], name, threads_job, options.perc_diff,
-                                         Debug): name for name, cluster in sample_frame }
+                                         outdir_dict[name[0]], name[0], threads_job, options.perc_diff,
+                                         Debug): name[0] for name, cluster in sample_frame }
 
         for cmd2 in concurrent.futures.as_completed(commandsSent):
             details = commandsSent[cmd2]
@@ -137,7 +133,7 @@ def run_join(options):
     ##
 
     print ("\n*************** Finish *******************")
-    start_time_partial = functions.time_functions.timestamp(start_time_total)
+    functions.time_functions.timestamp(start_time_total)
     print ("\n+ Exiting join module.")
     return()
 

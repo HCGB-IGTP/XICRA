@@ -8,25 +8,15 @@ Create RNA biotype analysis using STAR and featureCounts
 """
 ## import useful modules
 import os
-import sys
-import re
-import time
-from io import open
-import shutil
 import concurrent.futures
-import pandas as pd
 from termcolor import colored
 
 ## import my modules
 from XICRA.config import set_config
-from XICRA.modules import help_XICRA
-from XICRA.scripts import RNAbiotype, STAR_caller, multiQC_report, get_length_distribution
-from XICRA.other_tools import tools
+from XICRA.scripts import STAR_caller, multiQC_report
 
 from HCGB import sampleParser
-from HCGB.functions import fasta_functions, time_functions
-from HCGB.functions import aesthetics_functions, system_call_functions
-from HCGB.functions import files_functions, main_functions
+from HCGB.functions import time_functions, files_functions
 
 ## set to use as a module
 ## allow multiple software to map
@@ -112,8 +102,9 @@ def mapReads_module_STAR(options, pd_samples_retrieved, outdir_dict, Debug,
     ## send for each sample
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers_int) as executor:
         commandsSent = { executor.submit(mapReads_caller_STAR, sorted(cluster["sample"].tolist()), 
-                                         outdir_dict[name], name, threads_job, STAR_exe, 
-                                         options.genomeDir, options.limitRAM, Debug, multimapping): name for name, cluster in sample_frame }
+                                         outdir_dict[name[0]], name[0], threads_job, STAR_exe, 
+                                         options.genomeDir, options.limitRAM, 
+                                         Debug, multimapping): name[0] for name, cluster in sample_frame }
 
         for cmd2 in concurrent.futures.as_completed(commandsSent):
             details = commandsSent[cmd2]
