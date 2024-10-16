@@ -15,24 +15,15 @@ This module downloads data for genome annotation, miRNA, tRNA and piRNA analysis
 import os
 import sys
 import re
-import time
 from io import open
-import shutil
-import concurrent.futures
-import pandas as pd
 from termcolor import colored
 
 ## import my modules
-from HCGB import sampleParser
-from HCGB import functions
-import HCGB.functions.main_functions as HCGB_main
-import HCGB.functions.files_functions as HCGB_files
 import HCGB.functions.aesthetics_functions as HCGB_aes
+import HCGB.functions.files_functions as HCGB_files
+import HCGB.functions.main_functions as HCGB_main
+import HCGB.functions.time_functions as HCGB_time
 
-from XICRA.config import set_config
-from XICRA.modules import help_XICRA
-from XICRA.scripts import generate_DE
-from XICRA.scripts import MINTMap_caller
 
 ##############################################
 def run_db(options):
@@ -49,10 +40,10 @@ def miRNA_db(options):
     Debug = options.debug
     
     options.miRNA_db = os.path.join(options.database, "miRNA_db")
-    functions.files_functions.create_folder(options.miRNA_db)
+    HCGB_files.create_folder(options.miRNA_db)
     
     ## First check if already provided files
-    list_files = functions.main_functions.get_fullpath_list(options.miRNA_db, options.debug)
+    list_files = HCGB_main.get_fullpath_list(options.miRNA_db, options.debug)
     
     ## Check for files from miRBase:
     miRBase_files = ["hsa.gff3", "hairpin.fa", "mature.fa", "miRNA.str"]
@@ -74,8 +65,8 @@ def miRNA_db(options):
             download_data=True
             miRBase_files_dict[file_req] = ""
         else:
-            file_retrieved = functions.main_functions.retrieve_matching_files(options.miRNA_db, file_req, options.debug, starts=False)
-            if functions.files_functions.is_non_zero_file(file_retrieved[0]):
+            file_retrieved = HCGB_main.retrieve_matching_files(options.miRNA_db, file_req, options.debug, starts=False)
+            if HCGB_main.is_non_zero_file(file_retrieved[0]):
                 miRBase_files_dict[file_req] = file_retrieved[0]
             else:
                 miRBase_files_dict[file_req] = ""
@@ -98,7 +89,7 @@ def miRNA_db(options):
         print (colored("\t** Download it form miRBase", 'green'))
         file_name = options.species + ".gff3"
         ftp_site1 = "https://www.mirbase.org/ftp/CURRENT/genomes/" 
-        options.miRNA_gff = functions.main_functions.urllib_request(options.miRNA_db, ftp_site1, file_name, Debug)
+        options.miRNA_gff = HCGB_main.urllib_request(options.miRNA_db, ftp_site1, file_name, Debug)
         
     else:
         if (options.miRNA_gff):
@@ -116,7 +107,7 @@ def miRNA_db(options):
         if Debug:
             print (colored("\t** ATTENTION: No hairpin fasta file provided", 'yellow'))        
         print (colored("\t** Download it form miRBase", 'green'))
-        options.hairpinFasta = functions.main_functions.urllib_request(options.miRNA_db, ftp_site, "hairpin.fa.gz", Debug)
+        options.hairpinFasta = HCGB_main.urllib_request(options.miRNA_db, ftp_site, "hairpin.fa.gz", Debug)
         
     else:
         if (options.hairpinFasta):
@@ -135,7 +126,7 @@ def miRNA_db(options):
         if Debug:
             print (colored("\t** ATTENTION: No mature miRNA fasta file provided", 'yellow'))        
         print (colored("\t** Download it form miRBase", 'green'))
-        options.matureFasta = functions.main_functions.urllib_request(options.miRNA_db, ftp_site, "mature.fa.gz", Debug)
+        options.matureFasta = HCGB_main.urllib_request(options.miRNA_db, ftp_site, "mature.fa.gz", Debug)
 
     else:
         if (options.matureFasta):
@@ -153,7 +144,7 @@ def miRNA_db(options):
         if Debug:
             print (colored("\t** ATTENTION: No miRBase_str file provided", 'yellow'))        
         print (colored("\t** Download it form miRBase", 'green'))
-        options.miRBase_str = functions.main_functions.urllib_request(options.miRNA_db, ftp_site, "miRNA.str.gz", Debug)
+        options.miRBase_str = HCGB_main.urllib_request(options.miRNA_db, ftp_site, "miRNA.str.gz", Debug)
         ## extract
         
     else:
@@ -178,7 +169,7 @@ def tRNA_db(database, debug):
     # We can try to check if it correctly generated...
     ## TODO
     print ("+ Create folder to store several databases: ", database)
-    functions.files_functions.create_folder(database)
+    HCGB_files.create_folder(database)
     
     tRNA_db = os.path.join(database, "tRNA_db")
     if os.path.isdir(tRNA_db):
@@ -188,7 +179,7 @@ def tRNA_db(database, debug):
     
     ## If missing, download them, if all files ok, return!
     print ("+ Create folder to store tRNA information: ", tRNA_db)
-    functions.files_functions.create_folder(tRNA_db)
+    HCGB_files.create_folder(tRNA_db)
     
     
     
@@ -196,7 +187,7 @@ def tRNA_db(database, debug):
     return (tRNA_db)
 
 ##############################################
-def check_tRNA_db(path2test):
+def check_tRNA_db(path2test, debug=False):
     ## Check for
     # LookupTable.tRFs.MINTmap_v2.txt
     # OtherAnnotations.MINTmap_v2.txt
@@ -204,9 +195,9 @@ def check_tRNA_db(path2test):
     # tables.cfg
     
     ## First check if already provided files
-    list_files = functions.main_functions.get_fullpath_list(path2test, debug)
+    list_files = HCGB_main.get_fullpath_list(path2test, debug)
     
-    print()
+    print(list_files)
     return True
 
 ##############################################
@@ -214,16 +205,16 @@ def piRNA_db(database, piRNA_db, debug):
     
     
     print ("+ Create folder to store several databases: ", database)
-    functions.files_functions.create_folder(database)
+    HCGB_files.create_folder(database)
     
     if not piRNA_db:
         piRNA_db = os.path.join(database, "piRNA_db")
     
     print ("+ Create folder to store piRNA information: ", piRNA_db, debug)
-    functions.files_functions.create_folder(piRNA_db)
+    HCGB_files.create_folder(piRNA_db)
     
     ## First check if already provided files
-    list_files = functions.main_functions.get_fullpath_list(piRNA_db, debug)
+    list_files = HCGB_main.get_fullpath_list(piRNA_db, debug)
     
     ## Check for files:
     
@@ -354,7 +345,7 @@ def piRNA_info(database_folder, species_name="hsa", Debug=False):
     
     ## check if previously trimmed and succeeded
     if os.path.isfile(ncRNA_timestamp):
-        stamp = functions.time_functions.read_time_stamp(ncRNA_timestamp)
+        stamp = HCGB_time.read_time_stamp(ncRNA_timestamp)
         print (colored("\tA previous command generated results on: %s [%s]" %(stamp, 'merged ncRNA'), 'yellow'))
     
     else:

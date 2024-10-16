@@ -7,7 +7,8 @@
 Help messages for different scripts, modules
 """
 from termcolor import colored
-from HCGB import functions
+import HCGB.functions.aesthetics_functions as HCGB_aes
+
 
 ###############
 def help_fastq_format():
@@ -15,7 +16,7 @@ def help_fastq_format():
     Explanation of fastq format details.
     """
 
-    functions.aesthetics_functions.boxymcboxface("Name format for samples")
+    HCGB_aes.boxymcboxface("Name format for samples")
 
 
     print ("Format for fastq files can be:\n")
@@ -29,23 +30,23 @@ def help_fastq_format():
     print ("\nThe input file names should be structured considering the following aspects:")
     print ("\n")
 
-    functions.aesthetics_functions.print_sepLine("*",20,"red")
+    HCGB_aes.print_sepLine("*",20,"red")
     print ("Length limitation")
-    functions.aesthetics_functions.print_sepLine("*",20,"red")
+    HCGB_aes.print_sepLine("*",20,"red")
     print ("There is a limitation for the sample ID ('name') of 25 characters.")
     print (colored("** XICRA provides an option to rename samples if necessary: module prep option --rename **", 'yellow'))
     print ("\n")
     
-    functions.aesthetics_functions.print_sepLine("*",15,"red")
+    HCGB_aes.print_sepLine("*",15,"red")
     print ("Extensions:")
-    functions.aesthetics_functions.print_sepLine("*",15,"red")
+    HCGB_aes.print_sepLine("*",15,"red")
     print("The suported extensions are:\n")
     print ("- name_L00x_R2.fastq\tname_L00x_R2.fq\n- name_L00x_R2.fastq.gz\tname_L00x_R2.fq.gz")
     print ("\n")
 
-    functions.aesthetics_functions.print_sepLine("*",20,"red")
+    HCGB_aes.print_sepLine("*",20,"red")
     print ("Single-end files")
-    functions.aesthetics_functions.print_sepLine("*",20,"red")
+    HCGB_aes.print_sepLine("*",20,"red")
     print("It is possible to provide NGS single-end files although some steps of the process could not be accomplished")
     print("using single-end files.\n")    
     print ("- name.fastq.gz")
@@ -54,27 +55,27 @@ def help_fastq_format():
     print (colored('** Use option --single-end in the different XICRA modules. **', 'yellow'))
     print ("\n")
 
-    functions.aesthetics_functions.print_sepLine("*",20,"red")
+    HCGB_aes.print_sepLine("*",20,"red")
     print ("Paired-end files")
-    functions.aesthetics_functions.print_sepLine("*",20,"red")
+    HCGB_aes.print_sepLine("*",20,"red")
     print ("Paired-end files are full supported. The format for these files are:\n")
     print ("- name_1.fastq.gz, name_2.fastq.gz")
     print ("- name_R1.fastq.gz, name_R2.fastq.gz")
     print (colored('** No parameter is needed in to specify this kind of files. **', 'yellow'))
     print ("\n")    
     
-    functions.aesthetics_functions.print_sepLine("*",20,"red")
+    HCGB_aes.print_sepLine("*",20,"red")
     print ("Lane information")
-    functions.aesthetics_functions.print_sepLine("*",20,"red")
+    HCGB_aes.print_sepLine("*",20,"red")
     print("Files might contain lane information (L00x and/or 00x). XICRA")
     print("supports these names as long as follow these examples:")
     print("- name_L00x_R1.fastq.gz, name_L00x_R2.fastq.gz")
     print("- name_L00x_1.fastq.gz, name_L00x_2.fastq.gz")
     print ("\n")
     
-    functions.aesthetics_functions.print_sepLine("*",20,"red")
+    HCGB_aes.print_sepLine("*",20,"red")
     print ("Name extensions")
-    functions.aesthetics_functions.print_sepLine("*",20,"red")
+    HCGB_aes.print_sepLine("*",20,"red")
     print("It can also be the case that the reads of a sample are divided in different files.")
     print("In those cases, the files should contain a name final extension: ")
     print("- name1_L001_R1_001.fastq.gz, name1_L001_R2_001.fastq.gz")
@@ -83,16 +84,16 @@ def help_fastq_format():
     print("- name1_L002_R1_002.fastq.gz, name1_L002_R2_002.fastq.gz")
     print ("\n")
     
-    functions.aesthetics_functions.print_sepLine("*",20,"red")
+    HCGB_aes.print_sepLine("*",20,"red")
     print ("Extra information")
-    functions.aesthetics_functions.print_sepLine("*",20,"red")
+    HCGB_aes.print_sepLine("*",20,"red")
     print("In some cases, files might contain other extra information. In the following example,")
     print("XYZ is the extra information:")
     print("- name1_L001_XYZ_R1_001.fastq.gz, name1_L001_XYZ_R2_001.fastq.gz")
     print("- name1_L001_XYZ_R1_002.fastq.gz, name1_L001_XYZ_R2_002.fastq.gz")
     print ("\n")
     
-    functions.aesthetics_functions.boxymcboxface("Sample identification")
+    HCGB_aes.boxymcboxface("Sample identification")
         
     print ("XICRA will store the names of all the input files. After that, it will identify the samples.")
     print ("It can be the case that more than one file belong to the same sample. In order to pass this information")
@@ -100,9 +101,9 @@ def help_fastq_format():
     print ("input file names:")
     print ("\n")
 
-    functions.aesthetics_functions.print_sepLine("*",55,"red")
+    HCGB_aes.print_sepLine("*",55,"red")
     print ("Option --include_lane:")
-    functions.aesthetics_functions.print_sepLine("*",55,"red")
+    HCGB_aes.print_sepLine("*",55,"red")
     print ("If you want to include lane tags (L00X, 00X) into each  each sample name (differentiate samples considering the lane):")
     print (colored('** Use option --include_lane within each module and the lane tag will also be used to identify samples. **\n', 'yellow'))
     print("However, if you want to consider as a single sample the different lanes, you need to merge the")
@@ -127,9 +128,9 @@ def help_fastq_format():
     print("\t identify one sample, merging all the corresponding files:")
     print("\t - Sample 1: sample1_R1, sample1_R2\n")
     
-    functions.aesthetics_functions.print_sepLine("*",55,"red")
+    HCGB_aes.print_sepLine("*",55,"red")
     print ("Option --include_all:")
-    functions.aesthetics_functions.print_sepLine("*",55,"red")
+    HCGB_aes.print_sepLine("*",55,"red")
     print("In some cases, files might contain other extra information and it is necessary to use all")  
     print("file name to identify samples:")
     print (colored('** If that is the case use --include_all in al modules. **\n', 'yellow'))

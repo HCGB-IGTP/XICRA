@@ -18,7 +18,12 @@ from termcolor import colored
 
 ## import my modules
 from HCGB import sampleParser
-from HCGB import functions
+import HCGB.functions.aesthetics_functions as HCGB_aes
+import HCGB.functions.time_functions as HCGB_time
+import HCGB.functions.files_functions as HCGB_files
+import HCGB.functions.info_functions as HCGB_info
+import HCGB.functions.main_functions as HCGB_main
+
 from XICRA.modules import help_XICRA
 from XICRA.scripts import generate_DE
 from XICRA.scripts import MINTMap_caller
@@ -59,10 +64,10 @@ def run_tRNA(options):
     else:
         options.pair = True
     
-    functions.aesthetics_functions.pipeline_header('XICRA')
-    functions.aesthetics_functions.boxymcboxface("tRNA analysis")
+    HCGB_aes.pipeline_header('XICRA')
+    HCGB_aes.boxymcboxface("tRNA analysis")
     print ("--------- Starting Process ---------")
-    functions.time_functions.print_time()
+    HCGB_time.print_time()
 
     ## absolute path for in & out
     input_dir = os.path.abspath(options.input)
@@ -120,7 +125,7 @@ def run_tRNA(options):
         options.database = os.path.abspath(options.database)
     
     print ("+ Create folder to store results: ", options.database)
-    functions.files_functions.create_folder(options.database)
+    HCGB_files.create_folder(options.database)
     
     ## TODO
     ## use -m option with database provided
@@ -134,14 +139,14 @@ def run_tRNA(options):
     ## generate output folder, if necessary
     if not options.project:
         print ("\n+ Create output folder(s):")
-        functions.files_functions.create_folder(outdir)
+        HCGB_files.create_folder(outdir)
     
     ## for samples
-    outdir_dict = functions.files_functions.outdir_project(outdir, options.project, pd_samples_retrieved, "tRNA", options.debug)
+    outdir_dict = HCGB_files.outdir_project(outdir, options.project, pd_samples_retrieved, "tRNA", options.debug)
     
     ## optimize threads
     name_list = set(pd_samples_retrieved["new_name"].tolist())
-    threads_job = functions.main_functions.optimize_threads(options.threads, len(name_list)) ## threads optimization
+    threads_job = HCGB_main.optimize_threads(options.threads, len(name_list)) ## threads optimization
     max_workers_int = int(options.threads/threads_job)
 
     ## to FIX: MINTmap requires to chdir to folder to create results
@@ -187,8 +192,8 @@ def run_tRNA(options):
     print ("+ Let's summarize all results...")
     
     ## outdir
-    outdir_report = functions.files_functions.create_subfolder("report", outdir)
-    expression_folder = functions.files_functions.create_subfolder("tRNA", outdir_report)
+    outdir_report = HCGB_files.create_subfolder("report", outdir)
+    expression_folder = HCGB_files.create_subfolder("tRNA", outdir_report)
 
     ## debugging messages
     if options.debug:
@@ -213,7 +218,7 @@ def run_tRNA(options):
         generate_DE.generate_DE(results_df, options.debug, expression_folder,  type_analysis="tRNA")
 
     print ("\n*************** Finish *******************")
-    functions.time_functions.timestamp(start_time_total)
+    HCGB_time.timestamp(start_time_total)
     print ("\n+ Exiting tRNA module.")
     return()
 
@@ -225,7 +230,7 @@ def tRNA_analysis(reads, folder, name, threads, soft_list, species, database, De
     for soft in soft_list:
         if (soft == "mintmap"):
             ## create mintmap
-            MINTmap_folder = functions.files_functions.create_subfolder('mintmap', folder)
+            MINTmap_folder = HCGB_files.create_subfolder('mintmap', folder)
             code_success = MINTMap_caller.MINTmap_caller(MINTmap_folder, reads, name, threads, species, database, Debug)   
             
             if not code_success:

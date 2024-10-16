@@ -5,9 +5,6 @@
 ##########################################################
 
 ## useful imports
-import time
-import io
-import os
 import sys
 from termcolor import colored
 from distutils.version import LooseVersion
@@ -21,7 +18,6 @@ from XICRA.config import set_config
 ################
 def run_config(options):
     ## init time
-    start_time_total = time.time()
 
     ## debugging messages
     global Debug
