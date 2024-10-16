@@ -1,32 +1,33 @@
 #!/usr/bin/env python3
 ############################################################
 ## Jose F. Sanchez                                        ##
-## Copyright (C) 2019-2020 Lauro Sumoy Lab, IGTP, Spain   ##
+## Copyright (C) 2019-2024 Lauro Sumoy Lab, IGTP, Spain   ##
 ############################################################
 """
 Create RNA biotype analysis using STAR and featureCounts
 """
 ## import useful modules
 import os
-import sys
-import re
 import time
-from io import open
 import shutil
-import concurrent.futures
-import pandas as pd
 from termcolor import colored
 
 ## import my modules
+from XICRA import __version__ as pipeline_version
 from XICRA.config import set_config
 from XICRA.modules import help_XICRA, map
-from XICRA.scripts import RNAbiotype, multiQC_report, get_length_distribution
+from XICRA.scripts import RNAbiotype, multiQC_report
 from XICRA.other_tools import tools
 
 from HCGB import sampleParser
-from HCGB.functions import fasta_functions, time_functions
-from HCGB.functions import aesthetics_functions, system_call_functions
-from HCGB.functions import files_functions, main_functions
+import HCGB.functions.aesthetics_functions as HCGB_aes
+import HCGB.functions.time_functions as HCGB_time
+import HCGB.functions.files_functions as HCGB_files
+import HCGB.functions.info_functions as HCGB_info
+import HCGB.functions.main_functions as HCGB_main
+import HCGB.functions.system_call_functions as HCGB_system
+
+
 
 ##############################################
 def run_biotype(options):
@@ -77,10 +78,10 @@ def run_biotype(options):
     else:
         options.pair = True
     
-    aesthetics_functions.pipeline_header('XICRA')
-    aesthetics_functions.boxymcboxface("RNA biotype analysis")
+    HCGB_aes.pipeline_header('XICRA')
+    HCGB_aes.boxymcboxface("RNA biotype analysis")
     print ("--------- Starting Process ---------")
-    time_functions.print_time()
+    HCGB_time.print_time()
 
     ## absolute path for in & out
     input_dir = os.path.abspath(options.input)
@@ -130,10 +131,10 @@ def run_biotype(options):
     ## generate output folder, if necessary
     print ("\n+ Create output folder(s):")
     if not options.project:
-        files_functions.create_folder(outdir)
+        HCGB_files.create_folder(outdir)
 
     ## for samples
-    mapping_outdir_dict = files_functions.outdir_project(outdir, options.project, pd_samples_retrieved, "map", options.debug)
+    mapping_outdir_dict = HCGB_files.outdir_project(outdir, options.project, pd_samples_retrieved, "map", options.debug)
     
     ## debug message
     if (Debug):
@@ -141,11 +142,11 @@ def run_biotype(options):
         print (mapping_outdir_dict)
 
     # time stamp
-    start_time_partial = time_functions.timestamp(start_time_total)
+    start_time_partial = HCGB_time.timestamp(start_time_total)
 
     ## optimize threads
     name_list = set(pd_samples_retrieved["new_name"].tolist())
-    threads_job = main_functions.optimize_threads(options.threads, len(name_list)) ## threads optimization
+    threads_job = HCGB_main.optimize_threads(options.threads, len(name_list)) ## threads optimization
     max_workers_int = int(options.threads/threads_job)
     
     ## debug message
@@ -173,10 +174,10 @@ def run_biotype(options):
          print (mapping_results)
     
     # time stamp
-    start_time_partial = time_functions.timestamp(start_time_partial)
+    start_time_partial = HCGB_time.timestamp(start_time_partial)
     
     ## for samples
-    biotype_outdir_dict = files_functions.outdir_project(outdir, options.project, pd_samples_retrieved, "biotype", options.debug)
+    biotype_outdir_dict = HCGB_files.outdir_project(outdir, options.project, pd_samples_retrieved, "biotype", options.debug)
     
     ## debug message
     if (Debug):
@@ -192,13 +193,13 @@ def run_biotype(options):
                                       options.debug, max_workers_int, threads_job, multimapping, options.stranded)
 
     # time stamp
-    start_time_partial = time_functions.timestamp(start_time_partial)
+    start_time_partial = HCGB_time.timestamp(start_time_partial)
     
     if (options.skip_report):
         print ("+ No report generation...")
     else:
         print ("\n+ Generating a report using MultiQC module for featureCount analysis.")
-        outdir_report = files_functions.create_subfolder("report", outdir)
+        outdir_report = HCGB_files.create_subfolder("report", outdir)
 
         ## get subdirs generated and call multiQC report module
         givenList = []
@@ -214,26 +215,27 @@ def run_biotype(options):
             print (my_outdir_list)
             print ("\n")
         
-        featureCount_report = files_functions.create_subfolder("featureCount", outdir_report)
+        featureCount_report = HCGB_files.create_subfolder("featureCount", outdir_report)
         multiQC_report.multiQC_module_call(my_outdir_list, "featureCount", featureCount_report,"-dd 2")
         print ('\n+ A summary HTML report of each sample is generated in folder: %s' %featureCount_report)
 
         ### Summarizing RNA biotype information
-        biotype_report = files_functions.create_subfolder("biotype", outdir_report)
-        single_files_biotype = files_functions.create_subfolder("samples", biotype_report)
+        biotype_report = HCGB_files.create_subfolder("biotype", outdir_report)
+        single_files_biotype = HCGB_files.create_subfolder("samples", biotype_report)
         
         ## results
         dict_files = {}
         
         for samples in biotype_outdir_dict:
             featurecount_file = os.path.join(biotype_outdir_dict[samples], 'featureCount.out.tsv')
-            if files_functions.is_non_zero_file(featurecount_file):
+            if HCGB_files.is_non_zero_file(featurecount_file):
                 dict_files[samples] = featurecount_file
-            ## copy pdf
-            pdf_plot = main_functions.retrieve_matching_files(biotype_outdir_dict[samples], '.pdf', options.debug)
-            if files_functions.is_non_zero_file(pdf_plot[0]):
-                shutil.copy(pdf_plot[0], single_files_biotype)
-        
+            
+                ## copy pdf
+                pdf_plot = HCGB_main.retrieve_matching_files(biotype_outdir_dict[samples], '.pdf', options.debug)
+                if HCGB_files.is_non_zero_file(pdf_plot[0]):
+                    shutil.copy(pdf_plot[0], single_files_biotype)
+            
         ## collapse all information
         all_data = RNAbiotype.generate_matrix(dict_files)
     
@@ -260,17 +262,37 @@ def run_biotype(options):
         
         ##
         print ("+ Create summary plot for all samples")
-        callCode = system_call_functions.system_call(cmd_R_plot)
+        callCode = HCGB_system.system_call(cmd_R_plot)
     
     ## Create length distribution analysis
     ## get_length_distribution.get_length_dist()
     
     ## Add mirtrace analysis and report
-    
-    
-    
+   
     print ("\n*************** Finish *******************")
-    start_time_partial = time_functions.timestamp(start_time_total)
-    print ("\n+ Exiting join module.")
+    start_time_partial = HCGB_time.timestamp(start_time_total)
+ 
+    ## samples information dictionary
+    samples_info = {}
+    samples_frame = pd_samples_retrieved.groupby('new_name')
+    for name_tuple, grouped in samples_frame:
+        #name = name_tuple[0]
+        samples_info[name_tuple] = grouped['sample'].to_list()
+    
+    ## dump information and parameters
+    info_dir = HCGB_files.create_subfolder("info", outdir)
+    print("+ Dumping information and parameters")
+    runInfo = { "module":"biotype", "time":time.time(),
+                "XICRA version":pipeline_version,
+                'mapping_results': mapping_results,
+                'outdir_dict': biotype_outdir_dict,
+                'featureCounts': dict_files}
+    
+    HCGB_info.dump_info_run(info_dir, "biotype", options, runInfo, options.debug)
+    
+    ## dump conda details
+    HCGB_info.dump_info_conda(info_dir, "biotype", package_name="XICRA", debug=options.debug)
+   
+    print ("\n+ Exiting biotype module.")
     return()
 

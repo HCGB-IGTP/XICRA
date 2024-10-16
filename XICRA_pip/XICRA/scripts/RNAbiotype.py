@@ -334,8 +334,7 @@ def RNAbiotype_module_call(samples_dict, output_dict, gtf_file, Debug, max_worke
 	## plot results
 	for name, folder in output_dict.items():
 		RNAbiotypes_stats_file = os.path.join(folder, name + '_RNAbiotype.tsv')
-		if files_functions.is_non_zero_file(RNAbiotypes_stats_file):
-			pie_plot_results(RNAbiotypes_stats_file, name, folder, Debug)
+		if files_functions.is_non_zero_file(RNAbiotypes_stats_file):			pie_plot_results(RNAbiotypes_stats_file, name, folder, Debug)
 			
 	return()
 

@@ -17,8 +17,13 @@ from termcolor import colored
 
 ## import my modules
 from HCGB import sampleParser
-from HCGB import functions
+import HCGB.functions.aesthetics_functions as HCGB_aes
+import HCGB.functions.time_functions as HCGB_time
+import HCGB.functions.files_functions as HCGB_files
+import HCGB.functions.info_functions as HCGB_info
+import HCGB.functions.main_functions as HCGB_main
 
+from XICRA import __version__ as pipeline_version
 from XICRA.modules import help_XICRA
 from XICRA.modules import database
 from XICRA.scripts import generate_DE
@@ -79,10 +84,10 @@ def run_miRNA(options):
     else:
         options.pair = True
     
-    functions.aesthetics_functions.pipeline_header('XICRA')
-    functions.aesthetics_functions.boxymcboxface("miRNA analysis")
+    HCGB_aes.pipeline_header('XICRA')
+    HCGB_aes.boxymcboxface("miRNA analysis")
     print ("--------- Starting Process ---------")
-    functions.time_functions.print_time()
+    HCGB_time.print_time()
 
     ## absolute path for in & out
     input_dir = os.path.abspath(options.input)
@@ -142,7 +147,7 @@ def run_miRNA(options):
         options.database = os.path.abspath(options.database)
     
     print ("+ Create folder to store results: ", options.database)
-    functions.files_functions.create_folder(options.database)
+    HCGB_files.create_folder(options.database)
     
     ## call database module and return options updated
     options = database.miRNA_db(options)    
@@ -153,14 +158,14 @@ def run_miRNA(options):
     ## generate output folder, if necessary
     if not options.project:
         print ("\n+ Create output folder(s):")
-        functions.files_functions.create_folder(outdir)
+        HCGB_files.create_folder(outdir)
     
     ## for samples
-    outdir_dict = functions.files_functions.outdir_project(outdir, options.project, pd_samples_retrieved, "miRNA", options.debug)
+    outdir_dict = HCGB_files.outdir_project(outdir, options.project, pd_samples_retrieved, "miRNA", options.debug)
     
     ## optimize threads
     name_list = set(pd_samples_retrieved["new_name"].tolist())
-    threads_job = functions.main_functions.optimize_threads(options.threads, len(name_list)) ## threads optimization
+    threads_job = HCGB_main.optimize_threads(options.threads, len(name_list)) ## threads optimization
     max_workers_int = int(options.threads/threads_job)
 
     ## debug message
@@ -181,10 +186,10 @@ def run_miRNA(options):
     ## send for each sample
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers_int) as executor:
         commandsSent = { executor.submit(miRNA_analysis, sorted(cluster["sample"].tolist()), 
-                                         outdir_dict[name[0]], name[0], threads_job, options.miRNA_gff,
+                                         outdir_dict[name], name, threads_job, options.miRNA_gff,
                                          options.soft_name, options.matureFasta, options.hairpinFasta, 
                                          options.miRBase_str, options.species, 
-                                         options.miRNA_db, Debug): name[0] for name, cluster in sample_frame }
+                                         options.miRNA_db, Debug): name for name, cluster in sample_frame }
 
         for cmd2 in concurrent.futures.as_completed(commandsSent):
             details = commandsSent[cmd2]
@@ -199,8 +204,8 @@ def run_miRNA(options):
     print ("+ Let's summarize all results...")
     
     ## outdir
-    outdir_report = functions.files_functions.create_subfolder("report", outdir)
-    expression_folder = functions.files_functions.create_subfolder("miRNA", outdir_report)
+    outdir_report = HCGB_files.create_subfolder("report", outdir)
+    expression_folder = HCGB_files.create_subfolder("miRNA", outdir_report)
 
     ## Get results files generated
     
@@ -220,7 +225,29 @@ def run_miRNA(options):
     generate_DE.generate_DE(results_df, options.debug, expression_folder)
 
     print ("\n*************** Finish *******************")
-    functions.time_functions.timestamp(start_time_total)
+    HCGB_time.timestamp(start_time_total)
+    
+    ## samples information dictionary
+    samples_info = {}
+    samples_frame = pd_samples_retrieved.groupby('new_name')
+    for name_tuple, grouped in samples_frame:
+        #name = name_tuple[0]
+        samples_info[name_tuple] = grouped['sample'].to_list()
+    
+    ## dump information and parameters
+    info_dir = HCGB_files.create_subfolder("info", outdir)
+    print("+ Dumping information and parameters")
+    runInfo = { "module":"mirna", "time":time.time(),
+                "XICRA version":pipeline_version,
+                'outdir_dict': outdir_dict,
+                'expression_folder':expression_folder,
+                'results_df': results_df.to_dict()}
+    
+    HCGB_info.dump_info_run(info_dir, "mirna", options, runInfo, options.debug)
+    
+    ## dump conda details
+    HCGB_info.dump_info_conda(info_dir, "mirna", package_name="XICRA", debug=options.debug)
+    
     print ("\n+ Exiting miRNA module.")
     return()
 
@@ -253,7 +280,7 @@ def miRNA_analysis(reads, folder, name, threads, miRNA_gff, soft_list,
     for soft in soft_list:
         if (soft == "sRNAbench"):
             ## create sRNAbench
-            sRNAbench_folder = functions.files_functions.create_subfolder('sRNAbench', folder)
+            sRNAbench_folder = HCGB_files.create_subfolder('sRNAbench', folder)
             code_success = sRNAbench_caller.sRNAbench_caller(reads, sRNAbench_folder, name, threads, species, Debug) ## Any additional sRNAbench parameter?
                 
             if not code_success:
@@ -261,27 +288,27 @@ def miRNA_analysis(reads, folder, name, threads, miRNA_gff, soft_list,
                 return ()
             
             ## create folder for sRNAbench results
-            miRTop_folder = functions.files_functions.create_subfolder("sRNAbench_miRTop", folder)
+            miRTop_folder = HCGB_files.create_subfolder("sRNAbench_miRTop", folder)
             mirtop_caller.miRTop_caller(sRNAbench_folder, miRTop_folder, name, threads, miRNA_gff, hairpinFasta, 'sRNAbench', species, Debug)
             
         ###
         if (soft == "optimir"):
             ## create OptimiR analysis
-            optimir_folder = functions.files_functions.create_subfolder('OptimiR', folder)
+            optimir_folder = HCGB_files.create_subfolder('OptimiR', folder)
             code_success = optimir_caller.optimir_caller(reads, optimir_folder, name, threads, matureFasta, hairpinFasta, miRNA_gff, species, Debug) ## Any additional sRNAbench parameter?
             
             ## create folder for Optimir results
-            miRTop_folder = functions.files_functions.create_subfolder("OptimiR_miRTop", folder)
+            miRTop_folder = HCGB_files.create_subfolder("OptimiR_miRTop", folder)
             mirtop_caller.miRTop_caller(optimir_folder, miRTop_folder, name, threads, miRNA_gff, hairpinFasta, 'optimir', species, Debug)
             
         ###
         if (soft == "miraligner"):
             
             ## create OptimiR analysis
-            miraligner_folder = functions.files_functions.create_subfolder('miraligner', folder)
+            miraligner_folder = HCGB_files.create_subfolder('miraligner', folder)
             code_success = miraligner_caller.miraligner_caller(reads, miraligner_folder, name, threads, database, species, Debug) 
             
             ## create folder for Optimir results
-            miRTop_folder = functions.files_functions.create_subfolder("miraligner_miRTop", folder)
+            miRTop_folder = HCGB_files.create_subfolder("miraligner_miRTop", folder)
             mirtop_caller.miRTop_caller(miraligner_folder, miRTop_folder, name, threads, miRNA_gff, hairpinFasta, 'seqbuster', species, Debug)
             
