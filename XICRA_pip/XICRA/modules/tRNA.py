@@ -21,7 +21,6 @@ from HCGB import sampleParser
 import HCGB.functions.aesthetics_functions as HCGB_aes
 import HCGB.functions.time_functions as HCGB_time
 import HCGB.functions.files_functions as HCGB_files
-import HCGB.functions.info_functions as HCGB_info
 import HCGB.functions.main_functions as HCGB_main
 
 from XICRA.modules import help_XICRA

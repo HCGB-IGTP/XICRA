@@ -7,10 +7,11 @@ XICRA_pip/docs/build/
 XICRA_pip/docs/source/_static
 XICRA_pip/docs/source/_templates
 
-## eclipse
+## eclipse/developer
 .project
 .pydevproject
 .settings/
+XICRA_pip/.spyproject/
 
 ## environment
 XICRA_pip/env/XICRA_env/
