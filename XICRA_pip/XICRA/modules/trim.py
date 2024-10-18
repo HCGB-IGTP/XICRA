@@ -169,9 +169,9 @@ def run_trim(options):
     ## send for each sample
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers_int) as executor:
         commandsSent = { executor.submit(cutadapt_caller.caller, sorted(cluster["sample"].tolist()), 
-                                         outdir_dict[name], name, threads_job, 
+                                         outdir_dict[name[0]], name[0], threads_job, 
                                          options.min_read_len, Debug, 
-                                         adapters_dict, options.extra): name for name, cluster in sample_frame }
+                                         adapters_dict, options.extra): name[0] for name, cluster in sample_frame }
 
         for cmd2 in concurrent.futures.as_completed(commandsSent):
             details = commandsSent[cmd2]
@@ -248,14 +248,14 @@ def run_trim(options):
     samples_info = {}
     samples_frame = pd_samples_retrieved.groupby('new_name')
     for name_tuple, grouped in samples_frame:
-        #name = name_tuple[0]
-        samples_info[name_tuple] = grouped['sample'].to_list()
+        name = name_tuple[0]
+        samples_info[name] = grouped['sample'].to_list()
     
     samples_info_trimmed = {}
     samples_frame_trimmed = pd_samples_retrieved_trimmed.groupby('new_name')
     for name_tuple, grouped in samples_frame_trimmed:
-        #name = name_tuple[0]
-        samples_info_trimmed[name_tuple] = grouped['sample'].to_list()
+        name = name_tuple[0]
+        samples_info_trimmed[name] = grouped['sample'].to_list()
     
     
     ## dump information and parameters

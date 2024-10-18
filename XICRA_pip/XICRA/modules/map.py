@@ -103,9 +103,9 @@ def mapReads_module_STAR(options, pd_samples_retrieved, outdir_dict, Debug,
     ## send for each sample
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers_int) as executor:
         commandsSent = { executor.submit(mapReads_caller_STAR, sorted(cluster["sample"].tolist()), 
-                                         outdir_dict[name], name, threads_job, STAR_exe, 
+                                         outdir_dict[name[0]], name[0], threads_job, STAR_exe, 
                                          options.genomeDir, options.limitRAM, 
-                                         Debug, multimapping): name for name, cluster in sample_frame }
+                                         Debug, multimapping): name[0] for name, cluster in sample_frame }
 
         for cmd2 in concurrent.futures.as_completed(commandsSent):
             details = commandsSent[cmd2]

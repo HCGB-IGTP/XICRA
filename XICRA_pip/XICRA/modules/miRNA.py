@@ -186,10 +186,10 @@ def run_miRNA(options):
     ## send for each sample
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers_int) as executor:
         commandsSent = { executor.submit(miRNA_analysis, sorted(cluster["sample"].tolist()), 
-                                         outdir_dict[name], name, threads_job, options.miRNA_gff,
+                                         outdir_dict[name[0]], name[0], threads_job, options.miRNA_gff,
                                          options.soft_name, options.matureFasta, options.hairpinFasta, 
                                          options.miRBase_str, options.species, 
-                                         options.miRNA_db, Debug): name for name, cluster in sample_frame }
+                                         options.miRNA_db, Debug): name[0] for name, cluster in sample_frame }
 
         for cmd2 in concurrent.futures.as_completed(commandsSent):
             details = commandsSent[cmd2]

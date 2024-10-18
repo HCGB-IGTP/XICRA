@@ -179,8 +179,8 @@ def fastqc(pd_samples_retrieved, outdir, options, name_analysis, time_stamp, Deb
     print ("+ Calling fastqc for samples...")    
     with concurrent.futures.ThreadPoolExecutor(max_workers=int(max_workers_int)) as executor:
         commandsSent = { executor.submit(fastqc_caller.run_module_fastqc, 
-                                         outdir_dict[name], sorted( cluster["sample"].tolist() ), 
-                                         name, threads_job): name for name, cluster in sample_frame }
+                                         outdir_dict[name[0]], sorted( cluster["sample"].tolist() ), 
+                                         name[0], threads_job): name[0] for name, cluster in sample_frame }
         
         for cmd2 in concurrent.futures.as_completed(commandsSent):
             details = commandsSent[cmd2]

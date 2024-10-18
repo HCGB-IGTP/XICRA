@@ -121,8 +121,8 @@ def run_join(options):
     ## send for each sample
     with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers_int) as executor:
         commandsSent = { executor.submit(fastqjoin_caller, sorted(cluster["sample"].tolist()), 
-                                         outdir_dict[name], name, threads_job, options.perc_diff,
-                                         Debug): name for name, cluster in sample_frame }
+                                         outdir_dict[name[0]], name[0], threads_job, options.perc_diff,
+                                         Debug): name[0] for name, cluster in sample_frame }
 
         for cmd2 in concurrent.futures.as_completed(commandsSent):
             details = commandsSent[cmd2]

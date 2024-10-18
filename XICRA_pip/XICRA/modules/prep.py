@@ -10,7 +10,6 @@ Get fastq files and prepare them for other purposes.
 ## import useful modules
 import time
 import os
-import sys
 from io import open
 import shutil
 import pandas as pd
@@ -22,7 +21,6 @@ from XICRA.modules import help_XICRA
 #from HCGB import functions
 import HCGB.functions.aesthetics_functions as HCGB_aes
 import HCGB.functions.time_functions as HCGB_time
-import HCGB.functions.main_functions as HCGB_main
 import HCGB.functions.files_functions as HCGB_files
 import HCGB.functions.info_functions as HCGB_info
 

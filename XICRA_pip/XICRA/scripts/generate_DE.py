@@ -163,9 +163,9 @@ def generate_matrix(dict_files, soft_name, Debug, type_analysis="miRNA"):
 			## UID	Read	miRNA	Variant	iso_5p	iso_3p	iso_add3p	iso_snp	sRNAbench
 	
 			## add NA if any
-			data['Variant'].fillna('NA', inplace=True)
-						
-	
+			data['Variant'] = data['Variant'].fillna('Canonical')
+			
+			
 			## some variants are more complex and are denoted by several variants separated by comma:
 			## e.g. iso_3p:+3,iso_add3p:1
 			
