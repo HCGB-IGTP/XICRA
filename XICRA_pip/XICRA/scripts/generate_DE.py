@@ -162,7 +162,32 @@ def generate_matrix(dict_files, soft_name, Debug, type_analysis="miRNA"):
 			## header of tsv files: 
 			## UID	Read	miRNA	Variant	iso_5p	iso_3p	iso_add3p	iso_snp	sRNAbench
 	
+			## add NA if any
 			data['Variant'].fillna('NA', inplace=True)
+						
+	
+			## some variants are more complex and are denoted by several variants separated by comma:
+			## e.g. iso_3p:+3,iso_add3p:1
+			
+			## These variants be included in different orders generating erroneous duplicated hits later:
+			## e.g.: 
+				## "hsa-miR-383-3p&iso_3p:+3,iso_add3p:1 & iso-22-0JEVN3JBF"
+				## "hsa-miR-383-3p&iso_add3p:1,iso_3p:+3 & iso-22-0JEVN3JBF"
+
+				## "hsa-miR-9500 & iso_add3p:1,iso_snv,iso_3p:+3 & iso-22-DKDERUKIQ"
+				## "hsa-miR-9500 & iso_snv,iso_add3p:1,iso_3p:+3 & iso-22-DKDERUKIQ"
+
+			## let's sort several entries if any and avoid this artifact
+
+			## get variants that contain several types and sort them
+			#print(data[data['Variant'].str.contains(",")])
+			for i, row in data.iterrows():
+				if (',' in row.Variant):
+					list_of_variants = row['Variant'].split(',')
+					list_of_variants.sort()
+					data.at[i,'Variant'] = ",".join(list_of_variants)
+								
+			## create unique_id merging miRNA & variants & UID
 			data['unique_id'] = data.apply(lambda data: data['miRNA'] + '&' + data['Variant'] + '&' + data['UID'], axis=1)
 	
 			## parse according to software

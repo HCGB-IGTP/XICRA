@@ -66,7 +66,7 @@ def miRNA_db(options):
             miRBase_files_dict[file_req] = ""
         else:
             file_retrieved = HCGB_main.retrieve_matching_files(options.miRNA_db, file_req, options.debug, starts=False)
-            if HCGB_main.is_non_zero_file(file_retrieved[0]):
+            if HCGB_files.is_non_zero_file(file_retrieved[0]):
                 miRBase_files_dict[file_req] = file_retrieved[0]
             else:
                 miRBase_files_dict[file_req] = ""
