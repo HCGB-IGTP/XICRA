@@ -1,3 +1,8 @@
+# create first conda recipe for HCGB 
+
+# uplado to jfsanchezherrero channel
+
+
 # adds skeleton for python code
 conda skeleton pypi xicra
 
@@ -6,3 +11,6 @@ conda skeleton pypi xicra
 
 ## build and test recipe
 conda-build --channel bioconda --channel r xicra
+
+## install other dependencies
+conda install -c conda-forge python3.12 matplotlib

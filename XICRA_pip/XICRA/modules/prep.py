@@ -127,10 +127,16 @@ def run_prep(options):
             print (colored("** ERROR: File provided with rename information is not readable.", 'red'))
             print (options.rename)
             exit()
-            
+
+	## in python 3.12 it has changed            
         names_retrieved = pd.read_csv(options.rename, sep=',', 
-                                    index_col=0, squeeze=True, 
-                                    header=None).to_dict() ## read csv to dictionary
+                                    index_col=0, 
+				    #squeeze=True, 
+                                    header=None).squeeze('columns').to_dict() ## read csv to dictionary
+
+
+
+
         if (options.debug):
             print (colored('** DEBUG: names_retrieved', 'yellow'))
             print (names_retrieved)

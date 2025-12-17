@@ -67,13 +67,14 @@ def biotype_all(featureCount_exe, path, gtf_file, bam_file, name, threads, Debug
 				print ("logfile: " + logfile)
 		
 			## send command for feature count
+			## either paired-end or single-end read, the mapped reads are already joined into a single read
 			## Allow multimapping
 			if allow_multimap:
-				cmd_featureCount = ('%s -s %s -M -O -T %s -p -t exon -g transcript_biotype -a %s -o %s %s 2> %s' %(
+				cmd_featureCount = ('%s -s %s -M -O -T %s -t exon -g transcript_biotype -a %s -o %s %s 2> %s' %(
 					featureCount_exe, stranded, threads, gtf_file, out_file, bam_file, logfile)
 				)
 			else:
-				cmd_featureCount = ('%s -s %s --largestOverlap -T %s -p -t exon -g transcript_biotype -a %s -o %s %s 2> %s' %(
+				cmd_featureCount = ('%s -s %s --largestOverlap -T %s -t exon -g transcript_biotype -a %s -o %s %s 2> %s' %(
 					featureCount_exe, stranded, threads, gtf_file, out_file, bam_file, logfile)
 				)
 				
